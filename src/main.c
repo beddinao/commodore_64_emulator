@@ -11,8 +11,8 @@ void	sig_handle(int s) {
 	/// / //		CLEAN
 	pthread_mutex_destroy(&t_data->halt_mutex);
 	pthread_mutex_destroy(&t_data->data_mutex);
-	mlx_delete_image(((_ppu*)t_data->ppu)->mlx_ptr, ((_ppu*)t_data->ppu)->mlx_img);
-	mlx_terminate(((_ppu*)t_data->ppu)->mlx_ptr);
+	mlx_delete_image(((_VIC_II*)t_data->ppu)->mlx_ptr, ((_VIC_II*)t_data->ppu)->mlx_img);
+	mlx_terminate(((_VIC_II*)t_data->ppu)->mlx_ptr);
 	free(t_data->ppu);
 	free(t_data->cpu);
 	free(t_data);
@@ -54,13 +54,13 @@ int	main(int c, char **v) {
 	bus->cpu = mos6502;
 
 	// // //		PPU
-	_ppu	*ppu = malloc(sizeof(_ppu));
+	_VIC_II	*ppu = malloc(sizeof(_VIC_II));
 	if (!ppu) {
 		free(bus);
 		free(mos6502);
 		return 1;
 	}
-	memset(ppu, 0, sizeof(_ppu));
+	memset(ppu, 0, sizeof(_VIC_II));
 	ppu->bus = bus;
 	bus->ppu = ppu;
 	

@@ -10,8 +10,8 @@
 uint8_t	BRK_IMP(_6502* mos6502) {
 	//printf("BRK IMP");
 	mos6502->PC++;
-	uint8_t	brk_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + RAM_SIZE);
-	uint8_t	brk_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + RAM_SIZE + 1);
+	uint8_t	brk_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK);
+	uint8_t	brk_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + 1);
 
 	mos6502->push(mos6502, mos6502->PC >> 8);
 	mos6502->push(mos6502, mos6502->PC & 0x00FF);

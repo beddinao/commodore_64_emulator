@@ -6,7 +6,7 @@ void	close_hook(void *p) {
 }
 
 void	resize_hook(int w, int h, void *p) {
-	_ppu	*ppu = (_ppu*)p;
+	_VIC_II	*ppu = (_VIC_II*)p;
 	ppu->win_height = h;
 	ppu->win_width = w;
 }
@@ -18,7 +18,7 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 }
 
 void	setup_mlx_hooks(void *p) {
-	_ppu	*ppu = (_ppu*)p;
+	_VIC_II	*ppu = (_VIC_II*)p;
 
 	mlx_close_hook(ppu->mlx_ptr, close_hook, ppu);
 	mlx_resize_hook(ppu->mlx_ptr, resize_hook, ppu);
