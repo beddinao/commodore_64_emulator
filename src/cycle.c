@@ -69,7 +69,7 @@ void	*instruction_cycle(void *p) {
 
 
 /*
-   the NES donkey kong ROM unfortunate result
+   Fuck the NES 
 
    D8 CLD (implied)	1byte	set_flag('D', 0)
    78 SEI (implied)	1byte	set_flag('I', 1)
