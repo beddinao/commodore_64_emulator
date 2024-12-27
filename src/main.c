@@ -19,11 +19,7 @@ void	sig_handle(int s) {
 	exit(s);
 }
 
-int	main(int c, char **v) {
-	if (c != 2) {
-		printf("Usage: %s [ROM]\n", v[0]);
-		return 1;
-	}
+int	main() {
 	srand(time(0));
 
 	/// / //		BUS
@@ -34,9 +30,23 @@ int	main(int c, char **v) {
 	bus->reset = bus_init;
 	bus->reset(bus);
 
-	// / ///		ROM
-	if (!bus->load_ROM(bus, v[1])) {
-		printf("failed to load program to memory\n");
+	// / ///		BASIC
+	if (!bus->load_basic(bus)) {
+		printf("failed to load basic:%s\n", BASIC_PATH);
+		free(bus);
+		return 1;
+	}
+
+	/// / //		KERNAL
+	if (!bus->load_kernal(bus)) {
+		printf("failed to load kernal: %s\n", KERNAL_PATH);
+		free(bus);
+		return 1;
+	}
+
+	//// / //		CHARACTERS ROM
+	if (!bus->load_chars(bus)) {
+		printf("failed to load characters ROM: %s\n", CHAR_ROM_PATH);
 		free(bus);
 		return 1;
 	}

@@ -87,6 +87,12 @@
 #define DEFAULT_SCREEN	0x0400  // default screen-memory location
 #define SCREEN_SIZE		0x0400  // 1Kb
 /*
+		ROMS PATHS
+*/
+#define KERNAL_PATH		"./assets/roms/kernal.901227-03.bin"
+#define BASIC_PATH		"./assets/roms/basic.901226-01.bin"
+#define CHAR_ROM_PATH	"./assets/roms/characters.901225-01.bin"
+/*
 		KBYTES UNITS in BYTES
 */
 #define _64KB		0x10000 // 65536
@@ -127,7 +133,9 @@ typedef	struct _bus {
 	uint8_t		(*cpu_read)(struct _bus*, uint16_t);
 	void		(*ppu_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*ppu_read)(struct _bus*, uint16_t);
-	uint8_t		(*load_ROM)(struct _bus*, char*);
+	uint8_t		(*load_basic)(struct _bus*);
+	uint8_t		(*load_kernal)(struct _bus*);
+	uint8_t		(*load_chars)(struct _bus*);
 	void		(*reset)(struct _bus*);
 	//
 	void		*ppu;
