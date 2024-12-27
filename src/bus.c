@@ -24,19 +24,60 @@ void	ppu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	(void)val;
 }
 
-uint8_t	load_ROM(_bus *bus, char *filename) {
-	(void)bus;
+uint8_t	load_basic(_bus *bus) {
 	char buffer[BASIC_ROM_SIZE];
 	unsigned chars_read;
-
-	FILE *file = fopen(filename, "rb");
+	FILE *file = fopen(BASIC_PATH, "rb");
 	if (!file)
 		return 0;
 
 	memset(buffer, 0, sizeof(buffer));
 	chars_read = fread(buffer, 1, BASIC_ROM_SIZE, file);
-	printf("rom: %s\n", buffer);
+	if (!chars_read || chars_read != BASIC_ROM_SIZE) {
+		fclose(file);
+		return 0;
+	}
 
+	memcpy(bus->RAM + BASIC_ROM_START, buffer, BASIC_ROM_SIZE);
+	fclose(file);
+	return 1;
+}
+
+uint8_t	load_kernal(_bus *bus) {
+	char buffer[KERNAL_ROM_SIZE];
+	unsigned chars_read;
+	FILE *file = fopen(KERNAL_PATH, "rb");
+	if (!file)
+		return 0;
+
+	memset(buffer, 0, sizeof(buffer));
+	chars_read = fread(buffer, 1, KERNAL_ROM_SIZE, file);
+	if (!chars_read || chars_read != KERNAL_ROM_SIZE) {
+		fclose(file);
+		return 0;
+	}
+
+	memcpy(bus->RAM + KERNAL_ROM_START, buffer, KERNAL_ROM_SIZE);
+	fclose(file);
+	return 1;
+}
+
+uint8_t	load_chars(_bus *bus) {
+	char buffer[CHAR_ROM_SIZE];
+	unsigned chars_read;
+	FILE *file = fopen(CHAR_ROM_PATH, "rb");
+	if (!file)
+		return 0;
+
+	memset(buffer, 0, sizeof(buffer));
+	chars_read = fread(buffer, 1, CHAR_ROM_SIZE, file);
+	if (!chars_read || chars_read != CHAR_ROM_SIZE) {
+		fclose(file);
+		return 0;
+	}
+
+	memcpy(bus->RAM + UPP_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
+	memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
 	fclose(file);
 	return 1;
 }
@@ -47,6 +88,8 @@ void	bus_init(_bus *bus) {
 	bus->cpu_write = cpu_write_;
 	bus->ppu_read = ppu_read_;
 	bus->ppu_write = ppu_write_;
-	bus->load_ROM = load_ROM;
+	bus->load_kernal = load_kernal;
+	bus->load_basic = load_basic;
+	bus->load_chars = load_chars;
 }
 

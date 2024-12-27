@@ -65,6 +65,8 @@ void	cpu_init(_6502* mos6502) {
 	mos6502->instruction_cycle = instruction_cycle;
 	mos6502->PC = bus->cpu_read(bus, RSTV + 1) << 8 |
 		bus->cpu_read(bus, RSTV);
+	printf("rstv: %04X-%4X, addr: %04X, PC: %04X\n",
+		RSTV, RSTV+1, bus->cpu_read(bus, RSTV + 1) << 0x8 | bus->cpu_read(bus, RSTV), mos6502->PC);
 	mos6502->opcode = 0x0;
 	mos6502->cycles = 0x0;
 	mos6502->SP = 0xFD;
