@@ -5,7 +5,7 @@
 */
 
 void	loop_hook(void *p) {
-	_ppu	*ppu = (_ppu*)p;
+	_VIC_II	*ppu = (_VIC_II*)p;
 	_bus	*bus = ppu->bus;
 	////
 	(void)bus;
