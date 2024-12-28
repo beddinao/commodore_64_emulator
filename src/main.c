@@ -73,9 +73,10 @@ int	main() {
 	memset(ppu, 0, sizeof(_VIC_II));
 	ppu->get_raster = get_raster;
 	ppu->increment_raster = increment_raster;
+	ppu->C64_to_rgb = C64_to_rgb;
 	ppu->bus = bus;
 	bus->ppu = ppu;
-	
+
 	// /// /		THREAD INFO
 	t_data = malloc(sizeof(thread_data));
 	if (!t_data) {
@@ -103,7 +104,7 @@ int	main() {
 		free(t_data);
 		return 1;
 	}
-	draw_bg(ppu, 0x498db8);
+	draw_bg(ppu, 0x0000FFFF);
 
 	/// / //		CYCLE
 	pthread_create(&t_data->worker, NULL, mos6502->instruction_cycle, bus);

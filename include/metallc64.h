@@ -42,7 +42,7 @@
 #define IO_CHAR_START	0xD000  // start of IO/Char-ROM
 #define IO_CHAR_END		0xDFFF  // END of IO/Char-ROM
 
-			/// VIC-II Registers
+			/// VIC-II Registers range
 #define VIC_REG_START	0xD000  // VIC-II registers start
 #define VIC_REG_END		0xD3FF  // VIC-II registers end
 #define VIC_COLOR_START	0xD800  // Color RAM start
@@ -158,14 +158,25 @@
 /*
 		DISPLAY DIMENSIONS
 */
-#define PWIDTH		320     // 45 Chars, 8pixels each
-#define PHEIGHT		200     // 40 chars, 8pixels each
+#define GWIDTH		504     // window width
+#define GHEIGHT		312     // window height
+			        // in PAL System (Phase Alternating Line)
+#define PWIDTH		320     // display window 45 Chars, 8pixels each
+#define PHEIGHT		200     // display window 40 chars, 8pixels each
+#define CWIDTH		40      // characters per line
+#define CHEIGHT		25      // lines per frame
+
+#define DXSTART		(GWIDTH-PWIDTH)/2
+#define DXEND		GWIDTH-DXSTART     
+#define DYSTART		(GHEIGHT-PHEIGHT)/2
+#define DYEND		GHEIGHT-DYSTART
 /*
 		WINDOW DIMENSIONS
 */
-#define WPPDP		1       // window pixels per display
-#define WHEIGHT		200     // mlx42 window height
-#define WWIDTH		320     // mlx42 window width
+#define WPDX		1       // x window pixels per display
+#define WPDY		1       // y window per display
+#define WHEIGHT		312     // mlx42 window height
+#define WWIDTH		504    // mlx42 window width
 #define MHEIGHT		100     // window min height
 #define MWIDTH		100     // window min width
 /*
@@ -229,7 +240,8 @@ typedef	struct _6502 {
 
 typedef	struct VIC_II {
 	uint16_t		(*get_raster)(struct VIC_II*);
-	void		(*increment_raster)(struct VIC_II*);
+	void		(*increment_raster)(struct VIC_II*, uint16_t);
+	uint32_t		(*C64_to_rgb)(uint8_t);
 
 	mlx_t		*mlx_ptr; // MLX42 window
 	mlx_image_t	*mlx_img;
@@ -241,8 +253,9 @@ typedef	struct VIC_II {
 
 /* cycle.c */
 void	*instruction_cycle(void*);
+void	increment_raster(_VIC_II*, uint16_t);
 uint16_t	get_raster(_VIC_II*);
-void	increment_raster(_VIC_II*);
+uint32_t	C64_to_rgb(uint8_t);
 
 /* instructions.c */
 void	load_instructions(_6502*);
@@ -265,5 +278,6 @@ void	sig_handle(int);
 /* draw_utils.c */
 void	draw_bg(_VIC_II*, unsigned);
 void	draw_line(_VIC_II*, int, int, int, int, int);
+void	put_pixel(mlx_image_t *, unsigned, unsigned, uint32_t);
 
 #endif
