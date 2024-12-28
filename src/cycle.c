@@ -1,17 +1,77 @@
 #include "metallc64.h"
 
 uint16_t	get_raster(_VIC_II *ppu) {
-	(void)ppu;
-	return 0;
+	uint8_t cntrl1 = ppu->bus->cpu_read(ppu->bus, CNTRL1);
+	return ((cntrl1 >> 0x7) & 0x1) << 0x8 |
+		ppu->bus->cpu_read(ppu->bus, RASTER);
 }
 
-void	increment_raster(_VIC_II *ppu) {
-	(void)ppu;
+void	increment_raster(_VIC_II *ppu, uint16_t raster) {
+	raster++;
+	if (raster > GHEIGHT)
+		raster = 0;
+	ppu->bus->cpu_write(ppu->bus, RASTER, raster & 0x00FF);
+
+	uint8_t high_byte = (raster >> 0x8) & 0x1;
+	uint8_t cntrl1 = ppu->bus->cpu_read(ppu->bus, CNTRL1);
+	if (high_byte)
+		cntrl1 |= 0x80;
+	else	cntrl1 &= ~0x80;
+	ppu->bus->cpu_write(ppu->bus, CNTRL1, cntrl1);
+}
+
+uint32_t	C64_to_rgb(uint8_t color) {
+	uint32_t c64_colors[16] = {
+		0x000000,
+		0xFFFFFF,
+		0x68372B,
+		0x70A4B2,
+		0x6F3D86,
+		0x588D43,
+		0x352879,
+		0xB8C76F,
+		0x6F4F25,
+		0x433900,
+		0x9A6759,
+		0x444444,
+		0x6C6C6C,
+		0x9AD284,
+		0x6C5EB5,
+		0x959595,
+	};
+	return c64_colors[color & 0xF] << 0x8 | 0xFF;
 }
 
 void	ppu_step(void *p) {
 	_bus	*bus = (_bus*)p;
-	(void)bus;
+	_VIC_II	*ppu = (_VIC_II*)bus->ppu;
+	uint16_t raster = ppu->get_raster(ppu);
+	uint32_t brd_color = ppu->C64_to_rgb(bus->cpu_read(bus, BRD_COLOR)),
+	         bg_color = ppu->C64_to_rgb(bus->cpu_read(bus, BACKG_COLOR0)),
+	         fg_color;
+
+	if (raster < DYSTART || raster >= DYEND) {
+		for (unsigned x = 0; x < GWIDTH; x++)
+			mlx_put_pixel(ppu->mlx_img, x, raster, brd_color);
+	}
+	else {
+		for (unsigned x = 0, row, col; x < GWIDTH; x++) {
+			if (x < DXSTART || x >= DXEND)
+				mlx_put_pixel(ppu->mlx_img, x, raster, brd_color);
+			else {
+				col = (x - DXSTART) / 0x8;
+				row = (raster - DYSTART) / 0x8;
+				fg_color = ppu->C64_to_rgb(bus->cpu_read(bus, VIC_COLOR_START + (row * 40 + col)));
+				uint8_t char_code = bus->cpu_read(bus, DEFAULT_SCREEN + (row * 40 + col));
+				uint8_t pixel_data = bus->cpu_read(bus, LOW_CHAR_ROM_START + (char_code * 0x8) + (raster % 0x8));
+				uint8_t bit_pos = (x - DXSTART) % 0x8;
+				mlx_put_pixel(ppu->mlx_img,
+						x, raster,
+						(pixel_data & (0x80 >> bit_pos)) ? fg_color : bg_color);
+			}
+		}
+	}
+	ppu->increment_raster(ppu, raster);
 }
 
 uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
