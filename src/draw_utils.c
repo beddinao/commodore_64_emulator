@@ -3,8 +3,8 @@
 void	draw_bg(_VIC_II *ppu, unsigned color) {
 	for (unsigned y = 0; y < ppu->win_height; y++)
 		for (unsigned x = 0; x < ppu->win_width; x++)
-			mlx_put_pixel(ppu->mlx_img, x, y, rand() % 2 ? color : 0xFF0000 << 8|0xFF);
-			//mlx_put_pixel(ppu->mlx_img, x, y, color << 8 | 0xFF);
+			//mlx_put_pixel(ppu->mlx_img, x, y, rand() % 2 ? color : 0xFF0000 << 8|0xFF);
+			mlx_put_pixel(ppu->mlx_img, x, y, color << 8 | 0xFF);
 }
 
 void	draw_line(_VIC_II *ppu, int x0, int y0, int x1, int y1, int color) {

@@ -87,6 +87,61 @@
 #define DEFAULT_SCREEN	0x0400  // default screen-memory location
 #define SCREEN_SIZE		0x0400  // 1Kb
 /*
+		VIC-II ALL REGISTERS
+		$D000 - $D3FF
+*/
+#define SPRITE0_X		0xD000  // Sprite #0 X
+#define SPRITE0_Y		0xD001  // Sprite #0 Y
+#define SPRITE1_X		0xD002  // Sprite #1 X
+#define SPRITE1_Y		0xD003  // Sprite #1 Y
+#define SPRITE2_X		0xD004  // Sprite #2 X
+#define SPRITE2_Y		0xD005  // Sprite #2 Y
+#define SPRITE3_X		0xD006  // Sprite #3 X
+#define SPRITE3_Y		0xD007  // Sprite #3 Y
+#define SPRITE4_X		0xD008  // Sprite #4 X
+#define SPRITE4_Y		0xD009  // Sprite #4 Y
+#define SPRITE5_X		0xD00A  // Sprite #5 X
+#define SPRITE5_Y		0xD00B  // Sprite #5 Y
+#define SPRITE6_X		0xD00C  // Sprite #6 X
+#define SPRITE6_Y		0xD00D  // Sprite #6 Y
+#define SPRITE7_X		0xD00E  // Sprite #7 X
+#define SPRITE7_Y		0xD00F  // Sprite #7 Y
+#define MSBS_X		0xD010  // Sprite #0-#7 Xs (bit #8)
+#define CNTRL1		0xD011  // Control Register 1
+#define RASTER		0xD012  // Raster(Scanline) Counter
+#define LIGHT_PEN_X		0xD013  // Light-Pen X-Coordinate
+#define LIGHT_PEN_Y		0xD014  // Light-Pen Y-Coordinate
+#define SPRITES_ON		0xD015  // Sprite Enabled (bit #x == sprite #x)
+#define CNTRL2		0xD016  // Control Register 2
+#define SPRITE_EXP_Y	0xD017  // Sprite Y Expansion
+#define MEM_SETUP		0xD018  // Memory Setup (pointers)
+#define INTR_STATUS		0xD019  // Interrupt status register
+#define INTR_ON		0xD01A  // Interrupt control register
+#define SPRITE_PRT		0xD01B  // Sprite data priority
+#define SPRITE_MULTI_COL	0xD01C  // Sprite multicolor register
+#define SPRITE_EXP_X	0xD01D  // Sprite X Expansion
+#define SPR_SPR_COLL	0xD01E  // Sprite-Sprite Collision
+#define SPR_BACK_COLL	0xD01F  // Sprite-Background Collision
+#define BRD_COLOR		0xD020  // Border Color
+#define BACKG_COLOR0	0xD021  // Background Color 0
+#define BACKG_COLOR1	0xD022  // Background Color 1
+#define BACKG_COLOR2	0xD023  // Background Color 2
+#define BACKG_COLOR3	0xD024  // Background Color 3
+#define SPR_MULTI_COL0	0xD025  // Sprite Multicolor 0
+#define SPR_MULTI_COL1	0xD026  // Sprite Multicolor 1
+#define SPR_CLR_0		0xD027  // Color Sprite 0
+#define SPR_CLR_1		0xD028  // Color Sprite 1
+#define SPR_CLR_2		0xD029  // Color Sprite 2
+#define SPR_CLR_3		0xD02A  // Color Sprite 3
+#define SPR_CLR_4		0xD02B  // Color Sprite 4
+#define SPR_CLR_5		0xD02C  // Color Sprite 5
+#define SPR_CLR_6		0xD02D  // Color Sprite 6
+#define SPR_CLR_7		0xD02E  // Color Sprite 7
+/*
+		$D02F-$D03F 17Bytes: UNUSABLE
+		$D040-$D3FF VIC-II REGISTER IMAGES TODO
+*/
+/*
 		ROMS PATHS
 */
 #define KERNAL_PATH		"./assets/roms/kernal.901227-03.bin"
@@ -103,11 +158,16 @@
 /*
 		DISPLAY DIMENSIONS
 */
-#define DPPWP		1       // display pixels per window pixel
-#define WIN_HEIGHT		240     // mlx42 window height
-#define WIN_WIDTH		256     // mlx42 window width
-#define MIN_HEIGHT		100     // window min height
-#define MIN_WIDTH		100     // window min width
+#define PWIDTH		320     // 45 Chars, 8pixels each
+#define PHEIGHT		200     // 40 chars, 8pixels each
+/*
+		WINDOW DIMENSIONS
+*/
+#define WPPDP		1       // window pixels per display
+#define WHEIGHT		200     // mlx42 window height
+#define WWIDTH		320     // mlx42 window width
+#define MHEIGHT		100     // window min height
+#define MWIDTH		100     // window min width
 /*
 		ANSI CODES
 */
@@ -168,6 +228,8 @@ typedef	struct _6502 {
 }	_6502;
 
 typedef	struct VIC_II {
+	uint16_t		(*get_raster)(struct VIC_II*);
+	void		(*increment_raster)(struct VIC_II*);
 
 	mlx_t		*mlx_ptr; // MLX42 window
 	mlx_image_t	*mlx_img;
@@ -179,6 +241,8 @@ typedef	struct VIC_II {
 
 /* cycle.c */
 void	*instruction_cycle(void*);
+uint16_t	get_raster(_VIC_II*);
+void	increment_raster(_VIC_II*);
 
 /* instructions.c */
 void	load_instructions(_6502*);

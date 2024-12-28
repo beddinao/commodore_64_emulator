@@ -1,13 +1,17 @@
 #include "metallc64.h"
 
+uint16_t	get_raster(_VIC_II *ppu) {
+	(void)ppu;
+	return 0;
+}
+
+void	increment_raster(_VIC_II *ppu) {
+	(void)ppu;
+}
+
 void	ppu_step(void *p) {
 	_bus	*bus = (_bus*)p;
-	_VIC_II	*ppu = (_VIC_II*)bus->ppu;
-	_6502	*cpu = (_6502*)bus->cpu;
-	///
-	(void)cpu;
-	(void)ppu;
-	///
+	(void)bus;
 }
 
 uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
