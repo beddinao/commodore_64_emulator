@@ -63,7 +63,7 @@ int	main() {
 	mos6502->reset(mos6502);
 	bus->cpu = mos6502;
 
-	// // //		PPU
+	// // //		VIC-II
 	_VIC_II	*ppu = malloc(sizeof(_VIC_II));
 	if (!ppu) {
 		free(bus);
@@ -71,6 +71,8 @@ int	main() {
 		return 1;
 	}
 	memset(ppu, 0, sizeof(_VIC_II));
+	ppu->get_raster = get_raster;
+	ppu->increment_raster = increment_raster;
 	ppu->bus = bus;
 	bus->ppu = ppu;
 	
@@ -90,8 +92,8 @@ int	main() {
 	bus->t_data = t_data;
 
 	// / ///		GRAPHIC WINDOW
-	ppu->win_height = WIN_HEIGHT;
-	ppu->win_width = WIN_WIDTH;
+	ppu->win_height = WHEIGHT;
+	ppu->win_width = WWIDTH;
 	ppu->mlx_ptr = mlx_init(ppu->win_width, ppu->win_height, "MetalNES", true);
 	if (!ppu->mlx_ptr
 	|| !(ppu->mlx_img = mlx_new_image(ppu->mlx_ptr, ppu->win_width, ppu->win_height))) {
@@ -101,7 +103,7 @@ int	main() {
 		free(t_data);
 		return 1;
 	}
-	draw_bg(ppu, 0x000000);
+	draw_bg(ppu, 0x498db8);
 
 	/// / //		CYCLE
 	pthread_create(&t_data->worker, NULL, mos6502->instruction_cycle, bus);
@@ -113,7 +115,7 @@ int	main() {
 	
 	//// / //		HOOKS
 	mlx_image_to_window(ppu->mlx_ptr, ppu->mlx_img, 0, 0);
+	mlx_set_window_limit(ppu->mlx_ptr, MWIDTH, MHEIGHT, INT_MAX, INT_MAX);
 	setup_mlx_hooks(ppu);
-	mlx_set_window_limit(ppu->mlx_ptr, MIN_WIDTH, MIN_HEIGHT, INT_MAX, INT_MAX);
 	mlx_loop(ppu->mlx_ptr);
 }
