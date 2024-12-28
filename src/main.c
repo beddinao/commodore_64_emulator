@@ -72,10 +72,12 @@ int	main() {
 	}
 	memset(ppu, 0, sizeof(_VIC_II));
 	ppu->get_raster = get_raster;
-	ppu->increment_raster = increment_raster;
 	ppu->C64_to_rgb = C64_to_rgb;
 	ppu->bus = bus;
 	bus->ppu = ppu;
+
+	/// / //		VIC-II REGISTERS INITIAL STATES
+	
 
 	// /// /		THREAD INFO
 	t_data = malloc(sizeof(thread_data));

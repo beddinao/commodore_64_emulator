@@ -1,10 +1,19 @@
 #include "metallc64.h"
 
 uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
+	if (addr == RASTER)
+		return ((_VIC_II*)bus->ppu)->raster & 0xFF;
+	else if (addr == CNTRL1) {
+		if ((((_VIC_II*)bus->ppu)->raster >> 0x7) & 0x1)
+			return bus->RAM[addr] | 0x1;
+		return bus->RAM[addr] & ~0x1;
+	}
 	return bus->RAM[addr];
 }
 
 void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
+	if (addr == MEM_SETUP||addr == CNTRL1||addr == CNTRL2)
+		printf("write: %04X == %02X\n", addr, val);
 	bus->RAM[addr] = val;
 }
 

@@ -234,13 +234,13 @@ typedef	struct _6502 {
 	uint8_t		opcode;	// last fetched opcode
 	uint8_t		cycles;   // last instr. cycles count
 	uint8_t		nmi_pending;
-				// NMI interrupt flag
+	uint8_t		irq_pending;
+				// interrupt flags
 	_bus		*bus;	// BUS Address
 }	_6502;
 
 typedef	struct VIC_II {
 	uint16_t		(*get_raster)(struct VIC_II*);
-	void		(*increment_raster)(struct VIC_II*, uint16_t);
 	uint32_t		(*C64_to_rgb)(uint8_t);
 
 	mlx_t		*mlx_ptr; // MLX42 window
@@ -248,12 +248,12 @@ typedef	struct VIC_II {
 	unsigned		win_width;
 	unsigned		win_height;
 
+	uint16_t		raster;   // dynamic raster counter
 	_bus		*bus;	// BUS Address
 }	_VIC_II;
 
 /* cycle.c */
 void	*instruction_cycle(void*);
-void	increment_raster(_VIC_II*, uint16_t);
 uint16_t	get_raster(_VIC_II*);
 uint32_t	C64_to_rgb(uint8_t);
 
