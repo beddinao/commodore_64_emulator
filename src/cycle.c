@@ -45,33 +45,63 @@ uint32_t	C64_to_rgb(uint8_t color) {
 void	ppu_step(void *p) {
 	_bus	*bus = (_bus*)p;
 	_VIC_II	*ppu = (_VIC_II*)bus->ppu;
-	uint16_t raster = ppu->get_raster(ppu);
 	uint32_t brd_color = ppu->C64_to_rgb(bus->cpu_read(bus, BRD_COLOR)),
 	         bg_color = ppu->C64_to_rgb(bus->cpu_read(bus, BACKG_COLOR0)),
 	         fg_color;
 
-	if (raster < DYSTART || raster >= DYEND) {
+	if (ppu->raster < DYSTART || ppu->raster >= DYEND) {
 		for (unsigned x = 0; x < GWIDTH; x++)
-			mlx_put_pixel(ppu->mlx_img, x, raster, brd_color);
+			mlx_put_pixel(ppu->mlx_img, x, ppu->raster, brd_color);
 	}
 	else {
 		for (unsigned x = 0, row, col; x < GWIDTH; x++) {
 			if (x < DXSTART || x >= DXEND)
-				mlx_put_pixel(ppu->mlx_img, x, raster, brd_color);
+				mlx_put_pixel(ppu->mlx_img, x, ppu->raster, brd_color);
 			else {
 				col = (x - DXSTART) / 0x8;
-				row = (raster - DYSTART) / 0x8;
+				row = (ppu->raster - DYSTART) / 0x8;
 				fg_color = ppu->C64_to_rgb(bus->cpu_read(bus, VIC_COLOR_START + (row * 40 + col)));
 				uint8_t char_code = bus->cpu_read(bus, DEFAULT_SCREEN + (row * 40 + col));
-				uint8_t pixel_data = bus->cpu_read(bus, LOW_CHAR_ROM_START + (char_code * 0x8) + (raster % 0x8));
+				uint8_t pixel_data = bus->cpu_read(bus, LOW_CHAR_ROM_START + (char_code * 0x8) + (ppu->raster % 0x8));
 				uint8_t bit_pos = (x - DXSTART) % 0x8;
 				mlx_put_pixel(ppu->mlx_img,
-						x, raster,
+						x, ppu->raster,
 						(pixel_data & (0x80 >> bit_pos)) ? fg_color : bg_color);
 			}
 		}
 	}
-	ppu->increment_raster(ppu, raster);
+	ppu->raster++;
+	if (ppu->raster == ppu->get_raster(ppu)) {
+		uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS),
+		        _D01A = bus->cpu_read(bus, INTR_ON);
+		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);
+		if (_D01A & 0x1 && !((_6502*)bus->cpu)->get_flag((_6502*)bus->cpu, 'I')) {
+			((_6502*)bus->cpu)->irq_pending = 1;
+		}
+	}
+	if (ppu->raster > GHEIGHT)
+		ppu->raster = 0;
+}
+
+uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
+	if (mos6502->irq_pending) {
+		uint8_t irq_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK);
+		uint8_t irq_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + 1);
+		//uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS);
+		
+		bus->cpu_write(bus, INTR_STATUS, 0x1);
+
+		mos6502->push(mos6502, mos6502->PC >> 8);
+		mos6502->push(mos6502, mos6502->PC & 0x00FF);
+		mos6502->set_flag(mos6502, 'B', 1);
+		mos6502->push(mos6502, mos6502->SR);
+		mos6502->set_flag(mos6502, 'I', 1);
+
+		mos6502->PC = irq_vector_high << 8 | irq_vector_low;
+		mos6502->irq_pending = 0;
+		return 7;
+	}
+	return 0;
 }
 
 uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
@@ -105,6 +135,19 @@ void	*instruction_cycle(void *p) {
 	_bus	*bus = (_bus*)p;
 	_6502	*mos6502 = (_6502*)bus->cpu;
 
+	/*bus->cpu_write(bus, MEM_SETUP, 0x15); // %00010101
+	bus->cpu_write(bus, CNTRL1, 0x1B); // %00011011
+	bus->cpu_write(bus, CNTRL2, 0x08);
+
+	bus->cpu_write(bus, BRD_COLOR, 0xf);
+	bus->cpu_write(bus, BACKG_COLOR0, 0);
+
+	bus->cpu_write(bus, RASTER, 251);
+	bus->cpu_write(bus, INTR_ON, 0x01);
+	bus->cpu_write(bus, INTR_STATUS, 0x0F);
+
+	bus->cpu_write(bus, 0xDD00, 0x3);*/
+
 	while (1) {
 		if (mos6502->cycles) {
 			mos6502->cycles--;
@@ -118,6 +161,7 @@ void	*instruction_cycle(void *p) {
 
 		//	INTERRUPTS
 		mos6502->cycles = NMI_interrupt(bus, mos6502);
+		mos6502->cycles = IRQ_interrupt(bus, mos6502);
 
 		//	CPU
 		mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
