@@ -42,11 +42,11 @@ uint32_t	C64_to_rgb(uint8_t color) {
 	return c64_colors[color & 0xF] << 0x8 | 0xFF;
 }
 
-void	ppu_step(void *p) {
-	_bus	*bus = (_bus*)p;
-	_VIC_II	*ppu = (_VIC_II*)bus->ppu;
+uint8_t	ppu_step(void *p) {
+	_VIC_II	*ppu = (_VIC_II*)p;
+	_bus	*bus = (_bus*)ppu->bus;
 	uint32_t brd_color = ppu->C64_to_rgb(bus->cpu_read(bus, BRD_COLOR)),
-	         bg_color = ppu->C64_to_rgb(bus->cpu_read(bus, BACKG_COLOR0)),
+	         bg_color = ppu->C64_to_rgb(bus->cpu_read(bus, BACKG_COLOR0)), t_bg_color,
 	         fg_color;
 
 	if (ppu->raster < DYSTART || ppu->raster >= DYEND) {
@@ -60,36 +60,84 @@ void	ppu_step(void *p) {
 			else {
 				col = (x - DXSTART) / 0x8;
 				row = (ppu->raster - DYSTART) / 0x8;
-				fg_color = ppu->C64_to_rgb(bus->cpu_read(bus, VIC_COLOR_START + (row * 40 + col)));
-				uint8_t char_code = bus->cpu_read(bus, DEFAULT_SCREEN + (row * 40 + col));
-				uint8_t pixel_data = bus->cpu_read(bus, LOW_CHAR_ROM_START + (char_code * 0x8) + (ppu->raster % 0x8));
-				uint8_t bit_pos = (x - DXSTART) % 0x8;
-				mlx_put_pixel(ppu->mlx_img,
-						x, ppu->raster,
-						(pixel_data & (0x80 >> bit_pos)) ? fg_color : bg_color);
+				if ((bus->cpu_read(bus, CNTRL1) >> 0x5) & 0x1) {
+					uint8_t byte_offset = (row * 320) + (col * 8) + (ppu->raster % 8);
+					uint8_t bitmap_data = bus->ppu_read(bus, ppu->bitmap_ram + byte_offset);
+					uint8_t color_data = bus->ppu_read(bus, ppu->screen_ram + (row * 40 + col));
+					uint8_t bit_pos = (x - DXSTART) % 0x8;
+					if (bitmap_data & (0x80 >> bit_pos))
+						fg_color = ppu->C64_to_rgb(color_data >> 0x4);
+					else	fg_color = ppu->C64_to_rgb(color_data & 0xF);
+					mlx_put_pixel(ppu->mlx_img, x, ppu->raster, fg_color);
+				}
+				else {
+					fg_color = ppu->C64_to_rgb(bus->ppu_read(bus, VIC_COLOR_START + (row * 40 + col)));
+					uint8_t char_code = bus->ppu_read(bus, ppu->screen_ram + (row * 40 + col));
+					uint8_t pixel_data = bus->ppu_read(bus, ppu->char_ram + (char_code * 0x8) + (ppu->raster % 0x8));
+					uint8_t bit_pos = (x - DXSTART) % 0x8;
+					if ((bus->cpu_read(bus, CNTRL1) >> 0x6) & 0x1) {
+						uint8_t bg_index = (char_code >> 0x6) & 0x3;
+						t_bg_color = ppu->C64_to_rgb(bus->cpu_read(bus, BACKG_COLOR2 + bg_index));
+					}
+					else	t_bg_color = bg_color;
+					mlx_put_pixel(ppu->mlx_img, x, ppu->raster, (pixel_data & (0x80 >> bit_pos)) ? fg_color : t_bg_color);
+				}
 			}
 		}
 	}
 	ppu->raster++;
 	if (ppu->raster == ppu->get_raster(ppu)) {
-		uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS),
-		        _D01A = bus->cpu_read(bus, INTR_ON);
+		uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS);
 		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);
-		if (_D01A & 0x1 && !((_6502*)bus->cpu)->get_flag((_6502*)bus->cpu, 'I')) {
+		if ((bus->cpu_read(bus, INTR_ON) & 0x1) && !((_6502*)bus->cpu)->get_flag((_6502*)bus->cpu, 'I')) {
 			((_6502*)bus->cpu)->irq_pending = 1;
 		}
 	}
-	if (ppu->raster > GHEIGHT)
+	if (ppu->raster > GHEIGHT) 
 		ppu->raster = 0;
+	////
+	_CIA*	cia1 = (_CIA*)bus->cia1;
+	if (cia1->timerA_ctrl & 0x1) {
+		cia1->timerA -= cia1->timerA ? 1 : 0;
+		if (!cia1->timerA && (cia1->timerA_ctrl >> 0x3) & 0x1) {
+			cia1->timerA = cia1->latchA_high << 0x8 | cia1->latchA_low;
+			cia1->intr_ctrl |= 0x1;
+		}
+	}
+	if (cia1->timerB_ctrl & 0x1) {
+		cia1->timerB -= cia1->timerB ? 1 : 0;
+		if (!cia1->timerB && (cia1->timerB_ctrl >> 0x3) & 0x1) {
+			cia1->timerB = cia1->latchB_high << 0x8 | cia1->latchB_low;
+			cia1->intr_ctrl |= 0x2;
+		}
+	}
+
+	_CIA*	cia2 = (_CIA*)bus->cia2;
+	if (cia2->timerA_ctrl & 0x1) {
+		cia2->timerA -= cia1->timerA ? 1 : 0;
+		if (!cia2->timerA && (cia2->timerA_ctrl >> 0x3) & 0x1) {
+			cia2->timerA = cia2->latchA_high << 0x8 | cia2->latchA_low;
+			cia2->intr_ctrl |= 0x1;
+		}
+	}
+	if (cia2->timerB_ctrl & 0x1) {
+		cia2->timerB -= cia2->timerB ? 1 : 0;
+		if (!cia2->timerB && (cia2->timerB_ctrl >> 0x3) & 0x1) {
+			cia2->timerB = cia2->latchB_high << 0x8 | cia2->latchB_low;
+			cia2->intr_ctrl |= 0x2;
+		}
+	}
+	return 7;
 }
 
 uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 	if (mos6502->irq_pending) {
+		printf("irq_interrupt\n");
 		uint8_t irq_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK);
 		uint8_t irq_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + 1);
-		//uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS);
+		uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS);
 		
-		bus->cpu_write(bus, INTR_STATUS, 0x1);
+		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);
 
 		mos6502->push(mos6502, mos6502->PC >> 8);
 		mos6502->push(mos6502, mos6502->PC & 0x00FF);
@@ -106,6 +154,7 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 
 uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
 	if (mos6502->nmi_pending) {
+		printf("nmi_interrupt\n");
 		uint8_t	status;
 		uint16_t	nmi_vector_low, nmi_vector_high;
 
@@ -134,41 +183,31 @@ uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
 void	*instruction_cycle(void *p) {
 	_bus	*bus = (_bus*)p;
 	_6502	*mos6502 = (_6502*)bus->cpu;
-
-	/*bus->cpu_write(bus, MEM_SETUP, 0x15); // %00010101
-	bus->cpu_write(bus, CNTRL1, 0x1B); // %00011011
-	bus->cpu_write(bus, CNTRL2, 0x08);
-
-	bus->cpu_write(bus, BRD_COLOR, 0xf);
-	bus->cpu_write(bus, BACKG_COLOR0, 0);
-
-	bus->cpu_write(bus, RASTER, 251);
-	bus->cpu_write(bus, INTR_ON, 0x01);
-	bus->cpu_write(bus, INTR_STATUS, 0x0F);
-
-	bus->cpu_write(bus, 0xDD00, 0x3);*/
+	_VIC_II	*ppu = (_VIC_II*)bus->ppu;
 
 	while (1) {
-		if (mos6502->cycles) {
-			mos6502->cycles--;
-			continue;
-		}
 		//	Sync
 		pthread_mutex_lock(&bus->t_data->halt_mutex);
 		if (bus->t_data->halt)
 			break;
 		pthread_mutex_unlock(&bus->t_data->halt_mutex);
 
-		//	INTERRUPTS
-		mos6502->cycles = NMI_interrupt(bus, mos6502);
-		mos6502->cycles = IRQ_interrupt(bus, mos6502);
+		if (mos6502->cycles) {
+			mos6502->cycles--;
+			continue;
+		}
 
 		//	CPU
 		mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
 		mos6502->cycles = mos6502->opcodes[mos6502->opcode](mos6502);
 
 		//	PPU
-		ppu_step(bus);
+		mos6502->cycles += ppu_step(ppu);
+			// always 7 === 63 / 8(VIC cycles to CPU cycles)
+
+		//	INTERRUPTS
+		mos6502->cycles += NMI_interrupt(bus, mos6502); // 7 if set
+		mos6502->cycles += IRQ_interrupt(bus, mos6502); // 7 if set
 	}
 	pthread_mutex_unlock(&bus->t_data->halt_mutex);
 	printf("second thread: i died\n");
@@ -220,6 +259,10 @@ void	*instruction_cycle(void *p) {
    20 JSR (absolute)	3bytes	Jump to New Location Saving Return Address
    17 illegal
    03 illegal
+		printf("%04X  %02X %02X %02X  ",
+			mos6502->PC, mos6502->opcode, bus->cpu_read(bus, mos6502->PC+1), bus->cpu_read(bus, mos6502->PC+2));
+		printf("\tA:%02X X:%02X Y:%02X P:%02X SP:%02X\t",
+			mos6502->A, mos6502->X, mos6502->Y, mos6502->SR, mos6502->SP);
 
 */
 
