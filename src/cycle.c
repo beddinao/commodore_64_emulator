@@ -95,38 +95,6 @@ uint8_t	ppu_step(void *p) {
 	}
 	if (ppu->raster > GHEIGHT) 
 		ppu->raster = 0;
-	////
-	_CIA*	cia1 = (_CIA*)bus->cia1;
-	if (cia1->timerA_ctrl & 0x1) {
-		cia1->timerA -= cia1->timerA ? 1 : 0;
-		if (!cia1->timerA && (cia1->timerA_ctrl >> 0x3) & 0x1) {
-			cia1->timerA = cia1->latchA_high << 0x8 | cia1->latchA_low;
-			cia1->intr_ctrl |= 0x1;
-		}
-	}
-	if (cia1->timerB_ctrl & 0x1) {
-		cia1->timerB -= cia1->timerB ? 1 : 0;
-		if (!cia1->timerB && (cia1->timerB_ctrl >> 0x3) & 0x1) {
-			cia1->timerB = cia1->latchB_high << 0x8 | cia1->latchB_low;
-			cia1->intr_ctrl |= 0x2;
-		}
-	}
-
-	_CIA*	cia2 = (_CIA*)bus->cia2;
-	if (cia2->timerA_ctrl & 0x1) {
-		cia2->timerA -= cia1->timerA ? 1 : 0;
-		if (!cia2->timerA && (cia2->timerA_ctrl >> 0x3) & 0x1) {
-			cia2->timerA = cia2->latchA_high << 0x8 | cia2->latchA_low;
-			cia2->intr_ctrl |= 0x1;
-		}
-	}
-	if (cia2->timerB_ctrl & 0x1) {
-		cia2->timerB -= cia2->timerB ? 1 : 0;
-		if (!cia2->timerB && (cia2->timerB_ctrl >> 0x3) & 0x1) {
-			cia2->timerB = cia2->latchB_high << 0x8 | cia2->latchB_low;
-			cia2->intr_ctrl |= 0x2;
-		}
-	}
 	return 7;
 }
 
@@ -178,6 +146,11 @@ uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
 	return 0;
 }
 
+void	handle_cia_timers(_bus *bus, _CIA *CIA) {
+	(void)bus;
+	(void)CIA;
+}
+
 // /// /	CYCLE	1ppu-step = 1cpu-step
 
 void	*instruction_cycle(void *p) {
@@ -192,6 +165,10 @@ void	*instruction_cycle(void *p) {
 			break;
 		pthread_mutex_unlock(&bus->t_data->halt_mutex);
 
+		//	CIAs
+		handle_cia_timers(bus, bus->cia1);
+		handle_cia_timers(bus, bus->cia2);
+	
 		if (mos6502->cycles) {
 			mos6502->cycles--;
 			continue;

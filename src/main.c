@@ -95,6 +95,8 @@ int	main() {
 	memset(CIA2, 0, sizeof(_CIA));
 	bus->cia1 = CIA1;
 	bus->cia2 = CIA2;
+	CIA1->high_addr = 0xDC;
+	CIA2->high_addr = 0xDD;
 
 	// /// /		THREAD INFO
 	t_data = malloc(sizeof(thread_data));

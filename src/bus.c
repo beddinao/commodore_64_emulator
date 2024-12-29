@@ -1,6 +1,22 @@
 #include "metallc64.h"
 
 uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
+	
+	if (addr == 0xDC04)	printf("read CIA#1 TIMER A LOW %04X\n", addr);
+	if (addr == 0xDC05)	printf("read CIA#1 TIMER A HIGH %04X\n", addr);
+	if (addr == 0xDC06)	printf("read CIA#1 TIMER B LOW %04X\n", addr);
+	if (addr == 0xDC07)	printf("read CIA#1 TIMER B HIGH %04X\n", addr);
+	if (addr == 0xDD04)	printf("read CIA#2 TIMER A LOW %04X\n", addr);
+	if (addr == 0xDD05)	printf("read CIA#2 TIMER A HIGH %04X\n", addr);
+	if (addr == 0xDD06)	printf("read CIA#2 TIMER B LOW %04X\n", addr);
+	if (addr == 0xDD04)	printf("read CIA#2 TIMER A LOW %04X\n", addr);
+	if (addr == 0xDC0D)	printf("read CIA#1 CTRL REG %04X\n", addr);
+	if (addr == 0xDC0E)	printf("read CIA#1 TIMER A CTRL %04X\n", addr);
+	if (addr == 0xDC0F)	printf("read CIA#1 TIMER B CTRL %04X\n", addr);
+	if (addr == 0xDD0D)	printf("read CIA#2 CTRL REG %04X\n", addr);
+	if (addr == 0xDD0E)	printf("read CIA#2 TIMER A CTRL %04X\n", addr);
+	if (addr == 0xDD0F)	printf("read CIA#2 TIMER B CTRL %04X\n", addr);
+
 	switch (addr) {
 		case RASTER:
 			return ((_VIC_II*)bus->ppu)->raster & 0xFF;
@@ -9,15 +25,15 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 				return bus->RAM[addr] | 0x1;
 			return bus->RAM[addr] & ~0x1;
 
-		case (0xDC << 0x8 | TIMERA_LOW):	return ((_CIA*)bus->cia1)->timerA & 0xFF;
-		case (0xDC << 0x8 | TIMERA_HIGH):	return (((_CIA*)bus->cia1)->timerA >> 0x8) & 0xFF;
-		case (0xDC << 0x8 | TIMERB_LOW):	return ((_CIA*)bus->cia1)->timerB & 0xFF;
-		case (0xDC << 0x8 | TIMERB_HIGH):	return (((_CIA*)bus->cia1)->timerB >> 0x8) & 0xFF;
+		case 0xDC04: /* CIA#1 TIMER A LOW BYTE  */ return ((_CIA*)bus->cia1)->timerA & 0xFF;
+		case 0xDC05: /* CIA#1 TIMER A HIGH BYTE */ return (((_CIA*)bus->cia1)->timerA >> 0x8) & 0xFF;
+		case 0xDC06: /* CIA#1 TIMER B LOW BYTE  */ return ((_CIA*)bus->cia1)->timerB & 0xFF;
+		case 0xDC07: /* CIA#1 TIMER B HIGH BYTE */ return (((_CIA*)bus->cia1)->timerB >> 0x8) & 0xFF;
 
-		case (0xDD << 0x8 | TIMERA_LOW):	return ((_CIA*)bus->cia2)->timerA & 0xFF;
-		case (0xDD << 0x8 | TIMERA_HIGH):	return (((_CIA*)bus->cia2)->timerA >> 0x8) & 0xFF;
-		case (0xDD << 0x8 | TIMERB_LOW):	return ((_CIA*)bus->cia2)->timerB & 0xFF;
-		case (0xDD << 0x8 | TIMERB_HIGH):	return (((_CIA*)bus->cia2)->timerB >> 0x8) & 0xFF;
+		case 0xDD04: /* CIA#2 TIMER A LOW BYTE  */ return ((_CIA*)bus->cia2)->timerA & 0xFF;
+		case 0xDD05: /* CIA#2 TIMER A HIGH BYTE */ return (((_CIA*)bus->cia2)->timerA >> 0x8) & 0xFF;
+		case 0xDD06: /* CIA#2 TIMER B LOW BYTE  */ return ((_CIA*)bus->cia2)->timerB & 0xFF;
+		case 0xDD07: /* CIA#2 TIMER B HIGH BYTE */ return (((_CIA*)bus->cia2)->timerB >> 0x8) & 0xFF;
 
 		default:	return bus->RAM[addr];
 	}
@@ -25,6 +41,19 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 
 void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_VIC_II *ppu = (_VIC_II*)bus->ppu;
+
+	if (addr == 0xDC0D) printf("write CIA#1 CTRL %04X: %02X\n", addr, val);
+	if (addr == 0xDD0D) printf("write CIA#2 CTRL %04X: %02X\n", addr, val);
+	if (addr == 0xDC0E) printf("write CIA#1 TIMER A CTRL %04X: %02X\n", addr, val);
+	if (addr == 0xDD0E) printf("write CIA#2 TIMER A CTRL %04X: %02X\n", addr, val);
+	if (addr == 0xDC04)	printf("write CIA#1 TIMER A LOW %04X: %02X\n", addr, val);
+	if (addr == 0xDC05)	printf("write CIA#1 TIMER A HIGH %04X: %02X\n", addr, val);
+	if (addr == 0xDC06)	printf("write CIA#1 TIMER B LOW %04X: %02X\n", addr, val);
+	if (addr == 0xDC07)	printf("write CIA#1 TIMER B HIGH %04X: %02X\n", addr, val);
+	if (addr == 0xDD04)	printf("write CIA#2 TIMER A LOW %04X: %02X\n", addr, val);
+	if (addr == 0xDD05)	printf("write CIA#2 TIMER A HIGH %04X: %02X\n", addr, val);
+	if (addr == 0xDD06)	printf("write CIA#2 TIMER B LOW %04X: %02X\n", addr, val);
+	if (addr == 0xDD07)	printf("write CIA#2 TIMER B HIGH %04X: %02X\n", addr, val);
 
 	switch (addr) {
 		case MEM_SETUP: // D018
@@ -70,40 +99,26 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 				default:	break;
 			}
 			break;
-		case (0xDC << 0x8 | TIMERA_LOW):	((_CIA*)bus->cia1)->latchA_low = val; break;
-		case (0xDC << 0x8 | TIMERB_LOW):	((_CIA*)bus->cia1)->latchB_low = val; break;
-		case (0xDD << 0x8 | TIMERA_LOW):	((_CIA*)bus->cia2)->latchA_low = val; break;
-		case (0xDD << 0x8 | TIMERB_LOW):	((_CIA*)bus->cia2)->latchB_low = val; break;
-		case (0xDC << 0x8 | TIMERA_HIGH):
-					((_CIA*)bus->cia1)->latchA_high = val;
-					if (!((_CIA*)bus->cia1)->timerA)
-						((_CIA*)bus->cia1)->timerA = ((_CIA*)bus->cia1)->latchA_high << 0x8 |
-							((_CIA*)bus->cia1)->latchA_low;
-					break;
-		case (0xDC << 0x8 | TIMERB_HIGH):
-					((_CIA*)bus->cia1)->latchB_high = val;
-					if (!((_CIA*)bus->cia1)->timerB)
-						((_CIA*)bus->cia1)->timerB = ((_CIA*)bus->cia1)->latchB_high << 0x8 |
-							((_CIA*)bus->cia1)->latchB_low;
-					break;
-		case (0xDD << 0x8 | TIMERA_HIGH):
-					((_CIA*)bus->cia2)->latchA_high = val;
-					if (!((_CIA*)bus->cia2)->timerA)
-						((_CIA*)bus->cia2)->timerA = ((_CIA*)bus->cia2)->latchA_high << 0x8 |
-							((_CIA*)bus->cia2)->latchA_low;
-					break;
-		case (0xDD << 0x8 | TIMERB_HIGH):
-					((_CIA*)bus->cia2)->latchB_high = val;
-					if (!((_CIA*)bus->cia2)->timerB)
-						((_CIA*)bus->cia2)->timerB = ((_CIA*)bus->cia2)->latchB_high << 0x8 |
-							((_CIA*)bus->cia2)->latchB_low;
-					break;
-		case (0xDC << 0x8 | TIMERA_CNTRL): ((_CIA*)bus->cia1)->timerA_ctrl = val; break;
-		case (0xDC << 0x8 | TIMERB_CNTRL): ((_CIA*)bus->cia1)->timerB_ctrl = val; break;
-		case (0xDD << 0x8 | TIMERA_CNTRL): ((_CIA*)bus->cia2)->timerA_ctrl = val; break;
-		case (0xDD << 0x8 | TIMERB_CNTRL): ((_CIA*)bus->cia2)->timerB_ctrl = val; break;
-		case (0xDC << 0x8 | CIA_CNTRL): ((_CIA*)bus->cia1)->intr_ctrl = val; break;
-		case (0xDD << 0x8 | CIA_CNTRL): ((_CIA*)bus->cia2)->intr_ctrl = val; break;
+
+		case 0xDC04: /* CIA#1 TA LOW BYTE */ ((_CIA*)bus->cia1)->latchA_low = val; break;
+		case 0xDC06: /* CIA#1 TB LOW BYTE */ ((_CIA*)bus->cia1)->latchB_low = val; break;
+		case 0xDD04: /* CIA#2 TA LOW BYTE */ ((_CIA*)bus->cia2)->latchA_low = val; break;
+		case 0xDD06: /* CIA#2 TB LOW BYTE */ ((_CIA*)bus->cia2)->latchB_low = val; break;
+
+		case 0xDC05: /* CIA#1 TA HIGH BYTE */ ((_CIA*)bus->cia1)->latchA_high = val; break;
+		case 0xDC07: /* CIA#1 TB HIGH BYTE */ ((_CIA*)bus->cia1)->latchB_high = val; break;
+		case 0xDD05: /* CIA#2 TA HIGH BYTE */ ((_CIA*)bus->cia2)->latchA_high = val; break;
+		case 0xDD07: /* CIA#2 TB HIGH BYTE */ ((_CIA*)bus->cia2)->latchB_high = val; break;
+
+		case 0xDC0E: /* CIA#1 TA CONTROL */ ((_CIA*)bus->cia1)->timerA_ctrl = val; break;
+		case 0xDC0F: /* CIA#1 TB CONTROL */ ((_CIA*)bus->cia1)->timerB_ctrl = val; break;
+
+		case 0xDD0E: /* CIA#2 TA CONTROL */ ((_CIA*)bus->cia2)->timerA_ctrl = val; break;
+		case 0xDD0F: /* CIA#2 TB CONTROL */ ((_CIA*)bus->cia2)->timerB_ctrl = val; break;
+
+		case 0xDC0D: /* CIA#1 CONTROL */ ((_CIA*)bus->cia1)->intr_ctrl = val; break;
+		case 0xDD0D: /* CIA#2 CONTROL */ ((_CIA*)bus->cia2)->intr_ctrl = val; break;
+
 		default: break;
 	}
 	bus->RAM[addr] = val;
