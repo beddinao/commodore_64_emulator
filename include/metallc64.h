@@ -73,10 +73,10 @@
 */
 #define VIC_BANK_SIZE	0x4000
 			/// VIC BANKS, by CIA2 bits 0-1
-#define VIC_BANK_3		0x0000  // $0000-$3FFF
-#define VIC_BANK_2		0x4000  // $4000-$7FFF
-#define VIC_BANK_1		0x8000  // $8000-$BFFF
-#define VIC_BANK_0		0xC000  // $C000-$FFFF
+#define VIC_BANK_0		0x0000  // $0000-$3FFF
+#define VIC_BANK_1		0x4000  // $4000-$7FFF
+#define VIC_BANK_2		0x8000  // $8000-$BFFF
+#define VIC_BANK_3		0xC000  // $C000-$FFFF
 
 			/// CHARACTER MEMORY
 #define LOW_CHAR_ROM_START	0x1000  // first Char-ROM start
@@ -142,6 +142,28 @@
 		$D040-$D3FF VIC-II REGISTER IMAGES TODO
 */
 /*
+		CIA1/CIA2 ALL REGISTERS
+		$DC00-$DCFF/$DD00-$DDFF
+		ONLY THE LOW BYTE AS THIS MAP COVERS TWO REGIONS
+		$DCxx / $DDxx
+*/
+#define KEY_PORTA		0x00   // Port A Data Direction
+#define KEY_PORTB		0x01   // Port B Data Direction
+#define DDR_PORTA		0x02   // Port A Data Register
+#define DDR_PORTB		0x03   // Port B Data Register
+#define TIMERA_LOW		0x04   // Timer A Low Byte
+#define TIMERA_HIGH		0x05   // Timer A High Byte
+#define TIMERB_LOW		0x06   // Timer B Low Byte
+#define TIMERB_HIGH		0x07   // Timer B High Byte
+#define TOD_TSECS		0x08   // time-of-day 10th seconds
+#define TOD_SECS		0x09   // time-of-day seconds
+#define TOD_MINS		0x0A   // time-of-day minutes
+#define TOD_HRS		0x0B   // time-of-day hours
+#define SSR		0x0C   // Serial Data Register
+#define CIA_CNTRL		0x0D   // Interrupt Control register
+#define TIMERA_CNTRL	0x0E   // Timer A control
+#define TIMERB_CNTRL	0x0F   // Timer B control
+/*
 		ROMS PATHS
 */
 #define KERNAL_PATH		"./assets/roms/kernal.901227-03.bin"
@@ -176,7 +198,7 @@
 #define WPDX		1       // x window pixels per display
 #define WPDY		1       // y window per display
 #define WHEIGHT		312     // mlx42 window height
-#define WWIDTH		504    // mlx42 window width
+#define WWIDTH		504     // mlx42 window width
 #define MHEIGHT		100     // window min height
 #define MWIDTH		100     // window min width
 /*
@@ -211,6 +233,8 @@ typedef	struct _bus {
 	//
 	void		*ppu;
 	void		*cpu;
+	void		*cia1;
+	void		*cia2;
 	thread_data	*t_data;
 }	_bus;
 
@@ -249,13 +273,34 @@ typedef	struct VIC_II {
 	unsigned		win_height;
 
 	uint16_t		raster;   // dynamic raster counter
+	uint16_t		char_ram; // dynamic character ram
+	uint16_t		screen_ram;
+				// dynamic screen ram
+	uint16_t		bank;	// current bank address	
+	uint16_t		bitmap_ram;
+
 	_bus		*bus;	// BUS Address
 }	_VIC_II;
+
+typedef	struct CIA {
+	uint16_t		timerA;
+	uint16_t		timerB;
+
+	uint8_t		timerA_ctrl;
+	uint8_t		timerB_ctrl;
+	uint8_t		intr_ctrl;
+
+	uint8_t		latchA_low;
+	uint8_t		latchA_high;
+	uint8_t		latchB_low;
+	uint8_t		latchB_high;
+}	_CIA;
 
 /* cycle.c */
 void	*instruction_cycle(void*);
 uint16_t	get_raster(_VIC_II*);
 uint32_t	C64_to_rgb(uint8_t);
+uint8_t	ppu_step(void*);
 
 /* instructions.c */
 void	load_instructions(_6502*);

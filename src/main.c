@@ -75,9 +75,26 @@ int	main() {
 	ppu->C64_to_rgb = C64_to_rgb;
 	ppu->bus = bus;
 	bus->ppu = ppu;
+	ppu->char_ram = LOW_CHAR_ROM_START;
+	ppu->screen_ram = DEFAULT_SCREEN;
+	ppu->bitmap_ram = 0x0000;
+	ppu->bank = VIC_BANK_0;
 
-	/// / //		VIC-II REGISTERS INITIAL STATES
-	
+	/// / //		CIAs
+	_CIA		*CIA1 = malloc(sizeof(_CIA));
+	_CIA		*CIA2 = malloc(sizeof(_CIA));
+	if (!CIA1 || !CIA2) {
+		free(ppu);
+		free(bus);
+		free(mos6502);
+		if (CIA1) free(CIA1);
+		if (CIA2) free(CIA2);
+		return 1;
+	}
+	memset(CIA1, 0, sizeof(_CIA));
+	memset(CIA2, 0, sizeof(_CIA));
+	bus->cia1 = CIA1;
+	bus->cia2 = CIA2;
 
 	// /// /		THREAD INFO
 	t_data = malloc(sizeof(thread_data));
@@ -97,7 +114,7 @@ int	main() {
 	// / ///		GRAPHIC WINDOW
 	ppu->win_height = WHEIGHT;
 	ppu->win_width = WWIDTH;
-	ppu->mlx_ptr = mlx_init(ppu->win_width, ppu->win_height, "MetalNES", true);
+	ppu->mlx_ptr = mlx_init(ppu->win_width, ppu->win_height, "MetallC64", true);
 	if (!ppu->mlx_ptr
 	|| !(ppu->mlx_img = mlx_new_image(ppu->mlx_ptr, ppu->win_width, ppu->win_height))) {
 		free(bus);
