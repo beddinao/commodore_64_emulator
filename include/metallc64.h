@@ -283,6 +283,8 @@ typedef	struct VIC_II {
 }	_VIC_II;
 
 typedef	struct CIA {
+	uint8_t		high_addr;
+
 	uint16_t		timerA;
 	uint16_t		timerB;
 
