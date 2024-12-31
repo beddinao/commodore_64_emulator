@@ -1,12 +1,12 @@
 #include "metallc64.h"
 
-void	draw_bg(_VIC_II *ppu, uint32_t color) {
-	for (unsigned y = 0; y < ppu->win_height; y++)
-		for (unsigned x = 0; x < ppu->win_width; x++)
-			mlx_put_pixel(ppu->mlx_img, x, y, color);
+void	draw_bg(_VIC_II *vic, uint32_t color) {
+	for (unsigned y = 0; y < vic->win_height; y++)
+		for (unsigned x = 0; x < vic->win_width; x++)
+			mlx_put_pixel(vic->mlx_img, x, y, color);
 }
 
-void	draw_line(_VIC_II *ppu, int x0, int y0, int x1, int y1, int color) {
+void	draw_line(_VIC_II *vic, int x0, int y0, int x1, int y1, int color) {
 	int	dx =  abs(x1-x0), sx = x0<x1 ? 1 : -1;
 	int	dy = -abs(y1-y0), sy = y0<y1 ? 1 : -1;
 	int	err = dx+dy, e2;
@@ -22,7 +22,7 @@ void	draw_line(_VIC_II *ppu, int x0, int y0, int x1, int y1, int color) {
 			err += dx;
 			y0 += sy;
 		}
-		mlx_put_pixel(ppu->mlx_img, x0, y0, color << 8 | 0xFF);
+		mlx_put_pixel(vic->mlx_img, x0, y0, color << 8 | 0xFF);
 	}
 }
 

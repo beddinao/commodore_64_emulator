@@ -11,10 +11,21 @@ void	sig_handle(int s) {
 	/// / //		CLEAN
 	pthread_mutex_destroy(&t_data->halt_mutex);
 	pthread_mutex_destroy(&t_data->data_mutex);
-	mlx_delete_image(((_VIC_II*)t_data->ppu)->mlx_ptr, ((_VIC_II*)t_data->ppu)->mlx_img);
-	mlx_terminate(((_VIC_II*)t_data->ppu)->mlx_ptr);
-	free(t_data->ppu);
-	free(t_data->cpu);
+
+	_bus	*bus = (_bus*)t_data->bus;
+	_6502	*mos6502 = (_6502*)bus->cpu;
+	_VIC_II	*vic = (_VIC_II*)bus->vic;
+	_CIA	*cia1 = (_CIA*)bus->cia1;
+	_CIA	*cia2 = (_CIA*)bus->cia2;
+
+	memset(bus->RAM, 0, sizeof(bus->RAM));
+	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
+	mlx_terminate(vic->mlx_ptr);
+	free(mos6502);
+	free(vic);
+	free(cia1);
+	free(cia2);
+	free(bus);
 	free(t_data);
 	exit(s);
 }
@@ -26,7 +37,6 @@ int	main() {
 	_bus	*bus = malloc(sizeof(_bus));
 	if (!bus) 
 		return 1;
-	memset(bus, 0, sizeof(_bus));
 	bus->reset = bus_init;
 	bus->reset(bus);
 
@@ -57,78 +67,73 @@ int	main() {
 		free(bus);
 		return 1;
 	}
-	memset(mos6502, 0, sizeof(_6502));
-	mos6502->bus = bus;
 	mos6502->reset = cpu_init;
-	mos6502->reset(mos6502);
+	mos6502->reset(mos6502, bus);
 	bus->cpu = mos6502;
 
 	// // //		VIC-II
-	_VIC_II	*ppu = malloc(sizeof(_VIC_II));
-	if (!ppu) {
+	_VIC_II	*vic = malloc(sizeof(_VIC_II));
+	if (!vic) {
 		free(bus);
 		free(mos6502);
 		return 1;
 	}
-	memset(ppu, 0, sizeof(_VIC_II));
-	ppu->get_raster = get_raster;
-	ppu->C64_to_rgb = C64_to_rgb;
-	ppu->bus = bus;
-	bus->ppu = ppu;
-	ppu->char_ram = LOW_CHAR_ROM_START;
-	ppu->screen_ram = DEFAULT_SCREEN;
-	ppu->bitmap_ram = 0x0000;
-	ppu->bank = VIC_BANK_0;
+	vic->init = vic_init;
+	vic->init(bus, vic);
+	bus->vic = vic;
 
 	/// / //		CIAs
 	_CIA		*CIA1 = malloc(sizeof(_CIA));
 	_CIA		*CIA2 = malloc(sizeof(_CIA));
 	if (!CIA1 || !CIA2) {
-		free(ppu);
+		free(vic);
 		free(bus);
 		free(mos6502);
 		if (CIA1) free(CIA1);
 		if (CIA2) free(CIA2);
 		return 1;
 	}
-	memset(CIA1, 0, sizeof(_CIA));
-	memset(CIA2, 0, sizeof(_CIA));
+	CIA1->init = cia_init;
+	CIA2->init = cia_init;
+	CIA1->init(CIA1, 0xDC);
+	CIA2->init(CIA2, 0xDD);
 	bus->cia1 = CIA1;
 	bus->cia2 = CIA2;
-	CIA1->high_addr = 0xDC;
-	CIA2->high_addr = 0xDD;
 
 	// /// /		THREAD INFO
 	t_data = malloc(sizeof(thread_data));
 	if (!t_data) {
 		free(bus);
-		free(ppu);
+		free(vic);
 		free(mos6502);
+		free(CIA1);
+		free(CIA2);
 		return 1;
 	}
 	memset(t_data, 0, sizeof(thread_data));
 	pthread_mutex_init(&t_data->halt_mutex, NULL);
 	pthread_mutex_init(&t_data->data_mutex, NULL);
-	t_data->cpu = mos6502;
-	t_data->ppu = ppu;
+	t_data->bus = bus;
 	bus->t_data = t_data;
 
 	// / ///		GRAPHIC WINDOW
-	ppu->win_height = WHEIGHT;
-	ppu->win_width = WWIDTH;
-	ppu->mlx_ptr = mlx_init(ppu->win_width, ppu->win_height, "MetallC64", true);
-	if (!ppu->mlx_ptr
-	|| !(ppu->mlx_img = mlx_new_image(ppu->mlx_ptr, ppu->win_width, ppu->win_height))) {
+	vic->win_height = WHEIGHT;
+	vic->win_width = WWIDTH;
+	vic->mlx_ptr = mlx_init(vic->win_width, vic->win_height, "MetallC64", true);
+	if (!vic->mlx_ptr
+	|| !(vic->mlx_img = mlx_new_image(vic->mlx_ptr, vic->win_width, vic->win_height))) {
 		free(bus);
-		free(ppu);
+		free(vic);
 		free(mos6502);
+		free(CIA1);
+		free(CIA2);
 		free(t_data);
 		return 1;
 	}
-	draw_bg(ppu, 0x0000FFFF);
+	draw_bg(vic, 0x0000FFFF);
 
 	/// / //		CYCLE
-	pthread_create(&t_data->worker, NULL, mos6502->instruction_cycle, bus);
+	pthread_create(&t_data->worker, NULL, main_cycle, bus);
 
 	// / //		CLEAN
 	signal(SIGINT, sig_handle);
@@ -136,8 +141,8 @@ int	main() {
 	signal(SIGTERM, sig_handle);
 	
 	//// / //		HOOKS
-	mlx_image_to_window(ppu->mlx_ptr, ppu->mlx_img, 0, 0);
-	mlx_set_window_limit(ppu->mlx_ptr, MWIDTH, MHEIGHT, INT_MAX, INT_MAX);
-	setup_mlx_hooks(ppu);
-	mlx_loop(ppu->mlx_ptr);
+	mlx_image_to_window(vic->mlx_ptr, vic->mlx_img, 0, 0);
+	mlx_set_window_limit(vic->mlx_ptr, MWIDTH, MHEIGHT, INT_MAX, INT_MAX);
+	setup_mlx_hooks(vic);
+	mlx_loop(vic->mlx_ptr);
 }

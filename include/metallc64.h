@@ -164,11 +164,24 @@
 #define TIMERA_CNTRL	0x0E   // Timer A control
 #define TIMERB_CNTRL	0x0F   // Timer B control
 /*
+		TIMING
+		PAL system Configurations
+*/
+#define CYCLES_PER_SECOND	985248
+#define PAL_FPS		50
+#define VIC_CYCLES_PER_LINE	63
+#define MICROS_TO_SECOND	1000000
+#define NANOS_TO_SECOND	1000000000
+#define CYCLES_PER_FRAME	CYCLES_PER_SECOND / PAL_FPS
+#define MICROS_PER_FRAME	MICROS_TO_SECOND / PAL_FPS
+#define NANOS_PER_FRAME	NANOS_TO_SECOND / PAL_FPS
+/*
 		ROMS PATHS
 */
 #define KERNAL_PATH		"./assets/roms/kernal.901227-03.bin"
 #define BASIC_PATH		"./assets/roms/basic.901226-01.bin"
 #define CHAR_ROM_PATH	"./assets/roms/characters.901225-01.bin"
+
 /*
 		KBYTES UNITS in BYTES
 */
@@ -210,13 +223,20 @@
 #define WHT		"\x1B[37m"
 #define UND		"\033[4m"
 
+#ifndef TRUE
+# define TRUE 1
+#endif
+#ifndef FALSE
+# define FALSE 0
+#endif
+
 typedef	struct thread_data {
 	pthread_t		worker;
 	pthread_mutex_t	halt_mutex;
 	pthread_mutex_t	data_mutex;
 	uint8_t		halt;
-	void		*ppu;	// \ for access inside
-	void		*cpu;	// /  signal handlers
+	void		*bus;	// \ for access inside
+				// /  signal handlers
 }	thread_data;
 
 typedef	struct _bus {
@@ -224,15 +244,15 @@ typedef	struct _bus {
 	//
 	void		(*cpu_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*cpu_read)(struct _bus*, uint16_t);
-	void		(*ppu_write)(struct _bus*, uint16_t, uint8_t);
-	uint8_t		(*ppu_read)(struct _bus*, uint16_t);
+	void		(*vic_write)(struct _bus*, uint16_t, uint8_t);
+	uint8_t		(*vic_read)(struct _bus*, uint16_t);
 	uint8_t		(*load_basic)(struct _bus*);
 	uint8_t		(*load_kernal)(struct _bus*);
 	uint8_t		(*load_chars)(struct _bus*);
 	void		(*reset)(struct _bus*);
 	//
-	void		*ppu;
 	void		*cpu;
+	void		*vic;
 	void		*cia1;
 	void		*cia2;
 	thread_data	*t_data;
@@ -252,20 +272,23 @@ typedef	struct _6502 {
 	void		(*push)(struct _6502*, uint8_t);
 	void		(*set_flag)(struct _6502*, uint8_t, uint8_t);
 	uint8_t		(*get_flag)(struct _6502*, uint8_t);
-	void		(*reset)(struct _6502*);
+	void		(*reset)(struct _6502*, _bus*);
 	void		*(*instruction_cycle)(void*);
 				// fetch-decode-execute
 	uint8_t		opcode;	// last fetched opcode
-	uint8_t		cycles;   // last instr. cycles count
-	uint8_t		nmi_pending;
-	uint8_t		irq_pending;
+	unsigned		cycles;   // cpu cycles counter
+				// and global timing sync
+	bool		nmi_pending;
+	bool		irq_pending;
 				// interrupt flags
 	_bus		*bus;	// BUS Address
 }	_6502;
 
 typedef	struct VIC_II {
 	uint16_t		(*get_raster)(struct VIC_II*);
+	void		(*increment_raster)(struct VIC_II*, uint16_t);
 	uint32_t		(*C64_to_rgb)(uint8_t);
+	void		(*init)(_bus*, struct VIC_II*);
 
 	mlx_t		*mlx_ptr; // MLX42 window
 	mlx_image_t	*mlx_img;
@@ -278,37 +301,52 @@ typedef	struct VIC_II {
 				// dynamic screen ram
 	uint16_t		bank;	// current bank address	
 	uint16_t		bitmap_ram;
-
+	unsigned		cycles;	// vic independent 
+				// cycles counter
 	_bus		*bus;	// BUS Address
 }	_VIC_II;
 
 typedef	struct CIA {
 	uint8_t		high_addr;
-
+			          // CIA each ship address
+				// $DC = CIA#1 / $DD = CIA#2
 	uint16_t		timerA;
 	uint16_t		timerB;
-
-	uint8_t		timerA_ctrl;
-	uint8_t		timerB_ctrl;
-	uint8_t		intr_ctrl;
-
-	uint8_t		latchA_low;
-	uint8_t		latchA_high;
-	uint8_t		latchB_low;
-	uint8_t		latchB_high;
+			         // 16bit timers
+			         // combination of latches below
+	uint8_t		TA_latch_low;
+	uint8_t		TA_latch_high;
+	uint8_t		TB_latch_low;
+	uint8_t		TB_latch_high;
+			        // timers low/high bytes
+	bool		TA_enable;
+	bool		TB_enable;
+	bool		TA_interrupt_enable;
+	bool		TB_interrupt_enable;
+			         // timers states
+			         // and if they can set
+			         // interrupts
+	bool		TA_mode; // 0: restart, 1: one-shot
+	bool		TB_mode;
+	bool		TA_input_mode;
+	bool		TB_input_mode;
+			         // timer counts eather
+			         // 0: cycles, 1: CNT pin
+	bool		TA_interrupt_triggered;
+	bool		TB_interrupt_triggered;
+			         // NMI/IRQ triggered
+			         // by underflow
+	void		(*init)(struct CIA*, uint8_t);
 }	_CIA;
 
 /* cycle.c */
-void	*instruction_cycle(void*);
-uint16_t	get_raster(_VIC_II*);
-uint32_t	C64_to_rgb(uint8_t);
-uint8_t	ppu_step(void*);
+void	*main_cycle(void*);
 
 /* instructions.c */
 void	load_instructions(_6502*);
 
-/* cpu_methods.c */
-void	cpu_init(_6502*);
+/* cpu.c */
+void	cpu_init(_6502*, _bus*);
 
 /* bus.c */
 void	bus_init(_bus*);
@@ -321,6 +359,14 @@ void	loop_hook(void*);
 
 /* main.c */
 void	sig_handle(int);
+
+/* vic.c */
+void	vic_advance_raster(_bus*, _VIC_II*, unsigned);
+void	vic_init(_bus*, _VIC_II*);
+
+/* cia.c */
+void	cia_advance_timers(_bus*, _CIA*, unsigned);
+void	cia_init(_CIA*, uint8_t);
 
 /* draw_utils.c */
 void	draw_bg(_VIC_II*, unsigned);
