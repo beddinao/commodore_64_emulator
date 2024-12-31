@@ -10,7 +10,8 @@ void	stack_push(_6502 *mos6502, uint8_t val) {
 
 uint8_t	stack_pull(_6502 *mos6502) {
 	mos6502->SP++;
-	return mos6502->bus->cpu_read(mos6502->bus, STACK_ST + mos6502->SP);
+	uint8_t	val = mos6502->bus->cpu_read(mos6502->bus, STACK_ST + mos6502->SP);
+	return val;
 }
 
 // /////	STATUS FLAGS
@@ -21,7 +22,6 @@ void	set_flag(_6502 *mos6502, uint8_t pos, uint8_t bit) {
 		///	N V A B  D I Z C
 		///	0 1 1 0  1 1 1 1 6F
 		///	0 1 1 1  1 1 1 1 7F
-		///
 		///	0 0 1 0  0 1 1 1 27
 		///	0 1 1 0  0 1 1 1 67
 		///
@@ -55,18 +55,17 @@ uint8_t	get_flag(_6502* mos6502, uint8_t pos) {
 
 /// // /	RESET
 
-void	cpu_init(_6502* mos6502) {
-	_bus *bus = mos6502->bus;
+void	cpu_init(_6502* mos6502, _bus *bus) {
+	memset(mos6502, 0, sizeof(_6502));
+	mos6502->reset = cpu_init;
+	mos6502->bus = bus;
 	mos6502->pull = stack_pull;
 	mos6502->push = stack_push;
 	mos6502->set_flag = set_flag;
 	mos6502->get_flag = get_flag;
 	load_instructions(mos6502);
-	mos6502->instruction_cycle = instruction_cycle;
 	mos6502->PC = bus->cpu_read(bus, RSTV + 1) << 8 |
 		bus->cpu_read(bus, RSTV);
-	printf("rstv: %04X-%4X, addr: %04X, PC: %04X\n",
-		RSTV, RSTV+1, bus->cpu_read(bus, RSTV + 1) << 0x8 | bus->cpu_read(bus, RSTV), mos6502->PC);
 	mos6502->opcode = 0x0;
 	mos6502->cycles = 0x0;
 	mos6502->SP = 0xFD;
