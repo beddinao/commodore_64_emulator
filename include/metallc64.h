@@ -224,10 +224,10 @@
 #define UND		"\033[4m"
 
 #ifndef TRUE
-# define TRUE 1
+#define TRUE		1
 #endif
 #ifndef FALSE
-# define FALSE 0
+#define FALSE		0
 #endif
 
 typedef	struct thread_data {
@@ -337,7 +337,32 @@ typedef	struct CIA {
 			         // NMI/IRQ triggered
 			         // by underflow
 	void		(*init)(struct CIA*, uint8_t);
+	void		*keys;
 }	_CIA;
+
+typedef	struct keymap {
+	uint8_t	matrix[0x8];
+	uint8_t	active_row;   // current row being scanned 
+			    // $DC00, 11111011 -> row 2
+/*
+          C64 PORTS A/B KEYS LAYOUT
+
+                           column = $DC01
+          |bit#0|bit#1|bit#2|bit#3|bit#4|bit#5|bit#6|bit#7|
+           -----------------------------------------------
+       #0 | DEL | RET | CL  | F7  | F1  | F3  | F5  |CR_UD|
+       #1 |  3  |  W  |  A  |  4  |  Z  |  S  |  E  |SFT_L|
+row    #2 |  5  |  R  |  D  |  6  |  C  |  F  |  T  |  X  |
+ =     #3 |  7  |  Y  |  G  |  8  |  B  |  H  |  U  |  V  |
+$DC00  #4 |  9  |  I  |  J  |  0  |  M  |  K  |  O  |  N  |
+       #5 |  +  |  P  |  L  |  -  |  .  |  :  |  @  |  ,  |
+       #6 |  £  |  *  |  ;  |CR_HM|SFT_R|  =  |AR_UP|  /  |
+       #7 |  1  |AR_LF|CNTRL|  2  |SPACE|COMDR|  Q  |RN/ST|
+
+
+
+*/	
+}	_keymap;
 
 /* cycle.c */
 void	*main_cycle(void*);

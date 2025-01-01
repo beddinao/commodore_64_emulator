@@ -3,8 +3,12 @@
 uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 	_CIA *cia1 = (_CIA*)bus->cia1;
 	_CIA *cia2 = (_CIA*)bus->cia2;
+
+	_keymap	*keys = NULL;
+	if (cia1 && cia1->keys)
+		keys = (_keymap*)cia1->keys;
+
 	uint8_t temp = 0;
-	
 	switch (addr) {
 		case RASTER:
 			return ((_VIC_II*)bus->vic)->raster & 0xFF;
@@ -39,6 +43,16 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 				if (cia2->TB_interrupt_triggered) temp |= 0x2;
 			}
 			return temp;
+		case 0xDC00: return temp;
+		case 0xDC01:
+			if (!keys->active_row || keys->active_row == 0xFF)
+				temp = keys->active_row;
+			else {
+				uint8_t row_i = 0;
+				for (; row_i < 0x8 && ((keys->active_row >> row_i) & 0x1) != 0; row_i++);
+				temp = keys->matrix[row_i];
+			}
+			return temp;
 		default:	break;
 	}
 	return bus->RAM[addr];
@@ -48,7 +62,7 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_VIC_II *vic = (_VIC_II*)bus->vic;
 	_CIA* cia1 = (_CIA*)bus->cia1;
 	_CIA* cia2 = (_CIA*)bus->cia2;
-	
+
 	// Mirror $DCxx/$DDxx -> $DC0x/DD0x
 	if ((addr >= CIA1_START && addr <= CIA1_END)
 		|| (addr >= CIA2_START && addr <= CIA2_END)) {
@@ -99,6 +113,10 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 				case 0x3:	vic->bank = VIC_BANK_0; break;
 				default:	break;
 			}
+			break;
+
+		case 0xDC00: /* CIA#1 PORT#A */
+			((_keymap*)cia1->keys)->active_row = val;
 			break;
 
 		case 0xDC04: /* CIA#1 TA LB */ cia1->TA_latch_low = val; break;
