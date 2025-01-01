@@ -17,11 +17,13 @@ void	sig_handle(int s) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
 	_CIA	*cia1 = (_CIA*)bus->cia1;
 	_CIA	*cia2 = (_CIA*)bus->cia2;
+	_keymap	*keys = (_keymap*)cia1->keys;
 
 	memset(bus->RAM, 0, sizeof(bus->RAM));
 	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
 	mlx_terminate(vic->mlx_ptr);
 	free(mos6502);
+	free(keys);
 	free(vic);
 	free(cia1);
 	free(cia2);
@@ -82,10 +84,22 @@ int	main() {
 	vic->init(bus, vic);
 	bus->vic = vic;
 
+	/// // /		KEYMAP
+	_keymap		*keys = malloc(sizeof(_keymap));
+	if (!keys) {
+		free(bus);
+		free(vic);
+		free(mos6502);
+		return 1;
+	}
+	memset(keys, 0, sizeof(_keymap));
+	memset(keys->matrix, 0xFF, sizeof(_keymap));
+	
 	/// / //		CIAs
 	_CIA		*CIA1 = malloc(sizeof(_CIA));
 	_CIA		*CIA2 = malloc(sizeof(_CIA));
 	if (!CIA1 || !CIA2) {
+		free(keys);
 		free(vic);
 		free(bus);
 		free(mos6502);
@@ -97,6 +111,7 @@ int	main() {
 	CIA2->init = cia_init;
 	CIA1->init(CIA1, 0xDC);
 	CIA2->init(CIA2, 0xDD);
+	CIA1->keys = keys;
 	bus->cia1 = CIA1;
 	bus->cia2 = CIA2;
 
@@ -105,6 +120,7 @@ int	main() {
 	if (!t_data) {
 		free(bus);
 		free(vic);
+		free(keys);
 		free(mos6502);
 		free(CIA1);
 		free(CIA2);
@@ -125,6 +141,7 @@ int	main() {
 		free(bus);
 		free(vic);
 		free(mos6502);
+		free(keys);
 		free(CIA1);
 		free(CIA2);
 		free(t_data);
