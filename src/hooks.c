@@ -13,17 +13,13 @@ void	resize_hook(int w, int h, void *p) {
 
 void	set_key(_keymap *keys, uint8_t row, uint8_t col, action_t act) {
 	keys->matrix[row] = 0xFF;
-	if (act)
-		keys->matrix[row] &= ~(1 << col);
+	if (act) keys->matrix[row] &= ~(1 << col);
 }
 
 void	key_hook(mlx_key_data_t keydata, void *p) {
 	_VIC_II	*vic = (_VIC_II*)p;
 	_bus	*bus = vic->bus;
 	_keymap	*keys = ((_CIA*)bus->cia1)->keys;
-
-	if (keydata.action != MLX_RELEASE && keydata.key == MLX_KEY_ESCAPE)
-		close_hook(p);
 
 	switch (keydata.key) {
 		case MLX_KEY_KP_0:	keydata.key = MLX_KEY_0; break;
@@ -36,14 +32,19 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 		case MLX_KEY_KP_7:	keydata.key = MLX_KEY_7; break;
 		case MLX_KEY_KP_8:	keydata.key = MLX_KEY_8; break;
 		case MLX_KEY_KP_9:	keydata.key = MLX_KEY_9; break;
+		case MLX_KEY_KP_ENTER:	keydata.key = MLX_KEY_ENTER; break;
+		case MLX_KEY_KP_EQUAL:	keydata.key = MLX_KEY_EQUAL; break;
 		case MLX_KEY_LEFT_CONTROL:	keydata.key = MLX_KEY_RIGHT_CONTROL; break;
-		default:
-			break;
+		case MLX_KEY_DELETE:	keydata.key = MLX_KEY_BACKSPACE; break;
+		case MLX_KEY_LEFT_SUPER:	keydata.key = MLX_KEY_RIGHT_SUPER; break;
+		default:	break;
 	}
 
 	switch (keydata.key) {
 		/* CTRL */
-		case MLX_KEY_DELETE: set_key(keys, 0, 0, keydata.action); break;
+		case MLX_KEY_ESCAPE: set_key(keys, 7, 7, keydata.action); break;
+		case MLX_KEY_RIGHT_SUPER: set_key(keys, 7, 5, keydata.action); break;
+		case MLX_KEY_BACKSPACE: set_key(keys, 0, 0, keydata.action); break;
 		case MLX_KEY_ENTER: set_key(keys, 0, 1, keydata.action); break;
 		case MLX_KEY_F1: set_key(keys, 0, 4, keydata.action); break;
 		case MLX_KEY_F3: set_key(keys, 0, 5, keydata.action); break;
@@ -52,11 +53,9 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 		case MLX_KEY_LEFT_SHIFT: set_key(keys, 1, 7, keydata.action); break;
 		case MLX_KEY_RIGHT_SHIFT: set_key(keys, 6, 4, keydata.action); break;
 		case MLX_KEY_RIGHT_CONTROL: set_key(keys, 7, 2, keydata.action); break;
-		/* ARROWS */
-		case MLX_KEY_LEFT: set_key(keys, 7, 1, keydata.action); break;
-		case MLX_KEY_UP: set_key(keys, 6, 6, keydata.action); break;
-		//case MLX_KEY_RIGHT: 
-		//case MLX_KEY_DOWN:
+		/* CURSOR ARROWS */
+		case MLX_KEY_RIGHT: set_key(keys, 0, 2, keydata.action); break;
+		case MLX_KEY_DOWN: set_key(keys, 0, 7, keydata.action); break;
 		/* NUMS */
 		case MLX_KEY_1: set_key(keys, 7, 0, keydata.action); break;
 		case MLX_KEY_2: set_key(keys, 7, 3, keydata.action); break;
@@ -99,15 +98,14 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 		case MLX_KEY_KP_ADD: set_key(keys, 5, 0, keydata.action); break;
 		case MLX_KEY_KP_SUBTRACT: set_key(keys, 5, 3, keydata.action); break;
 		case MLX_KEY_KP_MULTIPLY: set_key(keys, 6, 1, keydata.action); break;
-		case MLX_KEY_KP_EQUAL: set_key(keys, 6, 5, keydata.action); break;
+		case MLX_KEY_EQUAL: set_key(keys, 6, 5, keydata.action); break;
 		/* OTHER */
 		case MLX_KEY_PERIOD: set_key(keys, 5, 4, keydata.action); break;
 		case MLX_KEY_SLASH: set_key(keys, 6, 7, keydata.action); break;
 		case MLX_KEY_COMMA: set_key(keys, 5, 7, keydata.action); break;
 		case MLX_KEY_SPACE: set_key(keys, 7, 4, keydata.action); break;
 		case MLX_KEY_SEMICOLON: set_key(keys, 6, 2, keydata.action); break;
-		default:
-			break;
+		default:	break;
 	}
 }
 
