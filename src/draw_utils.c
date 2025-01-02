@@ -26,12 +26,12 @@ void	draw_line(_VIC_II *vic, int x0, int y0, int x1, int y1, int color) {
 	}
 }
 
-void	put_pixel(mlx_image_t *mlx_img, unsigned x, unsigned y, uint32_t color) {
-	unsigned new_x = x * WPDX,
-	         new_y = y * WPDY;
-	for (unsigned n_y = new_y; n_y < new_y + WPDY; n_y++)
-		for (unsigned n_x = new_x; n_x < new_x + WPDX; n_x++) {
-			if (n_x < WWIDTH && n_y < WHEIGHT)
-				mlx_put_pixel(mlx_img, n_x, n_y, color);
+void	put_pixel(_VIC_II *vic, unsigned x, unsigned y, uint32_t color) {
+	unsigned new_x = x * vic->wpdx,
+	         new_y = y * vic->wpdy;
+	for (unsigned n_y = new_y; n_y < new_y + vic->wpdy; n_y++)
+		for (unsigned n_x = new_x; n_x < new_x + vic->wpdx; n_x++) {
+			if (n_x < vic->win_width && n_y < vic->win_height)
+				mlx_put_pixel(vic->mlx_img, n_x, n_y, color);
 		}
 }

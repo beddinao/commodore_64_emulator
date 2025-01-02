@@ -208,12 +208,12 @@
 /*
 		WINDOW DIMENSIONS
 */
-#define WPDX		1       // x window pixels per display
-#define WPDY		1       // y window per display
-#define WHEIGHT		312     // mlx42 window height
-#define WWIDTH		504     // mlx42 window width
-#define MHEIGHT		100     // window min height
-#define MWIDTH		100     // window min width
+#define WPDX		2       // x window pixels per display
+#define WPDY		2       // y window per display
+#define WHEIGHT		GHEIGHT*WPDY
+#define WWIDTH		GWIDTH*WPDX
+#define MHEIGHT		GHEIGHT // window min height
+#define MWIDTH		GWIDTH  // window min width
 /*
 		ANSI CODES
 */
@@ -294,6 +294,9 @@ typedef	struct VIC_II {
 	mlx_image_t	*mlx_img;
 	unsigned		win_width;
 	unsigned		win_height;
+	uint8_t		wpdx;
+	uint8_t		wpdy;	// window pixels per display
+				// pixels, X/Y
 
 	uint16_t		raster;   // dynamic raster counter
 	uint16_t		char_ram; // dynamic character ram
@@ -396,6 +399,6 @@ void	cia_init(_CIA*, uint8_t);
 /* draw_utils.c */
 void	draw_bg(_VIC_II*, unsigned);
 void	draw_line(_VIC_II*, int, int, int, int, int);
-void	put_pixel(mlx_image_t *, unsigned, unsigned, uint32_t);
+void	put_pixel(_VIC_II *, unsigned, unsigned, uint32_t);
 
 #endif

@@ -9,6 +9,8 @@ void	resize_hook(int w, int h, void *p) {
 	_VIC_II	*vic = (_VIC_II*)p;
 	vic->win_height = h;
 	vic->win_width = w;
+	vic->wpdy = h / GHEIGHT;
+	vic->wpdx = w / GWIDTH;
 }
 
 void	set_key(_keymap *keys, uint8_t row, uint8_t col, action_t act) {
