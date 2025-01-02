@@ -133,6 +133,8 @@ int	main() {
 	bus->t_data = t_data;
 
 	// / ///		GRAPHIC WINDOW
+	vic->wpdx = WPDX;
+	vic->wpdy = WPDY;
 	vic->win_height = WHEIGHT;
 	vic->win_width = WWIDTH;
 	vic->mlx_ptr = mlx_init(vic->win_width, vic->win_height, "MetallC64", true);
@@ -159,7 +161,8 @@ int	main() {
 	
 	//// / //		HOOKS
 	mlx_image_to_window(vic->mlx_ptr, vic->mlx_img, 0, 0);
-	mlx_set_window_limit(vic->mlx_ptr, MWIDTH, MHEIGHT, INT_MAX, INT_MAX);
+	mlx_set_window_limit(vic->mlx_ptr, WWIDTH, WHEIGHT, WWIDTH, WHEIGHT);
+				// limited window dimensions for now
 	setup_mlx_hooks(vic);
 	mlx_loop(vic->mlx_ptr);
 }

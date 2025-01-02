@@ -51,12 +51,12 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 
 		if (vic->raster < DYSTART || vic->raster >= DYEND) {
 			for (unsigned x = 0; x < GWIDTH; x++)
-				mlx_put_pixel(vic->mlx_img, x, vic->raster, brd_color);
+				put_pixel(vic, x, vic->raster, brd_color);
 		}
 		else {
 			for (unsigned x = 0, row, col; x < GWIDTH; x++) {
 				if (x < DXSTART || x >= DXEND)
-					mlx_put_pixel(vic->mlx_img, x, vic->raster, brd_color);
+					put_pixel(vic, x, vic->raster, brd_color);
 				else {
 					col = (x - DXSTART) / 0x8;
 					row = (vic->raster - DYSTART) / 0x8;
@@ -68,7 +68,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 						if (bitmap_data & (0x80 >> bit_pos))
 							fg_color = vic->C64_to_rgb(color_data >> 0x4);
 						else	fg_color = vic->C64_to_rgb(color_data & 0xF);
-						mlx_put_pixel(vic->mlx_img, x, vic->raster, fg_color);
+						put_pixel(vic, x, vic->raster, fg_color);
 					}
 					else {
 						fg_color = vic->C64_to_rgb(bus->vic_read(bus, VIC_COLOR_START + (row * 40 + col)));
@@ -80,7 +80,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 							t_bg_color = vic->C64_to_rgb(bus->vic_read(bus, BACKG_COLOR2 + bg_index));
 						}
 						else	t_bg_color = bg_color;
-						mlx_put_pixel(vic->mlx_img, x, vic->raster, (pixel_data & (0x80 >> bit_pos)) ? fg_color : t_bg_color);
+						put_pixel(vic, x, vic->raster, (pixel_data & (0x80 >> bit_pos)) ? fg_color : t_bg_color);
 					}
 				}
 			}
