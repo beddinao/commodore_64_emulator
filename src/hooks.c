@@ -58,6 +58,14 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 		/* CURSOR ARROWS */
 		case MLX_KEY_RIGHT: set_key(keys, 0, 2, keydata.action); break;
 		case MLX_KEY_DOWN: set_key(keys, 0, 7, keydata.action); break;
+		case MLX_KEY_UP:
+			         set_key(keys, 1, 7, keydata.action);
+			         set_key(keys, 0, 7, keydata.action);
+			         break;
+		case MLX_KEY_LEFT:
+			         set_key(keys, 1, 7, keydata.action);
+			         set_key(keys, 0, 2, keydata.action);
+			         break;
 		/* NUMS */
 		case MLX_KEY_1: set_key(keys, 7, 0, keydata.action); break;
 		case MLX_KEY_2: set_key(keys, 7, 3, keydata.action); break;
