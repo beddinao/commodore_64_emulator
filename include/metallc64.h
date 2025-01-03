@@ -10,6 +10,8 @@
 #include <pthread.h>
 #include <signal.h>
 #include <limits.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "MLX42.h"
 
 /*
@@ -29,7 +31,9 @@
 #define STACK_END		0x01FF  // $0200 end of stack
 
 			/// Basic
-#define BASIC_RAM_START	0x0801  // BASIC program start
+#define BASIC_PRG_START	0x0801  // BASIC program start
+#define BASIC_PRG_END	0x9FFF  // BASIC program end
+#define BASIC_PRG_SIZE	0x97FE  // BASIC program size
 #define BASIC_ROM_START	0xA000  // BASIC ROM start
 #define BASIC_ROM_END	0xBFFF  // BASIC ROM end
 #define BASIC_ROM_SIZE	0x2000  // 8Kb
@@ -232,9 +236,18 @@
 
 typedef	struct thread_data {
 	pthread_t		worker;
+	pthread_t		worker_2;
 	pthread_mutex_t	halt_mutex;
-	pthread_mutex_t	data_mutex;
-	uint8_t		halt;
+			          // access to halt flag
+	//pthread_mutex_t	data_mutex;
+			          // VIC registers
+				// $D000 - $D3FF
+	//pthread_mutex_t	data2_mutex;
+			          // BASIC prg area
+				// $800 - $A000
+	uint8_t		halt;     // halting flag
+	char		*line;    // readline alloced line
+			          // for freeing later
 	void		*bus;	// \ for access inside
 				// /  signal handlers
 }	thread_data;
@@ -246,15 +259,15 @@ typedef	struct _bus {
 	uint8_t		(*cpu_read)(struct _bus*, uint16_t);
 	void		(*vic_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*vic_read)(struct _bus*, uint16_t);
-	uint8_t		(*load_basic)(struct _bus*);
-	uint8_t		(*load_kernal)(struct _bus*);
-	uint8_t		(*load_chars)(struct _bus*);
+	uint8_t		(*load_roms)(struct _bus*);
+	uint8_t		(*load_prg)(struct _bus*, char*);
 	void		(*reset)(struct _bus*);
 	//
 	void		*cpu;
 	void		*vic;
 	void		*cia1;
 	void		*cia2;
+	void		*prg;
 	thread_data	*t_data;
 }	_bus;
 
@@ -310,12 +323,10 @@ typedef	struct VIC_II {
 }	_VIC_II;
 
 typedef	struct CIA {
-	uint8_t		high_addr;
-			          // CIA each ship address
+	uint8_t		high_addr;// CIA each ship address
 				// $DC = CIA#1 / $DD = CIA#2
 	uint16_t		timerA;
-	uint16_t		timerB;
-			         // 16bit timers
+	uint16_t		timerB;  // 16bit timers
 			         // combination of latches below
 	uint8_t		TA_latch_low;
 	uint8_t		TA_latch_high;
@@ -367,6 +378,14 @@ $DC00  #4 |  9  |  I  |  J  |  0  |  M  |  K  |  O  |  N  |
 */	
 }	_keymap;
 
+typedef	struct basic_prg {
+	bool	loaded;
+	char	path[0x400];
+	uint16_t	ld_addr;
+	uint16_t	en_addr;
+	uint16_t	size;
+}	_prg;
+
 /* cycle.c */
 void	*main_cycle(void*);
 
@@ -400,5 +419,8 @@ void	cia_init(_CIA*, uint8_t);
 void	draw_bg(_VIC_II*, unsigned);
 void	draw_line(_VIC_II*, int, int, int, int, int);
 void	put_pixel(_VIC_II *, unsigned, unsigned, uint32_t);
+
+/* shell.c */
+void	*open_shell(void*);
 
 #endif

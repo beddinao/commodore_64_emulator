@@ -73,7 +73,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 					else {
 						fg_color = vic->C64_to_rgb(bus->vic_read(bus, VIC_COLOR_START + (row * 40 + col)));
 						uint8_t char_code = bus->vic_read(bus, vic->screen_ram + (row * 40 + col));
-						uint8_t pixel_data = bus->vic_read(bus, vic->char_ram + (char_code * 0x8) + (vic->raster % 0x8));
+						uint8_t pixel_data = bus->vic_read(bus, 0xC000/*vic->char_ram*/ + (char_code * 0x8) + (vic->raster % 0x8));
 						uint8_t bit_pos = (x - DXSTART) % 0x8;
 						if ((bus->cpu_read(bus, CNTRL1) >> 0x6) & 0x1) {
 							uint8_t bg_index = (char_code >> 0x6) & 0x3;

@@ -59,10 +59,6 @@ void	*main_cycle(void *p) {
 			sleep_time = {0};
 	
 	while (1) {
-		pthread_mutex_lock(&bus->t_data->halt_mutex);
-		if (bus->t_data->halt)
-			break;
-		pthread_mutex_unlock(&bus->t_data->halt_mutex);
 		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
@@ -83,8 +79,6 @@ void	*main_cycle(void *p) {
 			nanosleep(&sleep_time, NULL);
 		}
 	}
-	pthread_mutex_unlock(&bus->t_data->halt_mutex);
-	printf("second thread: i died\n");
 	return NULL;
 }
 /*

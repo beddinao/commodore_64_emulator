@@ -1,9 +1,0 @@
-src/hooks.c:25:33: error: invalid operands to binary expression ('uint8_t' (aka 'unsigned char') and
-      'char *(const char *, int)')
-                printf("%u, %u\n", (keys->row >> index) & 0x1,
-                                    ~~~~~~~~~ ^  ~~~~~
-src/hooks.c:26:18: error: invalid operands to binary expression ('uint8_t' (aka 'unsigned char') and
-      'char *(const char *, int)')
-                        (keys->column >> index) & 0x1);
-                         ~~~~~~~~~~~~ ^  ~~~~~
-2 errors generated.
