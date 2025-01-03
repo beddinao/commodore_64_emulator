@@ -7,8 +7,9 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 	_keymap	*keys = NULL;
 	if (cia1 && cia1->keys)
 		keys = (_keymap*)cia1->keys;
-
+	
 	uint8_t temp = 0;
+
 	switch (addr) {
 		case RASTER:
 			return ((_VIC_II*)bus->vic)->raster & 0xFF;
@@ -55,6 +56,7 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 			return temp;
 		default:	break;
 	}
+
 	return bus->RAM[addr];
 }
 
@@ -69,7 +71,7 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 		uint8_t low_nibble = addr & 0xF;
 		addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
 	}
-	
+
 	switch (addr) {
 		case MEM_SETUP: // D018
 			if ((bus->cpu_read(bus, CNTRL1) >> 0x5) & 0x1)
@@ -83,7 +85,7 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 				case 0x5:	vic->char_ram = 0x2800; break;
 				case 0x6:	vic->char_ram = 0x3000; break;
 				case 0x7:	vic->char_ram = 0x3800; break;
-				default:	return;
+				default:	break;
 			}
 			switch (val >> 0x4) {
 				case 0x0:	vic->screen_ram = 0x0; break;
@@ -102,7 +104,7 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 				case 0xD:	vic->screen_ram = 0x3400; break;
 				case 0xE:	vic->screen_ram = 0x3800; break;
 				case 0xF:	vic->screen_ram = 0x3C00; break;
-				default:	return;
+				default:	break;
 			}
 			break;
 		case CIA2_START: // DD00
@@ -176,6 +178,22 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 			bus->RAM[addr] = val;
 			break;
 
+		/*
+			protected ZERO PAGE variables
+			safe to use return here
+		*/
+		case 0x37: // Basic top ram low
+			bus->RAM[addr] = 0x00; return;
+		case 0x38: // Basic top ram high
+			bus->RAM[addr] = 0xA0; return;
+
+		case 0x2B: // free after prg low
+			bus->RAM[addr] = bus->prg ? ((_prg*)bus->prg)->en_addr & 0xFF : val;
+			return;
+		case 0x2C: // free after prg high
+			bus->RAM[addr] = bus->prg ? (((_prg*)bus->prg)->en_addr >> 0x8) & 0xFF : val;
+			return;
+
 		default:	break;
 	}
 	bus->RAM[addr] = val;
@@ -189,6 +207,47 @@ uint8_t	vic_read_(_bus *bus, uint16_t addr) {
 void	vic_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
 	bus->RAM[vic->bank + addr] = val;
+}
+
+uint8_t	load_prg(_bus *bus, char *filename) {
+	char buffer[BASIC_PRG_SIZE];
+	_prg *prg = malloc(sizeof(_prg));
+	FILE *file = fopen(filename, "rb");
+	if (!file || !prg)
+		return 0;
+
+	memset(prg, 0, sizeof(_prg));
+	memset(buffer, 0, sizeof(buffer));
+	prg->size = fread(buffer, 1, 2, file);
+	if (!prg->size || prg->size != 2) {
+		fclose(file);
+		free(prg);
+		return 0;
+	}
+
+	prg->ld_addr = buffer[1] << 0x8 | buffer[0];
+	if (!prg->ld_addr || prg->ld_addr < BASIC_PRG_START
+		|| prg->ld_addr > BASIC_PRG_END) {
+		fclose(file);
+		free(prg);
+		return 0;
+	}
+
+	memset(buffer, 0, sizeof(buffer));
+	prg->size = fread(buffer, 1, BASIC_PRG_SIZE, file);
+	if (!prg->size || prg->size + prg->ld_addr > BASIC_PRG_END) {
+		fclose(file);
+		free(prg);
+		return 0;
+	}
+	memcpy(bus->RAM + prg->ld_addr, buffer, prg->size);
+	prg->en_addr = prg->ld_addr + prg->size + 1;
+	memcpy(prg->path, filename, 0x400);
+	prg->loaded = TRUE;
+	bus->prg = prg;
+	printf("program loaded at $%04X -> $%04X\n", prg->ld_addr, prg->size);
+	fclose(file);
+	return 1;
 }
 
 uint8_t	load_basic(_bus *bus) {
@@ -247,9 +306,34 @@ uint8_t	load_chars(_bus *bus) {
 		return 0;
 	}
 
-	memcpy(bus->RAM + UPP_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
-	memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
+	/*memcpy(bus->RAM + UPP_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
+	memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);*/
+	memcpy(bus->RAM + 0xC000, buffer, CHAR_ROM_SIZE);
 	fclose(file);
+	return 1;
+}
+
+uint8_t	load_roms(_bus *bus) {
+	// / ///		BASIC
+	if (!load_basic(bus)) {
+		printf("%sfailed to load BASIC ROM: %s%s\n%sexiting..%s\n",
+			RED, RST, BASIC_PATH, RED, RST);
+		return 0;
+	}
+
+	/// / //		KERNAL
+	if (!load_kernal(bus)) {
+		printf("%sfailed to load kernal:%s %s\n%sexiting..%s\n",
+			RED, RST, KERNAL_PATH, RED, RST);
+		return 0;
+	}
+
+	//// / //		CHARACTERS ROM
+	if (!load_chars(bus)) {
+		printf("%sfailed to load characters ROM:%s%s\n%sexiting..%s\n",
+			RED, RST, CHAR_ROM_PATH, RED, RST);
+		return 0;
+	}
 	return 1;
 }
 
@@ -260,8 +344,7 @@ void	bus_init(_bus *bus) {
 	bus->cpu_write = cpu_write_;
 	bus->vic_read = vic_read_;
 	bus->vic_write = vic_write_;
-	bus->load_kernal = load_kernal;
-	bus->load_basic = load_basic;
-	bus->load_chars = load_chars;
+	bus->load_roms = load_roms;
+	bus->load_prg = load_prg;
 }
 

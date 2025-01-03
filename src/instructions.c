@@ -18,13 +18,11 @@ uint8_t	BRK_IMP(_6502* mos6502) {
 	mos6502->set_flag(mos6502, 'B', 1);
 	mos6502->push(mos6502, mos6502->SR);
 	mos6502->set_flag(mos6502, 'I', 1);
-
-	// software interrupt is program responsiblity
+	// software interrupt is software's responsiblity
 	if (!brk_vector_low && !brk_vector_high) {
-		////printf("invalid interrupt address(0x%04X) skipping", intr_addr);
+		//printf("invalid interrupt address(0x%04X) skipping..", intr_addr);
 		return 0;
 	}
-
 	mos6502->PC = brk_vector_high << 8 | brk_vector_low;
 	return 7;
 }
@@ -987,12 +985,28 @@ uint8_t	ADC_INDX(_6502 *mos6502) {
 	high_byte = mos6502->bus->cpu_read(mos6502->bus, (base+1) & 0xFF);
 	uint8_t	operand = mos6502->bus->cpu_read(mos6502->bus, high_byte << 0x8 | low_byte);
 	uint16_t	res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
+	// signOverflow: sameSign (+*..) sameSign = diffSign
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
-	
 	mos6502->PC += 2;
 	return 6;
 }
@@ -1007,9 +1021,27 @@ uint8_t	ADC_ZP(_6502 *mos6502) {
 	uint8_t	low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1),
 		operand = mos6502->bus->cpu_read(mos6502->bus, (0x00 << 0x8 | low_byte) & 0xFF);
 	uint16_t res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
+	// signOverflow: sameSign (+*..) sameSign = diffSign
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 2;
@@ -1025,26 +1057,13 @@ uint8_t	ROR_ZP(_6502 *mos6502) {
 	//printf("ROR_ZP");
 	uint8_t	low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1),
 		operand = mos6502->bus->cpu_read(mos6502->bus, (0x00 << 0x8 | low_byte) & 0xFF);
-		/*carry_in = mos6502->get_flag(mos6502, 'C');
-
-	mos6502->set_flag(mos6502, 'C', operand & 0x1);
-	operand  = operand >> 0x1 | carry_in;
-
-
-	mos6502->set_flag(mos6502, 'Z', operand == 0);
-	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);*/
-
 	uint8_t	carry_in = mos6502->get_flag(mos6502, 'C');
-
 	mos6502->set_flag(mos6502, 'C', operand & 0x1);
 	operand >>= 0x1;
-
 	if (carry_in)	operand |= 0x80;
 	else		operand &= ~0x80;
-
 	mos6502->set_flag(mos6502, 'Z', operand == 0);
 	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);
-	
 	mos6502->bus->cpu_write(mos6502->bus, 0x00 << 0x8 | low_byte, operand);
 	mos6502->PC += 2;
 	return 5;
@@ -1073,10 +1092,27 @@ uint8_t	ADC_IMM(_6502 *mos6502) {
 	//printf("ADC_IMM");
 	uint8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1);
 	uint16_t res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
 	// signOverflow: sameSign (+*..) sameSign = diffSign
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 2;
@@ -1137,9 +1173,27 @@ uint8_t	ADC_ABS(_6502 *mos6502) {
 	        high_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+2);
 	uint8_t operand = mos6502->bus->cpu_read(mos6502->bus, high_byte << 0x8 | low_byte);
 	uint16_t res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
+	// signOverflow: sameSign (+*..) sameSign = diffSign
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 3;
@@ -1156,26 +1210,13 @@ uint8_t	ROR_ABS(_6502 *mos6502) {
 	uint8_t	low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1),
 		high_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+2);
 	uint8_t	operand = mos6502->bus->cpu_read(mos6502->bus, high_byte << 0x8 | low_byte);
-		/*carry_in = mos6502->get_flag(mos6502, 'C');
-
-	mos6502->set_flag(mos6502, 'C', operand & 0x1);
-	operand  = operand >> 0x1 | carry_in;
-
-	mos6502->set_flag(mos6502, 'Z', operand == 0);
-	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);*/
-	
 	uint8_t	carry_in = mos6502->get_flag(mos6502, 'C');
-
 	mos6502->set_flag(mos6502, 'C', operand & 0x1);
 	operand >>= 0x1;
-
 	if (carry_in)	operand |= 0x80;
 	else		operand &= ~0x80;
-
 	mos6502->set_flag(mos6502, 'Z', operand == 0);
 	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);
-	
-
 	mos6502->bus->cpu_write(mos6502->bus, high_byte << 0x8 | low_byte, operand);
 	mos6502->PC += 3;
 	return 6;
@@ -1212,9 +1253,27 @@ uint8_t	ADC_INDY(_6502 *mos6502) {
 	cycles += ((addr & 0xFF00) != ((high_byte << 0x8 | low_byte) & 0xFF00));
 	uint8_t	operand = mos6502->bus->cpu_read(mos6502->bus, addr);
 	uint16_t	res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
+	// signOverflow: sameSign (+*..) sameSign = diffSign
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 2;
@@ -1250,26 +1309,13 @@ uint8_t	ROR_ZPX(_6502 *mos6502) {
 	uint8_t	low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1);
 	uint16_t	addr = ((0x00 << 0x8 | low_byte) + mos6502->X) & 0xFF;
 	uint8_t	operand = mos6502->bus->cpu_read(mos6502->bus, addr);
-		/*carry_in = mos6502->get_flag(mos6502, 'C');
-
-	mos6502->set_flag(mos6502, 'C', operand & 0x1);
-	operand  = operand >> 0x1 | carry_in;
-
-
-	mos6502->set_flag(mos6502, 'Z', operand == 0);
-	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);*/
-	
 	uint8_t	carry_in = mos6502->get_flag(mos6502, 'C');
-
 	mos6502->set_flag(mos6502, 'C', operand & 0x1);
 	operand >>= 0x1;
-
 	if (carry_in)	operand |= 0x80;
 	else		operand &= ~0x80;
-
 	mos6502->set_flag(mos6502, 'Z', operand == 0);
 	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);
-
 	mos6502->bus->cpu_write(mos6502->bus, addr, operand);
 	mos6502->PC += 2;
 	return 6;
@@ -1302,9 +1348,27 @@ uint8_t	ADC_ABSY(_6502* mos6502) {
 	cycles += ((absy_addr & 0xFF00) != ((high_byte << 0x8 | low_byte) & 0xFF00)); // page crossing
 	operand = mos6502->bus->cpu_read(mos6502->bus, absy_addr);
 	res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
+	// signOverflow: sameSign (+*..) sameSign = diffSign
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 3;
@@ -1326,9 +1390,27 @@ uint8_t	ADC_ABSX(_6502 *mos6502) {
 	cycles += ((absx_addr & 0xFF00) != ((high_byte << 0x8 | low_byte) & 0xFF00));
 	operand = mos6502->bus->cpu_read(mos6502->bus, absx_addr);
 	res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
+	// signOverflow: sameSign (+*..) sameSign = diffSign
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 3;
@@ -1346,25 +1428,13 @@ uint8_t	ROR_ABSX(_6502 *mos6502) {
 		high_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+2);
 	uint16_t	absx_addr = (high_byte << 0x8 | low_byte) + mos6502->X;
 	uint8_t	operand = mos6502->bus->cpu_read(mos6502->bus, absx_addr);
-		/*carry_in = mos6502->get_flag(mos6502, 'C');
-
-	mos6502->set_flag(mos6502, 'C', operand & 0x1);
-	operand  = operand >> 0x1 | carry_in;
-
-	mos6502->set_flag(mos6502, 'Z', operand == 0);
-	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);*/
-	
 	uint8_t	carry_in = mos6502->get_flag(mos6502, 'C');
-
 	mos6502->set_flag(mos6502, 'C', operand & 0x1);
 	operand >>= 0x1;
-
 	if (carry_in)	operand |= 0x80;
 	else		operand &= ~0x80;
-
 	mos6502->set_flag(mos6502, 'Z', operand == 0);
 	mos6502->set_flag(mos6502, 'N', (operand >> 0x7) & 0x1);
-
 	mos6502->bus->cpu_write(mos6502->bus, absx_addr, operand);
 	mos6502->PC += 3;
 	return 7;
@@ -2360,15 +2430,29 @@ uint8_t	SBC_INDX(_6502 *mos6502) {
 	low_byte = mos6502->bus->cpu_read(mos6502->bus, base);
 	high_byte = mos6502->bus->cpu_read(mos6502->bus, (base+1) & 0xFF);
 	uint8_t	operand = mos6502->bus->cpu_read(mos6502->bus, high_byte << 0x8 | low_byte);
-
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
-
 	mos6502->PC += 2;
 	return 6;
 }
@@ -2401,9 +2485,25 @@ uint8_t	SBC_ZP(_6502 *mos6502) {
 		operand = mos6502->bus->cpu_read(mos6502->bus, (0x00 << 8 | low_byte) & 0xFF);
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 2;
@@ -2452,9 +2552,25 @@ uint8_t	SBC_IMM(_6502 *mos6502) {
 	uint8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1);
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 2;
@@ -2500,12 +2616,27 @@ uint8_t	SBC_ABS(_6502 *mos6502) {
 	uint8_t low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1),
 	        high_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+2);
 	uint8_t operand = mos6502->bus->cpu_read(mos6502->bus, high_byte << 0x8 | low_byte);
-	
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 3;
@@ -2560,15 +2691,29 @@ uint8_t	SBC_INDY(_6502 *mos6502) {
 	uint16_t	addr = (high_byte << 0x8 | low_byte) + mos6502->Y;
 	cycles += ((addr & 0xFF00) != ((high_byte << 0x8 | low_byte) & 0xFF00));
 	uint8_t	operand = mos6502->bus->cpu_read(mos6502->bus, addr);
-
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
-
 	mos6502->PC += 2;
 	return cycles;
 }
@@ -2582,15 +2727,29 @@ uint8_t	SBC_ZPX(_6502 *mos6502) {
 	//printf("SBC_ZPX");
 	uint8_t	low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1),
 		operand = mos6502->bus->cpu_read(mos6502->bus, ((0x00 << 8 | low_byte) + mos6502->X) & 0xFF);
-	
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
-	
 	mos6502->PC += 2;
 	return 4;
 }
@@ -2639,15 +2798,29 @@ uint8_t	SBC_ABSY(_6502 *mos6502) {
 	absy_addr += mos6502->Y;
 	cycles += ((absy_addr & 0xFF00) != ((high_byte << 0x8 | low_byte) & 0xFF00));
 	uint8_t operand = mos6502->bus->cpu_read(mos6502->bus, absy_addr);
-
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
-
 	mos6502->PC += 3;
 	return cycles;
 }
@@ -2666,15 +2839,29 @@ uint8_t	SBC_ABSX(_6502 *mos6502) {
 	absx_addr += mos6502->X;
 	cycles += ((absx_addr & 0xFF00) != ((high_byte << 0x8 | low_byte) & 0xFF00));
 	uint8_t operand = mos6502->bus->cpu_read(mos6502->bus, absx_addr);
-
 	uint8_t old_a = mos6502->A;
 	uint16_t temp = mos6502->A - operand - (1 - mos6502->get_flag(mos6502, 'C'));
-	mos6502->set_flag(mos6502, 'C', temp < 0x100);
 	mos6502->set_flag(mos6502, 'V', ((old_a ^ operand) & 0x80) && ((old_a ^ temp) & 0x80));
-	mos6502->A = temp & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', temp < 0x100);
+		mos6502->A = temp & 0xFF;
+	}
+	else {
+		int8_t low = (mos6502->A & 0xF) - (operand & 0xF) - (1 - mos6502->get_flag(mos6502, 'C'));
+		int8_t high = (mos6502->A >> 4) - (operand >> 4);
+		if (low < 0) {
+			low -= 6;
+			high--;
+		}
+		if (high < 0) {
+			high -= 6;
+			mos6502->set_flag(mos6502, 'C', 0);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 1);
+		mos6502->A = (high & 0xF) << 4 | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
-
 	mos6502->PC += 3;
 	return cycles;
 }

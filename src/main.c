@@ -3,14 +3,15 @@
 thread_data	*t_data;
 
 void	sig_handle(int s) {
-	pthread_mutex_lock(&t_data->halt_mutex);
-	t_data->halt = 1;
-	pthread_mutex_unlock(&t_data->halt_mutex);
+	pthread_cancel(t_data->worker);
+	pthread_cancel(t_data->worker_2);
 	pthread_join(t_data->worker, NULL);
-	printf("parent thread: i killed'em\n");
+	pthread_join(t_data->worker_2, NULL);
+
 	/// / //		CLEAN
 	pthread_mutex_destroy(&t_data->halt_mutex);
-	pthread_mutex_destroy(&t_data->data_mutex);
+	//pthread_mutex_destroy(&t_data->data_mutex);
+	//pthread_mutex_destroy(&t_data->data2_mutex);
 
 	_bus	*bus = (_bus*)t_data->bus;
 	_6502	*mos6502 = (_6502*)bus->cpu;
@@ -18,10 +19,14 @@ void	sig_handle(int s) {
 	_CIA	*cia1 = (_CIA*)bus->cia1;
 	_CIA	*cia2 = (_CIA*)bus->cia2;
 	_keymap	*keys = (_keymap*)cia1->keys;
+	_prg	*prg = (_prg*)bus->prg;
 
 	memset(bus->RAM, 0, sizeof(bus->RAM));
 	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
 	mlx_terminate(vic->mlx_ptr);
+
+	if (t_data->line) free(t_data->line);
+	if (prg) free(prg);
 	free(mos6502);
 	free(keys);
 	free(vic);
@@ -32,7 +37,11 @@ void	sig_handle(int s) {
 	exit(s);
 }
 
-int	main() {
+int	main(int c, char **v) {
+	if (c != 1) {
+		printf("USAGE: %s\n", v[0]);
+		return 1;
+	}
 	srand(time(0));
 
 	/// / //		BUS
@@ -41,24 +50,7 @@ int	main() {
 		return 1;
 	bus->reset = bus_init;
 	bus->reset(bus);
-
-	// / ///		BASIC
-	if (!bus->load_basic(bus)) {
-		printf("failed to load basic:%s\n", BASIC_PATH);
-		free(bus);
-		return 1;
-	}
-
-	/// / //		KERNAL
-	if (!bus->load_kernal(bus)) {
-		printf("failed to load kernal: %s\n", KERNAL_PATH);
-		free(bus);
-		return 1;
-	}
-
-	//// / //		CHARACTERS ROM
-	if (!bus->load_chars(bus)) {
-		printf("failed to load characters ROM: %s\n", CHAR_ROM_PATH);
+	if (!bus->load_roms(bus)) {
 		free(bus);
 		return 1;
 	}
@@ -128,7 +120,8 @@ int	main() {
 	}
 	memset(t_data, 0, sizeof(thread_data));
 	pthread_mutex_init(&t_data->halt_mutex, NULL);
-	pthread_mutex_init(&t_data->data_mutex, NULL);
+	////pthread_mutex_init(&t_data->data_mutex, NULL);
+	////pthread_mutex_init(&t_data->data2_mutex, NULL);
 	t_data->bus = bus;
 	bus->t_data = t_data;
 
@@ -154,6 +147,9 @@ int	main() {
 	/// / //		CYCLE
 	pthread_create(&t_data->worker, NULL, main_cycle, bus);
 
+	/// / //		SHELL
+	pthread_create(&t_data->worker_2, NULL, open_shell, bus);
+
 	// / //		CLEAN
 	signal(SIGINT, sig_handle);
 	signal(SIGQUIT, sig_handle);
@@ -162,7 +158,7 @@ int	main() {
 	//// / //		HOOKS
 	mlx_image_to_window(vic->mlx_ptr, vic->mlx_img, 0, 0);
 	mlx_set_window_limit(vic->mlx_ptr, WWIDTH, WHEIGHT, WWIDTH, WHEIGHT);
-				// limited window dimensions for now
+		// limited window dimensions for now
 	setup_mlx_hooks(vic);
 	mlx_loop(vic->mlx_ptr);
 }
