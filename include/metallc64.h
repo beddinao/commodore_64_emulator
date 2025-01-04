@@ -235,6 +235,8 @@
 #define FALSE		0
 #endif
 
+#define SHELL_PRMPT		" C64$> "
+
 typedef	struct thread_data {
 	pthread_t		worker;
 	pthread_t		worker_2;
