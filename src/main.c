@@ -19,14 +19,13 @@ void	sig_handle(int s) {
 	_CIA	*cia1 = (_CIA*)bus->cia1;
 	_CIA	*cia2 = (_CIA*)bus->cia2;
 	_keymap	*keys = (_keymap*)cia1->keys;
-	_prg	*prg = (_prg*)bus->prg;
 
 	memset(bus->RAM, 0, sizeof(bus->RAM));
 	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
 	mlx_terminate(vic->mlx_ptr);
 
 	if (t_data->line) free(t_data->line);
-	if (prg) free(prg);
+	if (bus->prg) free(bus->prg);
 	free(mos6502);
 	free(keys);
 	free(vic);

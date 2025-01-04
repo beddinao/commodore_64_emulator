@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+#include <ctype.h>
 #include <limits.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -260,7 +261,6 @@ typedef	struct _bus {
 	void		(*vic_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*vic_read)(struct _bus*, uint16_t);
 	uint8_t		(*load_roms)(struct _bus*);
-	uint8_t		(*load_prg)(struct _bus*, char*);
 	void		(*reset)(struct _bus*);
 	//
 	void		*cpu;
@@ -400,6 +400,7 @@ void	bus_init(_bus*);
 
 /* hooks.c */
 void	setup_mlx_hooks(void*);
+void	key_hook(mlx_key_data_t, void*);
 
 /* ppu.c */
 void	loop_hook(void*);

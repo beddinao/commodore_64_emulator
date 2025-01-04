@@ -67,10 +67,7 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 			         set_key(keys, 0, 2, keydata.action);
 			         break;
 		/* NUMS */
-		case MLX_KEY_1: printf("$2B(%02X) - $2C(%02X) -> $37(%02X) - $38(%02X)\n",
-					      bus->RAM[0x2B], bus->RAM[0x2C], bus->RAM[0x37], bus->RAM[0x38]);
-			      set_key(keys, 7, 0, keydata.action);
-			      break;
+		case MLX_KEY_1: set_key(keys, 7, 0, keydata.action); break;
 		case MLX_KEY_2: set_key(keys, 7, 3, keydata.action); break;
 		case MLX_KEY_3: set_key(keys, 1, 0, keydata.action); break;
 		case MLX_KEY_4: set_key(keys, 1, 3, keydata.action); break;
