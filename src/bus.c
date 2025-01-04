@@ -180,19 +180,11 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 
 		/*
 			protected ZERO PAGE variables
-			safe to use return here
 		*/
-		case 0x37: // Basic top ram low
-			bus->RAM[addr] = 0x00; return;
-		case 0x38: // Basic top ram high
-			bus->RAM[addr] = 0xA0; return;
-
-		case 0x2B: // free after prg low
-			bus->RAM[addr] = bus->prg ? ((_prg*)bus->prg)->en_addr & 0xFF : val;
-			return;
-		case 0x2C: // free after prg high
-			bus->RAM[addr] = bus->prg ? (((_prg*)bus->prg)->en_addr >> 0x8) & 0xFF : val;
-			return;
+		// BASIC top RAM / PRG max addr
+		// for some reason kernal sets this to another addr
+		case 0x37: bus->RAM[addr] = 0x00; return;
+		case 0x38: bus->RAM[addr] = 0xA0; return;
 
 		default:	break;
 	}
@@ -207,47 +199,6 @@ uint8_t	vic_read_(_bus *bus, uint16_t addr) {
 void	vic_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
 	bus->RAM[vic->bank + addr] = val;
-}
-
-uint8_t	load_prg(_bus *bus, char *filename) {
-	char buffer[BASIC_PRG_SIZE];
-	_prg *prg = malloc(sizeof(_prg));
-	FILE *file = fopen(filename, "rb");
-	if (!file || !prg)
-		return 0;
-
-	memset(prg, 0, sizeof(_prg));
-	memset(buffer, 0, sizeof(buffer));
-	prg->size = fread(buffer, 1, 2, file);
-	if (!prg->size || prg->size != 2) {
-		fclose(file);
-		free(prg);
-		return 0;
-	}
-
-	prg->ld_addr = buffer[1] << 0x8 | buffer[0];
-	if (!prg->ld_addr || prg->ld_addr < BASIC_PRG_START
-		|| prg->ld_addr > BASIC_PRG_END) {
-		fclose(file);
-		free(prg);
-		return 0;
-	}
-
-	memset(buffer, 0, sizeof(buffer));
-	prg->size = fread(buffer, 1, BASIC_PRG_SIZE, file);
-	if (!prg->size || prg->size + prg->ld_addr > BASIC_PRG_END) {
-		fclose(file);
-		free(prg);
-		return 0;
-	}
-	memcpy(bus->RAM + prg->ld_addr, buffer, prg->size);
-	prg->en_addr = prg->ld_addr + prg->size + 1;
-	memcpy(prg->path, filename, 0x400);
-	prg->loaded = TRUE;
-	bus->prg = prg;
-	printf("program loaded at $%04X -> $%04X\n", prg->ld_addr, prg->size);
-	fclose(file);
-	return 1;
 }
 
 uint8_t	load_basic(_bus *bus) {
@@ -345,6 +296,5 @@ void	bus_init(_bus *bus) {
 	bus->vic_read = vic_read_;
 	bus->vic_write = vic_write_;
 	bus->load_roms = load_roms;
-	bus->load_prg = load_prg;
 }
 
