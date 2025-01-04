@@ -57,7 +57,7 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 		default:	break;
 	}
 
-	return bus->RAM[addr];
+	return bus->RAM[addr & 0xFFFF];
 }
 
 void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
@@ -182,23 +182,23 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 			protected ZERO PAGE variables
 		*/
 		// BASIC top RAM / PRG max addr
-		// for some reason kernal sets this to another addr
+		// kernal sets this to another addr
 		case 0x37: bus->RAM[addr] = 0x00; return;
 		case 0x38: bus->RAM[addr] = 0xA0; return;
 
 		default:	break;
 	}
-	bus->RAM[addr] = val;
+	bus->RAM[addr & 0xFFFF] = val;
 }
 
 uint8_t	vic_read_(_bus *bus, uint16_t addr) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
-	return bus->RAM[vic->bank + addr];
+	return bus->RAM[(vic->bank + addr) & 0xFFFF];
 }
 
 void	vic_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
-	bus->RAM[vic->bank + addr] = val;
+	bus->RAM[(vic->bank + addr) & 0xFFFF] = val;
 }
 
 uint8_t	load_basic(_bus *bus) {
@@ -257,9 +257,10 @@ uint8_t	load_chars(_bus *bus) {
 		return 0;
 	}
 
+	memcpy(bus->char_ram, buffer, CHAR_ROM_SIZE);
 	/*memcpy(bus->RAM + UPP_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
 	memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);*/
-	memcpy(bus->RAM + 0xC000, buffer, CHAR_ROM_SIZE);
+	//memcpy(bus->RAM + 0xC000, buffer, CHAR_ROM_SIZE);
 	fclose(file);
 	return 1;
 }

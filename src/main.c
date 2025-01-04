@@ -10,8 +10,8 @@ void	sig_handle(int s) {
 
 	/// / //		CLEAN
 	pthread_mutex_destroy(&t_data->halt_mutex);
-	//pthread_mutex_destroy(&t_data->data_mutex);
-	//pthread_mutex_destroy(&t_data->data2_mutex);
+	pthread_mutex_destroy(&t_data->prg_mutex);
+	pthread_mutex_destroy(&t_data->col_mutex);
 
 	_bus	*bus = (_bus*)t_data->bus;
 	_6502	*mos6502 = (_6502*)bus->cpu;
@@ -26,6 +26,7 @@ void	sig_handle(int s) {
 
 	if (t_data->line) free(t_data->line);
 	if (bus->prg) free(bus->prg);
+	if (bus->col_s) free(bus->col_s);
 	free(mos6502);
 	free(keys);
 	free(vic);
@@ -119,8 +120,8 @@ int	main(int c, char **v) {
 	}
 	memset(t_data, 0, sizeof(thread_data));
 	pthread_mutex_init(&t_data->halt_mutex, NULL);
-	////pthread_mutex_init(&t_data->data_mutex, NULL);
-	////pthread_mutex_init(&t_data->data2_mutex, NULL);
+	pthread_mutex_init(&t_data->prg_mutex, NULL);
+	pthread_mutex_init(&t_data->col_mutex, NULL);
 	t_data->bus = bus;
 	bus->t_data = t_data;
 

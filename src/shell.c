@@ -1,86 +1,5 @@
 #include "metallc64.h"
 
-void	change_col(_bus* bus, char *cmd, unsigned col_i) {
-	if (!strncmp(cmd, "BRD", 3))
-		bus->RAM[BRD_COLOR] = col_i;
-	else if (!strncmp(cmd, "BGR", 3))
-		bus->RAM[BACKG_COLOR0] = col_i;
-	else	bus->RAM[BRD_COLOR] = col_i;
-}
-
-bool	prg_load_sequence(_bus *bus, char *buffer, unsigned prg_size, char *filename) {
-	_prg *prg = malloc(sizeof(_prg));
-	if (!prg) return FALSE;
-	prg->ld_addr = BASIC_PRG_START;
-	prg->en_addr = BASIC_PRG_START + prg_size + 1;
-	memcpy(prg->path, filename, strlen(filename));
-	prg->size = prg_size;
-	/* clear region */
-	memset(bus->RAM + BASIC_PRG_START, 0, prg->size);
-	/* load to RAM */
-	memcpy(bus->RAM + BASIC_PRG_START, buffer, prg->size);
-	/* ZERO-PAGE pointers setup */
-	// leading zero byte
-	bus->RAM[0x800] = 0x00;
-	// $2B-$2C TXTTAB
-	bus->RAM[0x2B] = 0x01;
-	bus->RAM[0x2C] = 0x08;
-	// $2D-$2E VARTAB
-	bus->RAM[0x2D] = prg->en_addr & 0xFF;
-	bus->RAM[0x2E] = (prg->en_addr >> 0x8) & 0xFF;
-	// $2F-$30 ARYTAB
-	bus->RAM[0x2F] = prg->en_addr & 0xFF;
-	bus->RAM[0x30] = (prg->en_addr >> 0x8) & 0xFF;
-	// $31-$32 STREND
-	bus->RAM[0x31] = prg->en_addr & 0xFF;//0x00;
-	bus->RAM[0x32] = (prg->en_addr >> 0x8) & 0xFF;//0xA0;
-	// $33-$34 FRETOP
-	bus->RAM[0x33] = prg->en_addr & 0xFF;
-	bus->RAM[0x34] = (prg->en_addr >> 0x8) & 0xFF;
-	prg->loaded = TRUE;
-	bus->prg = prg;
-	return TRUE;
-}
-
-void	reset_prg(_bus *bus) {
-	_prg *prg = (_prg*)bus->prg;
-	printf("clearing program from memory..\n");
-	memset(bus->RAM + BASIC_PRG_START, 0, prg->size);
-	bus->RAM[0x800] = 0x00;
-	bus->RAM[0x801] = 0x00;
-	bus->RAM[0x802] = 0x00;
-	bus->RAM[0x803] = 0x00;
-	bus->RAM[0x804] = 0x00;
-	//
-	bus->RAM[0x2B] = 0x05;
-	bus->RAM[0x2C] = 0x08;
-	//
-	bus->RAM[0x2D] = 0x01;
-	bus->RAM[0x2E] = 0x08;
-	//
-	bus->RAM[0x2F] = 0x05;
-	bus->RAM[0x30] = 0x08;
-	//
-	bus->RAM[0x31] = 0x05;
-	bus->RAM[0x32] = 0x08;
-	//
-	bus->RAM[0x33] = 0x00;
-	bus->RAM[0x34] = 0xA0;
-	//// Current BASIC line pointer
-	bus->RAM[0x7A] = 0x01;
-	bus->RAM[0x7B] = 0x08;
-	//// Current BASIC line number
-	bus->RAM[0xAE] = 0x00;
-	bus->RAM[0xAF] = 0x00;
-	//
-	((_6502*)bus->cpu)->PC = 0xE394;
-	((_6502*)bus->cpu)->set_flag((_6502*)bus->cpu, 'D', 0);
-	printf(":freed $%04X(%u) Bytes of memory\n",
-		prg->size, prg->size);
-	free(prg);
-	bus->prg = NULL;
-}
-
 void	exec_ldp(_bus *bus, char *cmd) {
 	unsigned size = strlen(cmd);
 	char *cmd_end = strstr(cmd, " ");
@@ -134,9 +53,23 @@ void	exec_ldp(_bus *bus, char *cmd) {
 	fclose(file);
 	printf("loading [%s] with size $%04X at $%04X, $801 -> $%04X ...\n",
 			file_path, chars_read, ld_addr, ld_addr + chars_read);
-	if (prg_load_sequence(bus, buffer, chars_read, file_path))
-		printf("BASIC program loaded to RAM successfully\n");
-	else	printf("BASIC program failed to load to RAM\n");
+
+	_prg *prg = malloc(sizeof(_prg));
+	if (!prg) {
+		printf("BASIC program failed to load to RAM\n");
+		return;
+	}
+	memset(prg, 0, sizeof(_prg));
+	prg->size = chars_read;
+	prg->ld_addr = BASIC_PRG_START;
+	prg->en_addr = BASIC_PRG_START + chars_read + 1;
+	memcpy(prg->path, file_path, strlen(file_path));
+	memcpy(prg->buffer, buffer, chars_read);
+	bus->prg = prg;
+
+	pthread_mutex_lock(&bus->t_data->prg_mutex);
+	bus->t_data->load = TRUE;
+	pthread_mutex_unlock(&bus->t_data->prg_mutex);
 }
 
 void	exec_ldd(_bus *bus, char *cmd) {
@@ -148,14 +81,14 @@ void	exec_ldd(_bus *bus, char *cmd) {
 void	print_help(char *line) {
 	printf("invalid syntax\"%s\"\n", line);
 	printf("avilable commands:\n\n");
-	printf("\tLDP $.prg : load basic program to memory\n");
+	printf("\tLDP $.prg : load BASIC program to memory\n");
 	printf("\tLDD $.d64 : load D64 disk image\n");
 	printf("\tBRD $col_i: change default border color\n");
 	printf("\tBGR $col_i: change default background color\n");
 	printf("\tTXT $col_i: change default text color\n\n");
 	printf("\tCLR : exits/clear loaded program from memory\n");
 	printf("\tHLP : show this help message\n");
-	printf("\tEXT : exit emulation\n");
+	printf("\tEXT : exit emulation\n\n");
 }
 
 void	print_col_help(char *line) {
@@ -176,18 +109,23 @@ uint8_t	parse_line(char *line, _bus *bus) {
 	unsigned size = strlen(line);
 	unsigned cmd_size;
 	char *cmd_end;
+	_col *col_s;
 	int col;
 
-	if (size < 3) return 3;
+	if (!size) return 3;
 	cmd_end = strstr(line, " ");
 	if (!cmd_end) {
-		if (!strcmp(line, "CLR"))
-			reset_prg(bus);
+		if (!strcmp(line, "CLR")) {
+			pthread_mutex_lock(&bus->t_data->prg_mutex);
+			bus->t_data->reset = TRUE;
+			pthread_mutex_unlock(&bus->t_data->prg_mutex);
+		}
 		else if (!strcmp(line, "EXT")) {
 			printf("exiting..\n");
 			pthread_mutex_lock(&bus->t_data->halt_mutex);
-			bus->t_data->halt = 1;
+			bus->t_data->halt = TRUE;
 			pthread_mutex_unlock(&bus->t_data->halt_mutex);
+			pthread_exit(NULL);
 		}
 		else 	return 1;
 		return 0;
@@ -204,9 +142,19 @@ uint8_t	parse_line(char *line, _bus *bus) {
 		col = atoi(line + cmd_size);
 		if (col <= 0 || col > 16) 
 			return 2;
-		change_col(bus, line, col+1);
+		col_s = malloc(sizeof(_col));
+		if (col_s) {
+			memcpy(col_s->cmd, line, 3);
+			col_s->col = col;
+			col_s->changed = FALSE;
+			bus->col_s = col_s;
+			pthread_mutex_lock(&bus->t_data->col_mutex);
+			bus->t_data->col = TRUE;
+			pthread_mutex_unlock(&bus->t_data->col_mutex);
+		}
+		else printf("color change failed\n");
 	}
-	else return 3;
+	else return 1;
 	return 0;
 }
 
