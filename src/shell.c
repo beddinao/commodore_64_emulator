@@ -147,12 +147,21 @@ void	exec_ldd(_bus *bus, char *cmd) {
 
 void	print_help(char *line) {
 	printf("invalid syntax\"%s\"\n", line);
-	printf("aviable commands: LDP LDD CLR EXT BGR TXT BRD\n");
+	printf("avilable commands:\n\n");
+	printf("\tLDP $.prg : load basic program to memory\n");
+	printf("\tLDD $.d64 : load D64 disk image\n");
+	printf("\tBRD $col_i: change default border color\n");
+	printf("\tBGR $col_i: change default background color\n");
+	printf("\tTXT $col_i: change default text color\n\n");
+	printf("\tCLR : exits/clear loaded program from memory\n");
+	printf("\tHLP : show this help message\n");
+	printf("\tEXT : exit emulation\n");
 }
 
 void	print_col_help(char *line) {
-	printf("invalid syntax\"%s\"\n", line);
-	printf("colors are indexes between 0 and 15\n");
+	printf("invalid syntax\"%s\"\n\n", line);
+	printf("\tthe C64 have a palette of 16 colors:\n");
+	printf("\tchose between 1 and 16 as indexes to that palette\n\n");
 }
 
 /*
@@ -193,9 +202,9 @@ uint8_t	parse_line(char *line, _bus *bus) {
 			|| !strncmp(line, "BGR", cmd_size)
 			|| !strncmp(line, "TXT", cmd_size)) {
 		col = atoi(line + cmd_size);
-		if (col < 0 || col > 15) 
+		if (col <= 0 || col > 16) 
 			return 2;
-		change_col(bus, line, col);
+		change_col(bus, line, col+1);
 	}
 	else return 3;
 	return 0;
@@ -206,7 +215,7 @@ void	*open_shell(void *p) {
 	uint8_t	parse_res;
 
 	while (1) {
-		bus->t_data->line = readline("  $> ");
+		bus->t_data->line = readline(SHELL_PRMPT);
 		if (!(parse_res = parse_line(bus->t_data->line, bus)))
 			add_history(bus->t_data->line);
 		else	switch (parse_res) {
