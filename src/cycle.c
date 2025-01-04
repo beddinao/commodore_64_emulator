@@ -59,6 +59,25 @@ void	*main_cycle(void *p) {
 			sleep_time = {0};
 	
 	while (1) {
+		// check prg load/reset requests
+		pthread_mutex_lock(&bus->t_data->prg_mutex);
+		if (bus->t_data->load) {
+			prg_load_sequence(bus, (_prg*)bus->prg);
+			bus->t_data->load = FALSE;
+		}
+		else if (bus->t_data->reset) {
+			reset_prg(bus, (_prg*)bus->prg);
+			bus->t_data->reset = FALSE;
+		}
+		pthread_mutex_unlock(&bus->t_data->prg_mutex);
+		// check color change request
+		pthread_mutex_lock(&bus->t_data->col_mutex);
+		if (bus->t_data->col) {
+			change_col(bus, bus->col_s);
+			bus->t_data->col = FALSE;
+		}
+		pthread_mutex_unlock(&bus->t_data->col_mutex);
+
 		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);

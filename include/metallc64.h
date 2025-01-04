@@ -235,24 +235,22 @@
 #define FALSE		0
 #endif
 
-#define SHELL_PRMPT		" C64$> "
+#define SHELL_PRMPT		"C64Shell$ "
 
 typedef	struct thread_data {
-	pthread_t		worker;
-	pthread_t		worker_2;
+	pthread_t		worker;   // => main cycle
+	pthread_t		worker_2; // => shell interface
 	pthread_mutex_t	halt_mutex;
-			          // access to halt flag
-	//pthread_mutex_t	data_mutex;
-			          // VIC registers
-				// $D000 - $D3FF
-	//pthread_mutex_t	data2_mutex;
-			          // BASIC prg area
-				// $800 - $A000
-	uint8_t		halt;     // halting flag
-	char		*line;    // readline alloced line
+	pthread_mutex_t	prg_mutex;
+	pthread_mutex_t	col_mutex;
+	bool		halt;     // <- halt_mutex
+	bool		col;      // <- col_mutex
+	bool		load;     // <- prg_mutex
+	bool		reset;    // <- prg_mutex
+
+	char		*line;    // readline allocated line
 			          // for freeing later
-	void		*bus;	// \ for access inside
-				// /  signal handlers
+	void		*bus;
 }	thread_data;
 
 typedef	struct _bus {
@@ -265,11 +263,14 @@ typedef	struct _bus {
 	uint8_t		(*load_roms)(struct _bus*);
 	void		(*reset)(struct _bus*);
 	//
+	uint8_t		char_ram[0x1000];
+	//
 	void		*cpu;
 	void		*vic;
 	void		*cia1;
 	void		*cia2;
 	void		*prg;
+	void		*col_s;
 	thread_data	*t_data;
 }	_bus;
 
@@ -383,10 +384,17 @@ $DC00  #4 |  9  |  I  |  J  |  0  |  M  |  K  |  O  |  N  |
 typedef	struct basic_prg {
 	bool	loaded;
 	char	path[0x400];
+	char	buffer[BASIC_PRG_SIZE];
 	uint16_t	ld_addr;
 	uint16_t	en_addr;
 	uint16_t	size;
 }	_prg;
+
+typedef	struct ch_col {
+	bool	changed;
+	char	cmd[0x4];
+	unsigned	col;
+}	_col;
 
 /* cycle.c */
 void	*main_cycle(void*);
@@ -425,5 +433,10 @@ void	put_pixel(_VIC_II *, unsigned, unsigned, uint32_t);
 
 /* shell.c */
 void	*open_shell(void*);
+
+/* loader.c */
+void	prg_load_sequence(_bus*, _prg*);
+void	reset_prg(_bus*, _prg*);
+void	change_col(_bus*, _col*);
 
 #endif
