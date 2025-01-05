@@ -5,11 +5,11 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 		uint8_t irq_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK);
 		uint8_t irq_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + 1);
 		mos6502->irq_pending = FALSE;
-		
+
 		if (!irq_vector_low && !irq_vector_high)
 			return 0;
 		/*uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS);
-		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);*/
+		bus->cpu_write(bus, INTR_STATUS, _D019 & ~0x1);*/
 		(void)bus;
 		mos6502->push(mos6502, (mos6502->PC >> 8) & 0xFF);
 		mos6502->push(mos6502, mos6502->PC & 0xFF);
@@ -57,7 +57,7 @@ void	*main_cycle(void *p) {
 	struct	timespec	frame_start_time = {0},
 			frame_end_time = {0},
 			sleep_time = {0};
-	
+
 	while (1) {
 		// check prg load/reset requests
 		pthread_mutex_lock(&bus->t_data->prg_mutex);
@@ -81,7 +81,16 @@ void	*main_cycle(void *p) {
 		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
+
+			/*printf("%04X  %02X %02X %02X  ",
+			mos6502->PC, mos6502->opcode, bus->cpu_read(bus, mos6502->PC+1), bus->cpu_read(bus, mos6502->PC+2));
+
+			printf("\tA:%02X X:%02X Y:%02X P:%02X SP:%02X\t",
+			mos6502->A, mos6502->X, mos6502->Y, mos6502->SR, mos6502->SP);*/
+
 			instruction_cycles = mos6502->opcodes[mos6502->opcode](mos6502);
+			//printf("\n");
+
 			vic_advance_raster(bus, vic, instruction_cycles);
 			cia_advance_timers(bus, cia1, instruction_cycles);
 			cia_advance_timers(bus, cia2, instruction_cycles);
@@ -91,7 +100,7 @@ void	*main_cycle(void *p) {
 		}
 		clock_gettime(CLOCK_MONOTONIC, &frame_end_time);
 		elapsed_nanoseconds = (frame_end_time.tv_sec - frame_start_time.tv_sec) * NANOS_TO_SECOND
-				+ (frame_end_time.tv_nsec - frame_start_time.tv_nsec);
+			+ (frame_end_time.tv_nsec - frame_start_time.tv_nsec);
 		if (elapsed_nanoseconds < NANOS_PER_FRAME) {
 			sleep_time.tv_sec = 0;
 			sleep_time.tv_nsec = NANOS_PER_FRAME - elapsed_nanoseconds;

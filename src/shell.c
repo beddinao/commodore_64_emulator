@@ -1,6 +1,11 @@
 #include "metallc64.h"
 
 void	exec_ldp(_bus *bus, char *cmd) {
+	if (bus->prg) {
+		printf("a program is already loaded\n");
+		return;
+	}
+
 	unsigned size = strlen(cmd);
 	char *cmd_end = strstr(cmd, " ");
 	char *path_st = cmd_end, *path_en;
@@ -70,6 +75,7 @@ void	exec_ldp(_bus *bus, char *cmd) {
 	pthread_mutex_lock(&bus->t_data->prg_mutex);
 	bus->t_data->load = TRUE;
 	pthread_mutex_unlock(&bus->t_data->prg_mutex);
+	sleep(1);
 }
 
 void	exec_ldd(_bus *bus, char *cmd) {
@@ -78,11 +84,18 @@ void	exec_ldd(_bus *bus, char *cmd) {
 	printf("executing LDD\n");
 }
 
+void	exec_ldt(_bus *bus, char *cmd) {
+	(void)bus;
+	(void)cmd;
+	printf("executing LDT\n");
+}
+
 void	print_help(char *line) {
 	printf("invalid syntax\"%s\"\n", line);
 	printf("avilable commands:\n\n");
 	printf("\tLDP $.prg : load BASIC program to memory\n");
 	printf("\tLDD $.d64 : load D64 disk image\n");
+	printf("\tLDT $.T64 : load T64 tape image\n");
 	printf("\tBRD $col_i: change default border color\n");
 	printf("\tBGR $col_i: change default background color\n");
 	printf("\tTXT $col_i: change default text color\n\n");
@@ -116,9 +129,14 @@ uint8_t	parse_line(char *line, _bus *bus) {
 	cmd_end = strstr(line, " ");
 	if (!cmd_end) {
 		if (!strcmp(line, "CLR")) {
+			if (!bus->prg) {
+				printf("you must load a program first\n");
+				return 0;
+			}
 			pthread_mutex_lock(&bus->t_data->prg_mutex);
 			bus->t_data->reset = TRUE;
 			pthread_mutex_unlock(&bus->t_data->prg_mutex);
+			sleep(1);
 		}
 		else if (!strcmp(line, "EXT")) {
 			printf("exiting..\n");
@@ -136,6 +154,8 @@ uint8_t	parse_line(char *line, _bus *bus) {
 		exec_ldp(bus, line);
 	else if (!strncmp(line, "LDD", cmd_size))
 		exec_ldd(bus, line);
+	else if (!strncmp(line, "LDT", cmd_size))
+		exec_ldt(bus, line);
 	else if (!strncmp(line, "BRD", cmd_size)
 			|| !strncmp(line, "BGR", cmd_size)
 			|| !strncmp(line, "TXT", cmd_size)) {
@@ -151,8 +171,9 @@ uint8_t	parse_line(char *line, _bus *bus) {
 			pthread_mutex_lock(&bus->t_data->col_mutex);
 			bus->t_data->col = TRUE;
 			pthread_mutex_unlock(&bus->t_data->col_mutex);
+			sleep(1);
 		}
-		else printf("color change failed\n");
+		else printf("changing color failed\n");
 	}
 	else return 1;
 	return 0;
@@ -166,10 +187,11 @@ void	*open_shell(void *p) {
 		bus->t_data->line = readline(SHELL_PRMPT);
 		if (!(parse_res = parse_line(bus->t_data->line, bus)))
 			add_history(bus->t_data->line);
-		else	switch (parse_res) {
-			case 1: print_help(bus->t_data->line); break;
-			case 2: print_col_help(bus->t_data->line); break;
-			default: break;
+		else	
+			switch (parse_res) {
+				case 1: print_help(bus->t_data->line); break;
+				case 2: print_col_help(bus->t_data->line); break;
+				default: break;
 		}
 		free(bus->t_data->line);
 		bus->t_data->line = NULL;

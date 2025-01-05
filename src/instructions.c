@@ -20,7 +20,7 @@ uint8_t	BRK_IMP(_6502* mos6502) {
 	mos6502->set_flag(mos6502, 'I', 1);
 	// software interrupt is software's responsiblity
 	if (!brk_vector_low && !brk_vector_high) {
-		//printf("invalid interrupt address(0x%04X) skipping..", intr_addr);
+		////printf("invalid interrupt address(0x%04X) skipping..", intr_addr);
 		return 0;
 	}
 	mos6502->PC = brk_vector_high << 8 | brk_vector_low;
@@ -176,7 +176,7 @@ uint8_t	BPL_REL(_6502 *mos6502) {
 	mos6502->PC += 2;
 	//printf("BPL_REL");
 	if (mos6502->get_flag(mos6502, 'N') == 0) {
-		int8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
+		int8_t operand = (int8_t)mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
 		mos6502->PC += operand;
 		return 3;
 	}
@@ -509,7 +509,7 @@ uint8_t	BMI_REL(_6502 *mos6502) {
 	//printf("BMI_REL\b");
 	mos6502->PC += 2;
 	if (mos6502->get_flag(mos6502, 'N')) {
-		int8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
+		int8_t operand = (int8_t)mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
 		mos6502->PC += operand;
 		return 3;
 	}
@@ -827,7 +827,7 @@ uint8_t	BVC_REL(_6502 *mos6502) {
 	//printf("BVC_REL");
 	mos6502->PC += 2;
 	if (mos6502->get_flag(mos6502, 'V') == 0) {
-		int8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
+		int8_t operand = (int8_t)mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
 		mos6502->PC += operand;
 		return 3;
 	}
@@ -1231,7 +1231,7 @@ uint8_t	BVS_REL(_6502 *mos6502) {
 	//printf("BVS_REL");
 	mos6502->PC += 2;
 	if (mos6502->get_flag(mos6502, 'V')) {
-		int8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
+		int8_t operand = (int8_t)mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
 		mos6502->PC += operand;
 		return 3;
 	}
@@ -1576,7 +1576,7 @@ uint8_t	BCC_REL(_6502 *mos6502) {
 	//printf("BCC_REL");
 	mos6502->PC += 2;
 	if (mos6502->get_flag(mos6502, 'C') == 0) {
-		int8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
+		int8_t operand = (int8_t)mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
 		mos6502->PC += operand;
 		return 3;
 	}
@@ -1895,7 +1895,7 @@ uint8_t	BCS_REL(_6502 *mos6502) {
 	//printf("BCS_REL");
 	mos6502->PC += 2;
 	if (mos6502->get_flag(mos6502, 'C')) {
-		int8_t operand = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
+		int8_t operand = (int8_t)mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
 		mos6502->PC += operand;
 		return 3;
 	}

@@ -15,8 +15,8 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 			return ((_VIC_II*)bus->vic)->raster & 0xFF;
 		case CNTRL1:
 			if ((((_VIC_II*)bus->vic)->raster >> 0x7) & 0x1)
-				return bus->RAM[addr] | 0x1;
-			return bus->RAM[addr] & ~0x1;
+				return bus->RAM[addr] | 0x80;
+			return bus->RAM[addr] & ~0x80;
 		
 		case 0xDC04: /* CIA#1 TA LB */ return cia1->timerA & 0xFF;
 		case 0xDC05: /* CIA#1 TA HB */ return (cia1->timerA >> 0x8) & 0xFF;
@@ -73,6 +73,18 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	}
 
 	switch (addr) {
+		/*case CNTRL1:
+			printf("write $D011 $%02X -> ", val);
+			for (unsigned i = 0; i < 0x8; i++)
+				printf("%u ", (val >> i) & 0x1);
+			printf("\n");
+			break;
+		case CNTRL2:
+			printf("write $D016 $%02X -> ", val);
+			for (unsigned i = 0; i < 0x8; i++)
+				printf("%u ", (val >> i) & 0x1);
+			printf("\n");
+			break;*/
 		case MEM_SETUP: // D018
 			if ((bus->cpu_read(bus, CNTRL1) >> 0x5) & 0x1)
 				vic->bitmap_ram = (val & 0x8) ? 0x2000 : 0x0000;
@@ -193,12 +205,12 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 
 uint8_t	vic_read_(_bus *bus, uint16_t addr) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
-	return bus->RAM[(vic->bank + addr) & 0xFFFF];
+	return bus->RAM[(vic->bank + addr)/* & VIC_BANK_SIZE*/];
 }
 
 void	vic_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
-	bus->RAM[(vic->bank + addr) & 0xFFFF] = val;
+	bus->RAM[(vic->bank + addr)/* & VIC_BANK_SIZE*/] = val;
 }
 
 uint8_t	load_basic(_bus *bus) {
@@ -258,9 +270,9 @@ uint8_t	load_chars(_bus *bus) {
 	}
 
 	memcpy(bus->char_ram, buffer, CHAR_ROM_SIZE);
-	/*memcpy(bus->RAM + UPP_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
-	memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);*/
-	//memcpy(bus->RAM + 0xC000, buffer, CHAR_ROM_SIZE);
+	/* probably in another lifetime
+	memcpy(bus->RAM + UPP_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);*/
+	/*memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);*/
 	fclose(file);
 	return 1;
 }
@@ -272,14 +284,12 @@ uint8_t	load_roms(_bus *bus) {
 			RED, RST, BASIC_PATH, RED, RST);
 		return 0;
 	}
-
 	/// / //		KERNAL
 	if (!load_kernal(bus)) {
 		printf("%sfailed to load kernal:%s %s\n%sexiting..%s\n",
 			RED, RST, KERNAL_PATH, RED, RST);
 		return 0;
 	}
-
 	//// / //		CHARACTERS ROM
 	if (!load_chars(bus)) {
 		printf("%sfailed to load characters ROM:%s%s\n%sexiting..%s\n",
