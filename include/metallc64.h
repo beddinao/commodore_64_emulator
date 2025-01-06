@@ -79,9 +79,9 @@
 #define VIC_BANK_SIZE	0x4000
 			/// VIC BANKS, by CIA2 bits 0-1
 #define VIC_BANK_0		0x0000  // $0000-$3FFF
-#define VIC_BANK_1		0x4000  // $4000-$7FFF
-#define VIC_BANK_2		0x8000  // $8000-$BFFF
-#define VIC_BANK_3		0xC000  // $C000-$FFFF
+#define VIC_BANK_1		0x0001  // $4000-$7FFF
+#define VIC_BANK_2		0x0002  // $8000-$BFFF
+#define VIC_BANK_3		0x0003  // $C000-$FFFF
 
 			/// CHARACTER MEMORY
 #define LOW_CHAR_ROM_START	0x1000  // first Char-ROM start
@@ -242,11 +242,11 @@ typedef	struct thread_data {
 	pthread_t		worker_2; // => shell interface
 	pthread_mutex_t	halt_mutex;
 	pthread_mutex_t	prg_mutex;
-	pthread_mutex_t	col_mutex;
+	pthread_mutex_t	cmd_mutex;
 	bool		halt;     // <- halt_mutex
-	bool		col;      // <- col_mutex
-	bool		load;     // <- prg_mutex
-	bool		reset;    // <- prg_mutex
+	bool		load;     // <-|prg_mutex
+	bool		reset;    // <-|
+	bool		cmd;      // <- cmd_mutex
 
 	char		*line;    // readline allocated line
 			          // for freeing later
@@ -258,19 +258,15 @@ typedef	struct _bus {
 	//
 	void		(*cpu_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*cpu_read)(struct _bus*, uint16_t);
-	void		(*vic_write)(struct _bus*, uint16_t, uint8_t);
-	uint8_t		(*vic_read)(struct _bus*, uint16_t);
 	uint8_t		(*load_roms)(struct _bus*);
 	void		(*reset)(struct _bus*);
-	//
-	uint8_t		char_ram[0x1000];
 	//
 	void		*cpu;
 	void		*vic;
 	void		*cia1;
 	void		*cia2;
 	void		*prg;
-	void		*col_s;
+	void		*cmd;
 	thread_data	*t_data;
 }	_bus;
 
@@ -305,6 +301,9 @@ typedef	struct VIC_II {
 	void		(*increment_raster)(struct VIC_II*, uint16_t);
 	uint32_t		(*C64_to_rgb)(uint8_t);
 	void		(*init)(_bus*, struct VIC_II*);
+
+	uint8_t		char_rom[CHAR_ROM_SIZE];
+	uint8_t		*vic_memory[4];
 
 	mlx_t		*mlx_ptr; // MLX42 window
 	mlx_image_t	*mlx_img;
@@ -390,11 +389,13 @@ typedef	struct basic_prg {
 	uint16_t	size;
 }	_prg;
 
-typedef	struct ch_col {
-	bool	changed;
+typedef	struct cmd {
+	bool	done;
 	char	cmd[0x4];
+	uint16_t	st_addr;
+	uint16_t	en_addr;
 	unsigned	col;
-}	_col;
+}	_cmd;
 
 /* cycle.c */
 void	*main_cycle(void*);
@@ -437,6 +438,11 @@ void	*open_shell(void*);
 /* loader.c */
 void	prg_load_sequence(_bus*, _prg*);
 void	reset_prg(_bus*, _prg*);
-void	change_col(_bus*, _col*);
+void	change_col(_bus*, _cmd*);
+
+/* print.c */
+void	print_memory(_bus*, _cmd*);
+void	print_help(char*);
+void	print_col_help(char*);
 
 #endif

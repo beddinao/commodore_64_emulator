@@ -90,26 +90,6 @@ void	exec_ldt(_bus *bus, char *cmd) {
 	printf("executing LDT\n");
 }
 
-void	print_help(char *line) {
-	printf("invalid syntax\"%s\"\n", line);
-	printf("avilable commands:\n\n");
-	printf("\tLDP $.prg : load BASIC program to memory\n");
-	printf("\tLDD $.d64 : load D64 disk image\n");
-	printf("\tLDT $.T64 : load T64 tape image\n");
-	printf("\tBRD $col_i: change default border color\n");
-	printf("\tBGR $col_i: change default background color\n");
-	printf("\tTXT $col_i: change default text color\n\n");
-	printf("\tCLR : exits/clear loaded program from memory\n");
-	printf("\tHLP : show this help message\n");
-	printf("\tEXT : exit emulation\n\n");
-}
-
-void	print_col_help(char *line) {
-	printf("invalid syntax\"%s\"\n\n", line);
-	printf("\tthe C64 have a palette of 16 colors:\n");
-	printf("\tchose between 1 and 16 as indexes to that palette\n\n");
-}
-
 /*
    general parse res:
 0: valid (add to history)
@@ -122,7 +102,7 @@ uint8_t	parse_line(char *line, _bus *bus) {
 	unsigned size = strlen(line);
 	unsigned cmd_size;
 	char *cmd_end;
-	_col *col_s;
+	_cmd *cmd;
 	int col;
 
 	if (!size) return 3;
@@ -145,6 +125,20 @@ uint8_t	parse_line(char *line, _bus *bus) {
 			pthread_mutex_unlock(&bus->t_data->halt_mutex);
 			pthread_exit(NULL);
 		}
+		else if (!strcmp(line, "SCR") || !strcmp(line, "SVR")
+			|| !strcmp(line, "SC1") || !strcmp(line, "SC2")) {
+			cmd = malloc(sizeof(_cmd));
+			if (cmd) {
+				memset(cmd, 0, sizeof(_cmd));
+				memcpy(cmd->cmd, line, 3);
+				bus->cmd = cmd;
+				pthread_mutex_lock(&bus->t_data->cmd_mutex);
+				bus->t_data->cmd = TRUE;
+				pthread_mutex_unlock(&bus->t_data->cmd_mutex);
+				sleep(1);
+			}
+			else printf("memory dump failed\n");
+		}
 		else 	return 1;
 		return 0;
 	}
@@ -162,15 +156,15 @@ uint8_t	parse_line(char *line, _bus *bus) {
 		col = atoi(line + cmd_size);
 		if (col <= 0 || col > 16) 
 			return 2;
-		col_s = malloc(sizeof(_col));
-		if (col_s) {
-			memcpy(col_s->cmd, line, 3);
-			col_s->col = col;
-			col_s->changed = FALSE;
-			bus->col_s = col_s;
-			pthread_mutex_lock(&bus->t_data->col_mutex);
-			bus->t_data->col = TRUE;
-			pthread_mutex_unlock(&bus->t_data->col_mutex);
+		cmd = malloc(sizeof(_cmd));
+		if (cmd) {
+			memset(cmd, 0, sizeof(_cmd));
+			memcpy(cmd->cmd, line, 3);
+			cmd->col = col;
+			bus->cmd = cmd;
+			pthread_mutex_lock(&bus->t_data->cmd_mutex);
+			bus->t_data->cmd = TRUE;
+			pthread_mutex_unlock(&bus->t_data->cmd_mutex);
 			sleep(1);
 		}
 		else printf("changing color failed\n");

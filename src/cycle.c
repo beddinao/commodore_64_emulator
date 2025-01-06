@@ -1,6 +1,7 @@
 #include "metallc64.h"
 
 uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
+	(void)bus;
 	if (mos6502->irq_pending && !mos6502->get_flag(mos6502, 'I')) {
 		uint8_t irq_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK);
 		uint8_t irq_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + 1);
@@ -9,8 +10,7 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 		if (!irq_vector_low && !irq_vector_high)
 			return 0;
 		/*uint8_t _D019 = bus->cpu_read(bus, INTR_STATUS);
-		bus->cpu_write(bus, INTR_STATUS, _D019 & ~0x1);*/
-		(void)bus;
+		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);*/
 		mos6502->push(mos6502, (mos6502->PC >> 8) & 0xFF);
 		mos6502->push(mos6502, mos6502->PC & 0xFF);
 		uint8_t	status = mos6502->SR;
@@ -70,27 +70,25 @@ void	*main_cycle(void *p) {
 			bus->t_data->reset = FALSE;
 		}
 		pthread_mutex_unlock(&bus->t_data->prg_mutex);
-		// check color change request
-		pthread_mutex_lock(&bus->t_data->col_mutex);
-		if (bus->t_data->col) {
-			change_col(bus, bus->col_s);
-			bus->t_data->col = FALSE;
+		// check memory_dump/color_change request
+		pthread_mutex_lock(&bus->t_data->cmd_mutex);
+		if (bus->t_data->cmd) {
+			if (((_cmd*)bus->cmd)->col)
+				change_col(bus, (_cmd*)bus->cmd);
+			else	print_memory(bus, (_cmd*)bus->cmd);
+			bus->t_data->cmd = FALSE;
 		}
-		pthread_mutex_unlock(&bus->t_data->col_mutex);
+		pthread_mutex_unlock(&bus->t_data->cmd_mutex);
 
 		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
-
 			/*printf("%04X  %02X %02X %02X  ",
-			mos6502->PC, mos6502->opcode, bus->cpu_read(bus, mos6502->PC+1), bus->cpu_read(bus, mos6502->PC+2));
-
+				mos6502->PC, mos6502->opcode, bus->cpu_read(bus, mos6502->PC+1), bus->cpu_read(bus, mos6502->PC+2));
 			printf("\tA:%02X X:%02X Y:%02X P:%02X SP:%02X\t",
-			mos6502->A, mos6502->X, mos6502->Y, mos6502->SR, mos6502->SP);*/
-
+				mos6502->A, mos6502->X, mos6502->Y, mos6502->SR, mos6502->SP);*/
 			instruction_cycles = mos6502->opcodes[mos6502->opcode](mos6502);
 			//printf("\n");
-
 			vic_advance_raster(bus, vic, instruction_cycles);
 			cia_advance_timers(bus, cia1, instruction_cycles);
 			cia_advance_timers(bus, cia2, instruction_cycles);

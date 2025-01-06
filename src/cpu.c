@@ -68,7 +68,7 @@ void	cpu_init(_6502* mos6502, _bus *bus) {
 		bus->cpu_read(bus, RSTV);
 	mos6502->opcode = 0x0;
 	mos6502->cycles = 0x0;
-	mos6502->SP = 0xFD;
+	mos6502->SP = 0xFF;
 	mos6502->SR = 0x0;
 	mos6502->A = 0x0;
 	mos6502->X = 0x0;
