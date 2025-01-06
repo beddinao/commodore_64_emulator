@@ -7,10 +7,28 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 	_keymap	*keys = NULL;
 	if (cia1 && cia1->keys)
 		keys = (_keymap*)cia1->keys;
+
+	// Mirror $DCxx/$DDxx -> $DC0x/DD0x
+	if ((addr >= CIA1_START && addr <= CIA1_END)
+		|| (addr >= CIA2_START && addr <= CIA2_END)) {
+		uint8_t low_nibble = addr & 0xF;
+		addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
+	}
+
+	// Mirror $D000-$D3FF -> $D000-$D03F
+	else if (addr >= VIC_REG_START && addr <= VIC_REG_END) {
+		uint8_t low_nibble = addr & 0x3F;
+		addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
+	}
+
 	
 	uint8_t temp = 0;
 
 	switch (addr) {
+		case INTR_STATUS: // D019
+			temp = bus->RAM[addr];
+			bus->RAM[addr] &= ~0x1F;
+			return temp;
 		case RASTER:
 			return ((_VIC_II*)bus->vic)->raster & 0xFF;
 		case CNTRL1:
@@ -72,19 +90,13 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 		addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
 	}
 
+	// Mirror $D000-$D3FF -> $D000-$D03F
+	else if (addr >= VIC_REG_START && addr <= VIC_REG_END) {
+		uint8_t low_nibble = addr & 0x3F;
+		addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
+	}
+
 	switch (addr) {
-		/*case CNTRL1:
-			printf("write $D011 $%02X -> ", val);
-			for (unsigned i = 0; i < 0x8; i++)
-				printf("%u ", (val >> i) & 0x1);
-			printf("\n");
-			break;
-		case CNTRL2:
-			printf("write $D016 $%02X -> ", val);
-			for (unsigned i = 0; i < 0x8; i++)
-				printf("%u ", (val >> i) & 0x1);
-			printf("\n");
-			break;*/
 		case MEM_SETUP: // D018
 			if ((bus->cpu_read(bus, CNTRL1) >> 0x5) & 0x1)
 				vic->bitmap_ram = (val & 0x8) ? 0x2000 : 0x0000;
@@ -118,6 +130,7 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 				case 0xF:	vic->screen_ram = 0x3C00; break;
 				default:	break;
 			}
+			val |= 0x1;
 			break;
 		case CIA2_START: // DD00
 			switch (val & 0x3) {
@@ -203,16 +216,6 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	bus->RAM[addr & 0xFFFF] = val;
 }
 
-uint8_t	vic_read_(_bus *bus, uint16_t addr) {
-	_VIC_II	*vic = (_VIC_II*)bus->vic;
-	return bus->RAM[(vic->bank + addr)/* & VIC_BANK_SIZE*/];
-}
-
-void	vic_write_(_bus *bus, uint16_t addr, uint8_t val) {
-	_VIC_II	*vic = (_VIC_II*)bus->vic;
-	bus->RAM[(vic->bank + addr)/* & VIC_BANK_SIZE*/] = val;
-}
-
 uint8_t	load_basic(_bus *bus) {
 	char buffer[BASIC_ROM_SIZE];
 	unsigned chars_read;
@@ -269,10 +272,7 @@ uint8_t	load_chars(_bus *bus) {
 		return 0;
 	}
 
-	memcpy(bus->char_ram, buffer, CHAR_ROM_SIZE);
-	/* probably in another lifetime
-	memcpy(bus->RAM + UPP_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);*/
-	/*memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);*/
+	memcpy(bus->RAM + LOW_CHAR_ROM_START, buffer, CHAR_ROM_SIZE);
 	fclose(file);
 	return 1;
 }
@@ -304,8 +304,6 @@ void	bus_init(_bus *bus) {
 	bus->reset = bus_init;
 	bus->cpu_read = cpu_read_;
 	bus->cpu_write = cpu_write_;
-	bus->vic_read = vic_read_;
-	bus->vic_write = vic_write_;
 	bus->load_roms = load_roms;
 }
 

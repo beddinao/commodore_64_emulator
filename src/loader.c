@@ -1,13 +1,14 @@
 #include "metallc64.h"
 
-void	change_col(_bus* bus, _col *col) {
-	if (!strcmp(col->cmd, "BRD"))
-		bus->RAM[BRD_COLOR] = col->col;
-	else if (!strcmp(col->cmd, "BGR"))
-		bus->RAM[BACKG_COLOR0] = col->col;
-	else	bus->RAM[BRD_COLOR] = col->col;
-	free(col);
-	bus->col_s = NULL;
+void	change_col(_bus* bus, _cmd *cmd) {
+	cmd->col -= 1;
+	if (!strcmp(cmd->cmd, "BRD"))
+		bus->RAM[BRD_COLOR] = cmd->col;
+	else if (!strcmp(cmd->cmd, "BGR"))
+		bus->RAM[BACKG_COLOR0] = cmd->col;
+	else	bus->RAM[BRD_COLOR] = cmd->col;
+	free(cmd);
+	bus->cmd = NULL;
 }
 
 void	prg_load_sequence(_bus *bus, _prg* prg) {

@@ -49,7 +49,7 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 		case MLX_KEY_BACKSPACE: set_key(keys, 0, 0, keydata.action); break;
 		case MLX_KEY_ENTER: set_key(keys, 0, 1, keydata.action); break;
 		case MLX_KEY_F1: set_key(keys, 0, 4, keydata.action); break;
-		case MLX_KEY_F3: set_key(keys, 0, 5, keydata.action); break;
+		case MLX_KEY_F2: set_key(keys, 0, 5, keydata.action); break;
 		case MLX_KEY_F5: set_key(keys, 0, 6, keydata.action); break;
 		case MLX_KEY_F7: set_key(keys, 0, 3, keydata.action); break;
 		case MLX_KEY_LEFT_SHIFT: set_key(keys, 1, 7, keydata.action); break;
@@ -67,6 +67,10 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 			         set_key(keys, 0, 2, keydata.action);
 			         break;
 		/* NUMS */
+		/*case MLX_KEY_1: set_key(keys, 0, 4, keydata.action); break;
+		case MLX_KEY_2: set_key(keys, 0, 5, keydata.action); break;
+		case MLX_KEY_3: set_key(keys, 0, 6, keydata.action); break;
+		case MLX_KEY_4: set_key(keys, 0, 3, keydata.action); break;*/
 		case MLX_KEY_1: set_key(keys, 7, 0, keydata.action); break;
 		case MLX_KEY_2: set_key(keys, 7, 3, keydata.action); break;
 		case MLX_KEY_3: set_key(keys, 1, 0, keydata.action); break;
