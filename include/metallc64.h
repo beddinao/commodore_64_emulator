@@ -258,6 +258,8 @@ typedef	struct _bus {
 	//
 	void		(*cpu_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*cpu_read)(struct _bus*, uint16_t);
+	uint8_t		(*ram_read)(struct _bus*, uint16_t);
+	void		(*ram_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*load_roms)(struct _bus*);
 	void		(*reset)(struct _bus*);
 	//

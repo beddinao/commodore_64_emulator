@@ -22,7 +22,7 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 	_VIC_II	*vic = (_VIC_II*)p;
 	_bus	*bus = vic->bus;
 	_keymap	*keys = ((_CIA*)bus->cia1)->keys;
-
+	
 	switch (keydata.key) {
 		case MLX_KEY_KP_0:	keydata.key = MLX_KEY_0; break;
 		case MLX_KEY_KP_1:	keydata.key = MLX_KEY_1; break;
@@ -114,6 +114,7 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 		case MLX_KEY_KP_MULTIPLY: set_key(keys, 6, 1, keydata.action); break;
 		case MLX_KEY_EQUAL: set_key(keys, 6, 5, keydata.action); break;
 		/* OTHER */
+		case MLX_KEY_APOSTROPHE: set_key(keys, 5, 5, keydata.action); break;
 		case MLX_KEY_PERIOD: set_key(keys, 5, 4, keydata.action); break;
 		case MLX_KEY_SLASH: set_key(keys, 6, 7, keydata.action); break;
 		case MLX_KEY_COMMA: set_key(keys, 5, 7, keydata.action); break;
