@@ -64,8 +64,8 @@ void	cpu_init(_6502* mos6502, _bus *bus) {
 	mos6502->set_flag = set_flag;
 	mos6502->get_flag = get_flag;
 	load_instructions(mos6502);
-	mos6502->PC = bus->cpu_read(bus, RSTV + 1) << 8 |
-		bus->cpu_read(bus, RSTV);
+	mos6502->PC = bus->ram_read(bus, RSTV + 1) << 8 |
+		bus->ram_read(bus, RSTV);
 	mos6502->opcode = 0x0;
 	mos6502->cycles = 0x0;
 	mos6502->SP = 0xFF;
