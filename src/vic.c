@@ -41,6 +41,15 @@ uint32_t	C64_to_rgb(uint8_t color) {
 	return c64_colors[color & 0xF] << 0x8 | 0xFF;
 }
 
+
+void	draw_background_raster(_VIC_II *vic, uint32_t brd_col, uint32_t bg_col) {
+	for (unsigned x = 0; x < 504; x++)
+		put_pixel(vic, x, vic->raster,
+				(x < 92 || x >= 412) ?
+					brd_col :
+					bg_col);
+}
+
 uint8_t vic_read_memory(_VIC_II *vic, uint16_t addr) {
 	uint16_t new_addr = addr + (vic->bank * VIC_BANK_SIZE);
 
@@ -59,7 +68,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 
 	vic->cycles += cpu_cycles;
 	for (; vic->cycles >= 63; vic->cycles -= 63) {
-		
+
 		control1 = bus->ram_read(bus, 0xD011);
 		control2 = bus->ram_read(bus, 0xD016);
 
@@ -88,7 +97,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 						uint8_t byte_offset = (char_y * 320) + (char_x * 8) + (vic->raster % 8);
 						uint8_t bitmap_data = vic_read_memory(vic, vic->bitmap_ram + byte_offset);
 						uint8_t color_data = vic_read_memory(vic, vic->screen_ram + char_grid_pos);
-						
+
 						if (multicolor) {
 							pixel_color = 0xFF0000FF;
 						}

@@ -65,8 +65,8 @@ void	print_memory(_bus *bus, _cmd *cmd) {
 			mos6502->PC, mos6502->A, mos6502->X, mos6502->Y, mos6502->SP);
 		printf("SR(P): ");
 		print_byte(mos6502->SR);
-		printf("\n");
-		printf("last-opcode: $%02X\n", mos6502->opcode);
+		printf("\n\n");
+		printf("last opcode: $%02X\n", mos6502->opcode);
 		printf("pending interrupts: NMI(%u), IRQ(%u)\n",
 			mos6502->nmi_pending, mos6502->irq_pending);
 	}

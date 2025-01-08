@@ -53,13 +53,16 @@ void	*main_cycle(void *p) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
 	_CIA	*cia1 = (_CIA*)bus->cia1;
 	_CIA	*cia2 = (_CIA*)bus->cia2;
+	(void)vic;
+	(void)cia1;
+	(void)cia2;
 	uint64_t	elapsed_nanoseconds, instruction_cycles;
 	struct	timespec	frame_start_time = {0},
 			frame_end_time = {0},
 			sleep_time = {0};
 
 	while (1) {
-		// check prg load/reset requests
+		/* check prg load/reset requests */
 		pthread_mutex_lock(&bus->t_data->prg_mutex);
 		if (bus->t_data->load) {
 			prg_load_sequence(bus, (_prg*)bus->prg);
@@ -70,7 +73,7 @@ void	*main_cycle(void *p) {
 			bus->t_data->reset = FALSE;
 		}
 		pthread_mutex_unlock(&bus->t_data->prg_mutex);
-		// check memory_dump/color_change request
+		/* check memory_dump/color_change request */
 		pthread_mutex_lock(&bus->t_data->cmd_mutex);
 		if (bus->t_data->cmd) {
 			if (((_cmd*)bus->cmd)->col)
@@ -83,12 +86,7 @@ void	*main_cycle(void *p) {
 		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
-			/*printf("%04X  %02X %02X %02X  ",
-				mos6502->PC, mos6502->opcode, bus->cpu_read(bus, mos6502->PC+1), bus->cpu_read(bus, mos6502->PC+2));
-			printf("\tA:%02X X:%02X Y:%02X P:%02X SP:%02X\t",
-				mos6502->A, mos6502->X, mos6502->Y, mos6502->SR, mos6502->SP);*/
 			instruction_cycles = mos6502->opcodes[mos6502->opcode](mos6502);
-			//printf("\n");
 			vic_advance_raster(bus, vic, instruction_cycles);
 			cia_advance_timers(bus, cia1, instruction_cycles);
 			cia_advance_timers(bus, cia2, instruction_cycles);
