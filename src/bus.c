@@ -69,25 +69,30 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 							   retuv = keys->matrix[row_i];
 						   }
 						   return retuv;
-					case 0xDC04: /* timerA low */  return cia1->timerA & 0xFF;
-					case 0xDC05: /* timerA high*/  return (cia1->timerA >> 0x8) & 0xFF;
-					case 0xDC06: /* timerB low */  return cia1->timerB & 0xFF;
-					case 0xDC07: /* timerB high*/  return (cia1->timerB >> 0x8) & 0xFF;
-
+					case 0xDC04: /* Timer A low */  return cia1->timerA & 0xFF;
+					case 0xDC05: /* Timer A high*/  return (cia1->timerA >> 0x8) & 0xFF;
+					case 0xDC06: /* Timer B low */  return cia1->timerB & 0xFF;
+					case 0xDC07: /* Timer B high*/  return (cia1->timerB >> 0x8) & 0xFF;
 					case 0xDC08: /* TOD th secs*/
 							retuv = tod1->latched ? tod1->th_secs_latch : tod1->th_secs;
 							tod1->latched = FALSE;
-							return retuv;
-					case 0xDC09: /* TOD secs */	return tod1->latched ? tod1->secs_latch : tod1->secs;
-					case 0xDC0A: /* TOD mins */	return tod1->latched ? tod1->mins_latch : tod1->mins;
+							return (retuv/10) << 4 | (retuv%10); 
+							// 123 Decimal -> (12 << 4 | 3) -> 11000011 195
+					case 0xDC09: /* TOD secs */
+							retuv = tod1->latched ? tod1->secs_latch : tod1->secs;
+							return (retuv/10) << 4 | (retuv%10);
+					case 0xDC0A: /* TOD mins */
+							retuv = tod1->latched ? tod1->mins_latch : tod1->mins;
+							return (retuv/10) << 4 | (retuv%10);
 					case 0xDC0B: /* TOD hrs */
 							tod1->th_secs_latch = tod1->th_secs;
 							tod1->secs_latch = tod1->secs;
 							tod1->mins_latch = tod1->mins;
 							tod1->latched = TRUE;
+							retuv = (tod1->hrs/10) << 4 | (tod1->hrs%10);
 							return (tod1->PM) ?
-								(tod1->hrs | 0x80) :
-								(tod1->hrs & ~0x80);
+								(retuv | 0x80) :
+								(retuv & ~0x80);
 					case 0xDC0C: return retuv;
 					case 0xDC0D: /* Interrupt Control */
 								 if (cia1->TA_interrupt_triggered || cia1->TB_interrupt_triggered
@@ -106,24 +111,29 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 						   /*
 						      CIA 2 $DD0x
 						      */
-					case 0xDD04: /* timerA low */ return cia2->timerA & 0xFF;
-					case 0xDD05: /* timerA high */ return (cia2->timerA >> 0x8) & 0xFF;
-					case 0xDD06: /* timerB low */ return cia2->timerB & 0xFF;
-					case 0xDD07: /* timerB high */ return (cia2->timerB >> 0x8) & 0xFF;
+					case 0xDD04: /* Timer A low */ return cia2->timerA & 0xFF;
+					case 0xDD05: /* Timer A high */ return (cia2->timerA >> 0x8) & 0xFF;
+					case 0xDD06: /* Timer B low */ return cia2->timerB & 0xFF;
+					case 0xDD07: /* Timer B high */ return (cia2->timerB >> 0x8) & 0xFF;
 					case 0xDD08: /* TOD th secs*/
 							retuv = tod2->latched ? tod2->th_secs_latch : tod2->th_secs;
 							tod2->latched = FALSE;
-							return retuv;
-					case 0xDD09: /* TOD secs */	return tod2->latched ? tod2->secs_latch : tod2->secs;
-					case 0xDD0A: /* TOD mins */	return tod2->latched ? tod2->mins_latch : tod2->mins;
+							return (retuv/10) << 4 | (retuv%10);
+					case 0xDD09: /* TOD secs */
+							retuv = tod2->latched ? tod2->secs_latch : tod2->secs;
+							return (retuv/10) << 4 | (retuv%10);
+					case 0xDD0A: /* TOD mins */
+							retuv = tod2->latched ? tod2->mins_latch : tod2->mins;
+							return (retuv/10) << 4 | (retuv%10);
 					case 0xDD0B: /* TOD hrs */
 							tod2->th_secs_latch = tod2->th_secs;
 							tod2->secs_latch = tod2->secs;
 							tod2->mins_latch = tod2->mins;
 							tod2->latched = TRUE;
+							retuv = (tod2->hrs/10) << 4 | (tod2->hrs%10);
 							return (tod2->PM) ?
-								(tod2->hrs | 0x80) :
-								(tod2->hrs & ~0x80);
+								(retuv | 0x80) :
+								(retuv & ~0x80);
 					case 0xDD0C: return retuv;
 					case 0xDD0D: /* Interrupt Control */
 								 if (cia2->TA_interrupt_triggered || cia2->TB_interrupt_triggered
@@ -196,16 +206,16 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 				case 0xDC00: // PORT#A Keyboard matrix
 					((_keymap*)cia1->keys)->active_row = val;
 					break;
-				case 0xDC04: // TimerA low
+				case 0xDC04: // Timer A low
 					cia1->TA_latch_low = val;
 					break;
-				case 0xDC05: // TimerA high
+				case 0xDC05: // Timer A high
 					cia1->TA_latch_high = val;
 					break;
-				case 0xDC06: // TimerB low
+				case 0xDC06: // Timer B low
 					cia1->TB_latch_low = val;
 					break;
-				case 0xDC07: // TimerB high
+				case 0xDC07: // Timer B high
 					cia1->TB_latch_high = val;
 					break;
 				case 0xDC08: // TOD tenth seconds
