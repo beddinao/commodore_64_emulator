@@ -255,6 +255,9 @@ typedef	struct thread_data {
 
 typedef	struct _bus {
 	uint8_t		RAM[ADDR_RANGE];
+	uint8_t		KERNAL[KERNAL_ROM_SIZE];
+	uint8_t		BASIC[BASIC_ROM_SIZE];
+	uint8_t		CHARACTERS[CHAR_ROM_SIZE];
 	//
 	void		(*cpu_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*cpu_read)(struct _bus*, uint16_t);
@@ -304,7 +307,6 @@ typedef	struct VIC_II {
 	uint32_t		(*C64_to_rgb)(uint8_t);
 	void		(*init)(_bus*, struct VIC_II*);
 
-	uint8_t		char_rom[CHAR_ROM_SIZE];
 	uint8_t		*vic_memory[4];
 
 	mlx_t		*mlx_ptr; // MLX42 window
@@ -354,8 +356,9 @@ typedef	struct CIA {
 	bool		TB_interrupt_triggered;
 			         // NMI/IRQ triggered
 			         // by underflow
-	void		(*init)(struct CIA*, uint8_t);
+	void		(*init)(struct CIA*, uint8_t, void *);
 	void		*keys;
+	void		*TOD;
 }	_CIA;
 
 typedef	struct keymap {
@@ -381,6 +384,30 @@ $DC00  #4 |  9  |  I  |  J  |  0  |  M  |  K  |  O  |  N  |
 
 */	
 }	_keymap;
+
+typedef	struct cia_clock {
+	struct timeval time;
+	int8_t	th_secs;
+	int8_t	secs;
+	int8_t	mins;
+	int8_t	hrs;
+	bool	PM; // 0 == AM
+		    //
+	bool	latched;
+	int8_t	th_secs_latch;
+	int8_t	secs_latch;
+	int8_t	mins_latch;
+
+	bool	interrupt_enable;
+	bool	write_mode; // 0 => sets TOD values
+			  // 1 => sets alarm time
+	bool	interrupt_triggered;
+	
+	uint8_t	th_secs_alarm;
+	uint8_t	secs_alarm;
+	uint8_t	mins_alarm;
+	uint8_t	hrs_alarm;
+}	_cia_tod;
 
 typedef	struct basic_prg {
 	bool	loaded;
@@ -427,7 +454,7 @@ void	vic_init(_bus*, _VIC_II*);
 
 /* cia.c */
 void	cia_advance_timers(_bus*, _CIA*, unsigned);
-void	cia_init(_CIA*, uint8_t);
+void	cia_init(_CIA*, uint8_t, void*);
 
 /* draw_utils.c */
 void	draw_bg(_VIC_II*, unsigned);

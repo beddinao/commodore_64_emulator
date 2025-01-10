@@ -42,16 +42,6 @@ void	reset_prg(_bus *bus, _prg* prg) {
 	printf("clearing program from memory..\n");
 	memset(bus->RAM + BASIC_PRG_START, 0, prg->size);
 	bus->RAM[0x800] = 0x00;
-	bus->RAM[0x801] = 0x00;
-	bus->RAM[0x802] = 0x00;
-	bus->RAM[0x803] = 0x00;
-	bus->RAM[0x804] = 0x00;
-	//
-	bus->RAM[0x2B] = 0x05;
-	bus->RAM[0x2C] = 0x08;
-	//
-	bus->RAM[0x2D] = 0x01;
-	bus->RAM[0x2E] = 0x08;
 	//
 	bus->RAM[0x2F] = 0x05;
 	bus->RAM[0x30] = 0x08;
@@ -67,11 +57,38 @@ void	reset_prg(_bus *bus, _prg* prg) {
 	//// Current BASIC line number
 	bus->RAM[0xAE] = 0x00;
 	bus->RAM[0xAF] = 0x00;
+	bus->RAM[0x2B] = 0x01;  // Start of BASIC text
+	bus->RAM[0x2C] = 0x08;
+	bus->RAM[0x2D] = 0x03;  // Start of variables
+	bus->RAM[0x2E] = 0x08;
+	// Screen control
+	bus->RAM[0xD011] = 0x1B;  // VIC control register (enable screen, 25 rows)
+	bus->RAM[0xD016] = 0xC8;  // VIC control register (40 columns)
+	bus->RAM[0xD018] = 0x14;  // Default memory setup for screen and charset
+	bus->RAM[0x0288] = 0x04;  // Current screen page
+	// Keyboard/cursor control
+	bus->RAM[0xC6] = 0x00;    // Clear keyboard buffer length
+	bus->RAM[0xCF] = 0x00;    // Cursor blink flag
+	bus->RAM[0xD0] = 0x00;    // Cursor blink phase
+	bus->RAM[0xD3] = 0x00;    // Cursor column
+	bus->RAM[0xD6] = 0x00;    // Current screen line
+	// Color memory
+	bus->RAM[0x0286] = 0x0E;  // Current character color (light blue)
+	bus->RAM[0xD020] = 0x0E;  // Border color
+	bus->RAM[0xD021] = 0x06;  // Background color
+	// BASIC/KERNAL flags
+	bus->RAM[0x9D] = 0x00;    // BASIC direct/program mode flag
+	bus->RAM[0x98] = 0x00;    // BASIC end-of-line flag
 	//
 	((_6502*)bus->cpu)->PC = 0xE394;
 	((_6502*)bus->cpu)->set_flag((_6502*)bus->cpu, 'D', 0);
-	printf(":freed $%04X(%u) Bytes of memory\n",
-		prg->size, prg->size);
+	//
+	_CIA *cia1 = (_CIA*)bus->cia1;
+	_keymap *keys = (_keymap*)cia1->keys;
+
+	keys->active_row = 0xFF;
+	memset(keys->matrix, 0xFF, sizeof(keys->matrix));
+	printf(":freed $%04X(%u) Bytes of memory\n", prg->size, prg->size);
 	free(prg);
 	bus->prg = NULL;
 }
