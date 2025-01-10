@@ -13,7 +13,6 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 			if (CIA->TA_mode) 
 				CIA->timerA = CIA->TA_latch_high << 0x8 | CIA->TA_latch_low;
 			else 	CIA->TA_enable = FALSE;
-
 			if (CIA->TA_interrupt_enable) {
 				if (CIA->high_addr == 0xDC && !((_6502*)bus->cpu)->get_flag(bus->cpu, 'I')) {
 					((_6502*)bus->cpu)->irq_pending = TRUE;
@@ -24,7 +23,6 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 					CIA->TA_interrupt_triggered = TRUE;
 				}
 			}
-
 		}
 		else	CIA->timerA = new_timer_val;
 	}
@@ -35,7 +33,6 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 			if (CIA->TB_mode)
 				CIA->timerB = CIA->TB_latch_high << 0x8 | CIA->TB_latch_low;
 			else	CIA->TB_enable = FALSE;
-
 			if (CIA->TB_interrupt_enable) {
 				if (CIA->high_addr == 0xDC && !((_6502*)bus->cpu)->get_flag(bus->cpu, 'I')) {
 					((_6502*)bus->cpu)->irq_pending = TRUE;
@@ -58,6 +55,30 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 
 	TOD->th_secs -= th_diff;
 	if (TOD->th_secs <= 0) {
+		TOD->th_secs = 0x9;
+		if ((TOD->secs & 0x0F) == 0)
+			TOD->secs = ((TOD->secs & 0xF0) - 0x10) | 0x09;
+		else	TOD->secs = (TOD->secs & 0xF0) | ((TOD->secs & 0x0F) - 0x1);
+		if (TOD->secs == 0x59) {
+			if ((TOD->mins & 0x0F) == 0)
+				TOD->mins = ((TOD->mins & 0xF0) - 0x10) | 0x09;
+			else	TOD->mins = (TOD->mins & 0xF0) | ((TOD->mins & 0x0F) - 0x1);
+			if (TOD->mins == 0x59) {
+				if (TOD->hrs & 0x12)
+					TOD->hrs = 0x11;
+				else if ((TOD->hrs & 0x0F) == 0)
+					TOD->hrs = ((TOD->hrs & 0xF0) - 0x10) | 0x09;
+				else	TOD->hrs = (TOD->hrs & 0xF0) | ((TOD->hrs & 0x0F) - 0x1);
+				if (TOD->hrs == 0x00) {
+					TOD->hrs = 0x12;
+					TOD->PM = !TOD->PM;
+				}
+
+			}
+		}
+	}
+	/* straight-up decimal arithmetics
+	 * if (TOD->th_secs <= 0) {
 		TOD->secs -= abs(TOD->th_secs) / 10;
 		TOD->th_secs = 10 - abs(TOD->th_secs) % 10;
 		if (TOD->secs <= 0) {
@@ -72,7 +93,7 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 				}
 			}
 		}
-	}
+	}*/
 
 	if (TOD->interrupt_enable
 		&& TOD->th_secs == TOD->th_secs_alarm
