@@ -19,8 +19,15 @@ void	sig_handle(int s) {
 	_CIA	*cia1 = (_CIA*)bus->cia1;
 	_CIA	*cia2 = (_CIA*)bus->cia2;
 	_keymap	*keys = (_keymap*)cia1->keys;
+	_cia_tod	*tod1 = (_cia_tod*)cia1->TOD;
+	_cia_tod	*tod2 = (_cia_tod*)cia2->TOD;
 
+	/*// nothing happened
 	memset(bus->RAM, 0, sizeof(bus->RAM));
+	memset(bus->BASIC, 0, sizeof(bus->BASIC));
+	memset(bus->KERNAL, 0, sizeof(bus->KERNAL));
+	memset(bus->CHARACTERS, 0, sizeof(bus->CHARACTERS));*/
+
 	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
 	mlx_terminate(vic->mlx_ptr);
 
@@ -29,6 +36,8 @@ void	sig_handle(int s) {
 	if (bus->cmd) free(bus->cmd);
 	free(mos6502);
 	free(keys);
+	free(tod1);
+	free(tod2);
 	free(vic);
 	free(cia1);
 	free(cia2);
@@ -85,7 +94,22 @@ int	main(int c, char **v) {
 		return 1;
 	}
 	memset(keys, 0, sizeof(_keymap));
-	memset(keys->matrix, 0xFF, sizeof(_keymap));
+	memset(keys->matrix, 0xFF, sizeof(keys->matrix));
+
+	/// // /		TODs
+	_cia_tod		*tod1 = malloc(sizeof(_cia_tod));
+	_cia_tod		*tod2 = malloc(sizeof(_cia_tod));
+	if (!tod1 || !tod2) {
+		free(bus);
+		free(vic);
+		free(keys);
+		free(mos6502);
+		if (tod1) free(tod1);
+		if (tod2) free(tod2);
+		return 1;
+	}
+	memset(tod1, 0, sizeof(_cia_tod));
+	memset(tod2, 0, sizeof(_cia_tod));
 	
 	/// / //		CIAs
 	_CIA		*CIA1 = malloc(sizeof(_CIA));
@@ -101,8 +125,8 @@ int	main(int c, char **v) {
 	}
 	CIA1->init = cia_init;
 	CIA2->init = cia_init;
-	CIA1->init(CIA1, 0xDC);
-	CIA2->init(CIA2, 0xDD);
+	CIA1->init(CIA1, 0xDC, tod1);
+	CIA2->init(CIA2, 0xDD, tod2);
 	CIA1->keys = keys;
 	bus->cia1 = CIA1;
 	bus->cia2 = CIA2;

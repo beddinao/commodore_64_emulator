@@ -50,12 +50,12 @@ void	draw_background_raster(_VIC_II *vic, uint32_t brd_col, uint32_t bg_col) {
 					bg_col);
 }
 
-uint8_t vic_read_memory(_VIC_II *vic, uint16_t addr) {
+uint8_t vic_read_memory(_bus *bus, _VIC_II *vic, uint16_t addr) {
 	uint16_t new_addr = addr + (vic->bank * VIC_BANK_SIZE);
 
-	if ((new_addr >= vic->char_ram && new_addr < vic->char_ram + CHAR_ROM_SIZE)
-			&& (vic->bank == VIC_BANK_0 || vic->bank == VIC_BANK_2))
-		return vic->char_rom[new_addr & 0x0FFF];
+	if (new_addr >= vic->char_ram && new_addr < vic->char_ram + CHAR_ROM_SIZE
+		&& (vic->bank == VIC_BANK_0 || vic->bank == VIC_BANK_2))
+		return bus->CHARACTERS[new_addr & 0x0FFF];
 
 	return vic->vic_memory[vic->bank][addr];
 }
@@ -95,8 +95,8 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 
 					if (bitmap) {
 						uint8_t byte_offset = (char_y * 320) + (char_x * 8) + (vic->raster % 8);
-						uint8_t bitmap_data = vic_read_memory(vic, vic->bitmap_ram + byte_offset);
-						uint8_t color_data = vic_read_memory(vic, vic->screen_ram + char_grid_pos);
+						uint8_t bitmap_data = vic_read_memory(bus, vic, vic->bitmap_ram + byte_offset);
+						uint8_t color_data = vic_read_memory(bus, vic, vic->screen_ram + char_grid_pos);
 
 						if (multicolor) {
 							pixel_color = 0xFF0000FF;
@@ -111,8 +111,8 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 					}
 					else {
 						fg_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD800 + char_grid_pos));
-						uint8_t char_code = vic_read_memory(vic, vic->screen_ram + char_grid_pos);
-						uint8_t pixel_data = vic_read_memory(vic, vic->char_ram + (char_code * 0x8) + (vic->raster) % 0x8 );
+						uint8_t char_code = vic_read_memory(bus, vic, vic->screen_ram + char_grid_pos);
+						uint8_t pixel_data = vic_read_memory(bus, vic, vic->char_ram + (char_code * 0x8) + (vic->raster) % 0x8 );
 						uint8_t bit_pos = (x - 92) % 0x8;
 
 						if (multicolor) {
@@ -162,6 +162,5 @@ void	vic_init(_bus *bus, _VIC_II *vic) {
 	vic->vic_memory[1] = &bus->RAM[0x4000];
 	vic->vic_memory[2] = &bus->RAM[0x8000];
 	vic->vic_memory[3] = &bus->RAM[0xC000];
-	memcpy(vic->char_rom, bus->RAM + LOW_CHAR_ROM_START, CHAR_ROM_SIZE);
 }
 

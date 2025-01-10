@@ -46,7 +46,7 @@ void	print_help(char *line) {
 	printf("\tSC2 : show CIA#2 registers\n\n");
 
 	printf("\tCLR : exits/clear loaded program from memory\n");
-	printf("\tHLP : show this help message\n");
+	printf("\tHLP/help : show this help message\n");
 	printf("\tEXT : exit emulation\n\n");
 }
 

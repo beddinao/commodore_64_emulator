@@ -9,21 +9,27 @@
 */
 uint8_t	BRK_IMP(_6502* mos6502) {
 	//printf("BRK IMP");
-	mos6502->PC++;
-	uint8_t	brk_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK);
-	uint8_t	brk_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + 1);
+	uint16_t brk_ker_addr = IRQ_BRK - KERNAL_ROM_START;
+	/*uint8_t	brk_vector_low = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK);
+	uint8_t	brk_vector_high = mos6502->bus->cpu_read(mos6502->bus, IRQ_BRK + 1);*/
+	uint8_t	brk_vector_low = mos6502->bus->KERNAL[brk_ker_addr];
+	uint8_t	brk_vector_high = mos6502->bus->KERNAL[brk_ker_addr+1];
 
-	mos6502->push(mos6502, mos6502->PC >> 8);
-	mos6502->push(mos6502, mos6502->PC & 0x00FF);
+	mos6502->PC++;
+	mos6502->push(mos6502, ((mos6502->PC+1) >> 8) & 0xFF);
+	mos6502->push(mos6502, (mos6502->PC+1) & 0xFF);
+
 	mos6502->set_flag(mos6502, 'B', 1);
 	mos6502->push(mos6502, mos6502->SR);
 	mos6502->set_flag(mos6502, 'I', 1);
+
 	// software interrupt is software's responsiblity
 	if (!brk_vector_low && !brk_vector_high) {
 		////printf("invalid interrupt address(0x%04X) skipping..", intr_addr);
 		return 0;
 	}
-	mos6502->PC = brk_vector_high << 8 | brk_vector_low;
+
+	mos6502->PC = (brk_vector_high << 8) | brk_vector_low;
 	return 7;
 }
 
@@ -1286,15 +1292,35 @@ uint8_t	ADC_INDY(_6502 *mos6502) {
 	2 Bytes, 4 Cycles
 */
 uint8_t	ADC_ZPX(_6502 *mos6502) {
-	//printf("ASC_ZPX");
+	//printf("ADC_ZPX");
 	uint8_t	low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1),
-		operand = mos6502->bus->cpu_read(mos6502->bus, ((0x00 << 0x8 | low_byte) + mos6502->X) & 0xFF);
+		operand = mos6502->bus->cpu_read(mos6502->bus, (low_byte + mos6502->X) & 0xFF);
 	uint16_t res = mos6502->A + operand + mos6502->get_flag(mos6502, 'C');
-	mos6502->set_flag(mos6502, 'C', res > 255);
+	
+	//printf(" opr %04X(%02X) + A %02X + C(%u),", (low_byte + mos6502->X) & 0xFF, operand, mos6502->A, mos6502->get_flag(mos6502, 'C'));
+
 	mos6502->set_flag(mos6502, 'V', (((operand ^ (res & 0xFF)) & 0x80) && !((operand ^ mos6502->A) & 0x80)));
-	mos6502->A = res & 0xFF;
+	if (!mos6502->get_flag(mos6502, 'D')) {
+		mos6502->set_flag(mos6502, 'C', res > 255);
+		mos6502->A = res & 0xFF;
+	}
+	else {
+		uint8_t low = (mos6502->A & 0xF) + (operand & 0xF) + mos6502->get_flag(mos6502, 'C');
+		uint8_t high = (mos6502->A >> 4) + (operand >> 4);
+		if (low > 9) {
+			low += 6;
+			high++;
+		}
+		if (high > 9) {
+			high += 6;
+			mos6502->set_flag(mos6502, 'C', 1);
+		}
+		else	mos6502->set_flag(mos6502, 'C', 0);
+		mos6502->A = ((high & 0xF) << 4) | (low & 0xF);
+	}
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
+
 	mos6502->PC += 2;
 	return 4;
 }
@@ -1767,9 +1793,10 @@ uint8_t	LDY_ZP(_6502 *mos6502) {
 uint8_t	LDA_ZP(_6502 *mos6502) {
 	//printf("LDA_ZP");
 	uint8_t	low_byte = mos6502->bus->cpu_read(mos6502->bus, mos6502->PC+1),
-		operand = mos6502->bus->cpu_read(mos6502->bus, (0x00 << 0x8 | low_byte) & 0xFF);
+		operand = mos6502->bus->cpu_read(mos6502->bus, low_byte & 0xFF);
 	mos6502->A = operand;
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
+	//printf(" $%04X = %02X", low_byte & 0xFF, operand);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 2;
 	return 3;
@@ -1862,7 +1889,7 @@ uint8_t	LDA_ABS(_6502 *mos6502) {
 		operand = mos6502->bus->cpu_read(mos6502->bus, high_byte << 0x8 | low_byte);
 	mos6502->A = operand;
 	//printf("LDA_ABS");
-	////printf("LDA_ABS $%04X = %02X(%u)", high_byte << 0x8 | low_byte, operand, operand);
+	//printf(" $%04X = %02X(%u)", high_byte << 0x8 | low_byte, operand, operand);
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == 0);
 	mos6502->set_flag(mos6502, 'N', mos6502->A & 0x80);
 	mos6502->PC += 3;
@@ -2138,6 +2165,7 @@ uint8_t	CMP_ZP(_6502 *mos6502) {
 	uint8_t res = mos6502->A - operand;
 	mos6502->set_flag(mos6502, 'C', mos6502->A >= operand);
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == operand);
+	//printf(" %02X - %02X Z(%u)", mos6502->A, operand, mos6502->get_flag(mos6502, 'Z'));
 	mos6502->set_flag(mos6502, 'N', res & 0x80);
 	mos6502->PC += 2;
 	return 3;
@@ -2185,6 +2213,7 @@ uint8_t	CMP_IMM(_6502 *mos6502) {
 	mos6502->set_flag(mos6502, 'C', mos6502->A >= operand);
 	uint8_t res = mos6502->A - operand;
 	mos6502->set_flag(mos6502, 'Z', mos6502->A == operand);
+	//printf(" %02X - %02X Z(%u)", mos6502->A, operand, mos6502->get_flag(mos6502, 'Z'));
 	mos6502->set_flag(mos6502, 'N', res & 0x80);
 	mos6502->PC += 2;
 	return 2;
@@ -2264,13 +2293,15 @@ uint8_t	DEC_ABS(_6502 *mos6502) {
 	2 Bytes, 2** Cycles
 */
 uint8_t	BNE_REL(_6502 *mos6502) {
-	//printf("BNE_REL");
+	//printf("BNE_REL Z(%u)", mos6502->get_flag(mos6502, 'Z'));
 	mos6502->PC += 2;
 	if (mos6502->get_flag(mos6502, 'Z') == 0) {
+		//printf(" branched");
 		int8_t operand = (int8_t)mos6502->bus->cpu_read(mos6502->bus, mos6502->PC-1);
 		mos6502->PC += operand;
 		return 3;
 	}
+	//printf(" not branched");
 	return 2;
 }
 

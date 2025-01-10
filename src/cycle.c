@@ -1,10 +1,10 @@
 #include "metallc64.h"
 
 uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
-	(void)bus;
 	if (mos6502->irq_pending && !mos6502->get_flag(mos6502, 'I')) {
-		uint8_t irq_vector_low = mos6502->bus->ram_read(mos6502->bus, IRQ_BRK);
-		uint8_t irq_vector_high = mos6502->bus->ram_read(mos6502->bus, IRQ_BRK + 1);
+		uint16_t irq_ker_addr = IRQ_BRK - KERNAL_ROM_START;
+		uint8_t irq_vector_low = bus->KERNAL[irq_ker_addr];
+		uint8_t irq_vector_high = bus->KERNAL[irq_ker_addr + 1];
 		mos6502->irq_pending = FALSE;
 
 		if (!irq_vector_low && !irq_vector_high)
@@ -26,8 +26,9 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 
 uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
 	if (mos6502->nmi_pending) {
-		uint8_t	nmi_vector_low = bus->ram_read(bus, NMI);
-		uint8_t	nmi_vector_high = bus->ram_read(bus, NMI + 1);
+		uint16_t nmi_ker_addr = NMI - KERNAL_ROM_START;
+		uint8_t nmi_vector_low = bus->KERNAL[nmi_ker_addr];
+		uint8_t nmi_vector_high = bus->KERNAL[nmi_ker_addr + 1];
 		mos6502->nmi_pending = FALSE;
 
 		if (!nmi_vector_low && !nmi_vector_high)
@@ -53,9 +54,6 @@ void	*main_cycle(void *p) {
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
 	_CIA	*cia1 = (_CIA*)bus->cia1;
 	_CIA	*cia2 = (_CIA*)bus->cia2;
-	(void)vic;
-	(void)cia1;
-	(void)cia2;
 	uint64_t	elapsed_nanoseconds, instruction_cycles;
 	struct	timespec	frame_start_time = {0},
 			frame_end_time = {0},
