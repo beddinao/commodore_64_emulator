@@ -14,15 +14,9 @@ void	sig_handle(int s) {
 	pthread_mutex_destroy(&t_data->cmd_mutex);
 
 	_bus	*bus = (_bus*)t_data->bus;
-	_6502	*mos6502 = (_6502*)bus->cpu;
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
-	_CIA	*cia1 = (_CIA*)bus->cia1;
-	_CIA	*cia2 = (_CIA*)bus->cia2;
-	_keymap	*keys = (_keymap*)cia1->keys;
-	_cia_tod	*tod1 = (_cia_tod*)cia1->TOD;
-	_cia_tod	*tod2 = (_cia_tod*)cia2->TOD;
 
-	/*// nothing happened
+	/*
 	memset(bus->RAM, 0, sizeof(bus->RAM));
 	memset(bus->BASIC, 0, sizeof(bus->BASIC));
 	memset(bus->KERNAL, 0, sizeof(bus->KERNAL));
@@ -34,16 +28,25 @@ void	sig_handle(int s) {
 	if (t_data->line) free(t_data->line);
 	if (bus->prg) free(bus->prg);
 	if (bus->cmd) free(bus->cmd);
-	free(mos6502);
-	free(keys);
-	free(tod1);
-	free(tod2);
-	free(vic);
-	free(cia1);
-	free(cia2);
-	free(bus);
+	bus->clean(bus);
 	free(t_data);
+	free(bus);
 	exit(s);
+}
+
+thread_data *t_data_init(_bus *bus) {
+	t_data = malloc(sizeof(thread_data));
+	if (!t_data) {
+		bus->clean(bus);
+		free(bus);
+		return FALSE;
+	}
+	memset(t_data, 0, sizeof(thread_data));
+	pthread_mutex_init(&t_data->halt_mutex, NULL);
+	pthread_mutex_init(&t_data->prg_mutex, NULL);
+	pthread_mutex_init(&t_data->cmd_mutex, NULL);
+	t_data->bus = bus;
+	return t_data;
 }
 
 int	main(int c, char **v) {
@@ -54,119 +57,37 @@ int	main(int c, char **v) {
 	srand(time(0));
 
 	/// / //		BUS
-	_bus	*bus = malloc(sizeof(_bus));
+	_bus	*bus = bus_init();
 	if (!bus) 
 		return 1;
-	bus->reset = bus_init;
-	bus->reset(bus);
-	if (!bus->load_roms(bus)) {
-		free(bus);
-		return 1;
-	}
-
+	
 	//// / /		CPU
-	_6502	*mos6502 = malloc(sizeof(_6502));
-	if (!mos6502) { 
-		free(bus);
+	bus->cpu = cpu_init(bus);
+	if (!bus->cpu)
 		return 1;
-	}
-	mos6502->reset = cpu_init;
-	mos6502->reset(mos6502, bus);
-	bus->cpu = mos6502;
 
 	// // //		VIC-II
-	_VIC_II	*vic = malloc(sizeof(_VIC_II));
-	if (!vic) {
-		free(bus);
-		free(mos6502);
+	bus->vic = vic_init(bus);
+	if (!bus->vic)
 		return 1;
-	}
-	vic->init = vic_init;
-	vic->init(bus, vic);
-	bus->vic = vic;
 
-	/// // /		KEYMAP
-	_keymap		*keys = malloc(sizeof(_keymap));
-	if (!keys) {
-		free(bus);
-		free(vic);
-		free(mos6502);
+	/// / //		CIAs/TODs/KEYMAP
+	bus->cia1 = cia_init(bus, 0xDC);
+	bus->cia2 = cia_init(bus, 0xDD);
+	if (!bus->cia1 || !bus->cia2)
 		return 1;
-	}
-	memset(keys, 0, sizeof(_keymap));
-	memset(keys->matrix, 0xFF, sizeof(keys->matrix));
-
-	/// // /		TODs
-	_cia_tod		*tod1 = malloc(sizeof(_cia_tod));
-	_cia_tod		*tod2 = malloc(sizeof(_cia_tod));
-	if (!tod1 || !tod2) {
-		free(bus);
-		free(vic);
-		free(keys);
-		free(mos6502);
-		if (tod1) free(tod1);
-		if (tod2) free(tod2);
-		return 1;
-	}
-	memset(tod1, 0, sizeof(_cia_tod));
-	memset(tod2, 0, sizeof(_cia_tod));
-	
-	/// / //		CIAs
-	_CIA		*CIA1 = malloc(sizeof(_CIA));
-	_CIA		*CIA2 = malloc(sizeof(_CIA));
-	if (!CIA1 || !CIA2) {
-		free(keys);
-		free(vic);
-		free(bus);
-		free(mos6502);
-		if (CIA1) free(CIA1);
-		if (CIA2) free(CIA2);
-		return 1;
-	}
-	CIA1->init = cia_init;
-	CIA2->init = cia_init;
-	CIA1->init(CIA1, 0xDC, tod1);
-	CIA2->init(CIA2, 0xDD, tod2);
-	CIA1->keys = keys;
-	bus->cia1 = CIA1;
-	bus->cia2 = CIA2;
 
 	// /// /		THREAD INFO
-	t_data = malloc(sizeof(thread_data));
-	if (!t_data) {
-		free(bus);
-		free(vic);
-		free(keys);
-		free(mos6502);
-		free(CIA1);
-		free(CIA2);
+	bus->t_data = t_data_init(bus);
+	if (!bus->t_data)
 		return 1;
-	}
-	memset(t_data, 0, sizeof(thread_data));
-	pthread_mutex_init(&t_data->halt_mutex, NULL);
-	pthread_mutex_init(&t_data->prg_mutex, NULL);
-	pthread_mutex_init(&t_data->cmd_mutex, NULL);
-	t_data->bus = bus;
-	bus->t_data = t_data;
 
 	// / ///		GRAPHIC WINDOW
-	vic->wpdx = WPDX;
-	vic->wpdy = WPDY;
-	vic->win_height = WHEIGHT;
-	vic->win_width = WWIDTH;
-	vic->mlx_ptr = mlx_init(vic->win_width, vic->win_height, "MetallC64", true);
-	if (!vic->mlx_ptr
-	|| !(vic->mlx_img = mlx_new_image(vic->mlx_ptr, vic->win_width, vic->win_height))) {
-		free(bus);
-		free(vic);
-		free(mos6502);
-		free(keys);
-		free(CIA1);
-		free(CIA2);
+	((_VIC_II*)bus->vic)->mlx_ptr = init_window(bus, bus->vic);
+	if (!((_VIC_II*)bus->vic)->mlx_ptr) {
 		free(t_data);
 		return 1;
 	}
-	draw_bg(vic, 0x0000FFFF);
 
 	/// / //		CYCLE
 	pthread_create(&t_data->worker, NULL, main_cycle, bus);
@@ -180,9 +101,9 @@ int	main(int c, char **v) {
 	signal(SIGTERM, sig_handle);
 	
 	//// / //		HOOKS
-	mlx_image_to_window(vic->mlx_ptr, vic->mlx_img, 0, 0);
-	mlx_set_window_limit(vic->mlx_ptr, WWIDTH, WHEIGHT, WWIDTH, WHEIGHT);
+	mlx_image_to_window(((_VIC_II*)bus->vic)->mlx_ptr, ((_VIC_II*)bus->vic)->mlx_img, 0, 0);
+	mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, WWIDTH, WHEIGHT, WWIDTH, WHEIGHT);
 		// limited window dimensions for now
-	setup_mlx_hooks(vic);
-	mlx_loop(vic->mlx_ptr);
+	setup_mlx_hooks(bus->vic);
+	mlx_loop(((_VIC_II*)bus->vic)->mlx_ptr);
 }

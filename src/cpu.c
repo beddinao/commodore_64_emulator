@@ -55,7 +55,12 @@ uint8_t	get_flag(_6502* mos6502, uint8_t pos) {
 
 /// // /	RESET
 
-void	cpu_init(_6502* mos6502, _bus *bus) {
+_6502	*cpu_init(_bus *bus) {
+	_6502 *mos6502 = malloc(sizeof(_6502));
+	if (!mos6502) {
+		free(bus);
+		return FALSE;
+	}
 	memset(mos6502, 0, sizeof(_6502));
 	mos6502->reset = cpu_init;
 	mos6502->bus = bus;
@@ -76,4 +81,5 @@ void	cpu_init(_6502* mos6502, _bus *bus) {
 	mos6502->Y = 0x0;
 	mos6502->set_flag(mos6502, 'I', 1);
 	mos6502->set_flag(mos6502, 'A', 1);
+	return mos6502;
 }
