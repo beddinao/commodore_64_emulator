@@ -325,6 +325,8 @@ typedef	struct VIC_II {
 	uint16_t		bitmap_ram;
 	unsigned		cycles;	// vic independent 
 				// cycles counter
+	uint8_t		control1;
+	uint8_t		control2;
 	_bus		*bus;	// BUS Address
 }	_VIC_II;
 
@@ -362,8 +364,8 @@ typedef	struct CIA {
 }	_CIA;
 
 typedef	struct keymap {
-	uint8_t	matrix[0x8];
-	uint8_t	active_row;   // current row being scanned 
+	uint8_t		matrix[0x8];
+	uint8_t		active_row;   // current row being scanned 
 			    // $DC00, 11111011 -> row 2
 /*
           C64 PORTS A/B KEYS LAYOUT
@@ -386,44 +388,44 @@ $DC00  #4 |  9  |  I  |  J  |  0  |  M  |  K  |  O  |  N  |
 }	_keymap;
 
 typedef	struct cia_clock {
-	struct timeval time;
-	int8_t	th_secs;
-	int8_t	secs;
-	int8_t	mins;
-	int8_t	hrs;
-	bool	PM; // 0 == AM
-		    //
-	bool	latched;
-	int8_t	th_secs_latch;
-	int8_t	secs_latch;
-	int8_t	mins_latch;
+	struct timeval 	time;
+	int8_t		th_secs;
+	int8_t		secs;
+	int8_t		mins;
+	int8_t		hrs;
+	bool		PM; // 0 == AM
+		    	//
+	bool		latched;
+	int8_t		th_secs_latch;
+	int8_t		secs_latch;
+	int8_t		mins_latch;
 
-	bool	interrupt_enable;
-	bool	write_mode; // 0 => sets TOD values
-			  // 1 => sets alarm time
-	bool	interrupt_triggered;
+	bool		interrupt_enable;
+	bool		write_mode; // 0 => sets TOD values
+				  // 1 => sets alarm time
+	bool		interrupt_triggered;
 	
-	uint8_t	th_secs_alarm;
-	uint8_t	secs_alarm;
-	uint8_t	mins_alarm;
-	uint8_t	hrs_alarm;
+	uint8_t		th_secs_alarm;
+	uint8_t		secs_alarm;
+	uint8_t		mins_alarm;
+	uint8_t		hrs_alarm;
 }	_cia_tod;
 
 typedef	struct basic_prg {
-	bool	loaded;
-	char	path[0x400];
-	char	buffer[BASIC_PRG_SIZE];
-	uint16_t	ld_addr;
-	uint16_t	en_addr;
-	uint16_t	size;
+	bool		loaded;
+	char		path[0x400];
+	char		buffer[BASIC_PRG_SIZE];
+	uint16_t		ld_addr;
+	uint16_t		en_addr;
+	uint16_t		size;
 }	_prg;
 
 typedef	struct cmd {
-	bool	done;
-	char	cmd[0x4];
-	uint16_t	st_addr;
-	uint16_t	en_addr;
-	unsigned	col;
+	bool		done;
+	char		cmd[0x4];
+	uint16_t		st_addr;
+	uint16_t		en_addr;
+	unsigned		col;
 }	_cmd;
 
 /* cycle.c */

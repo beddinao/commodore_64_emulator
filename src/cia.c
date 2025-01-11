@@ -2,9 +2,9 @@
 
 void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 	uint32_t	new_timer_val;
-	_cia_tod	*TOD = CIA->TOD;
 	struct timeval cur_time;
-	memset(&cur_time, 0, sizeof(cur_time));
+	unsigned th_diff, secs_diff;
+	_cia_tod	*TOD = CIA->TOD;
 
 	// Timer A
 	if (CIA->TA_enable && !CIA->TA_input_mode) {
@@ -48,11 +48,12 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 	}
 
 	// TOD
+	memset(&cur_time, 0, sizeof(cur_time));
 	gettimeofday(&cur_time, NULL);
-	unsigned secs_diff = (cur_time.tv_sec + cur_time.tv_usec*MICROS_TO_SECOND) -
+	secs_diff = (cur_time.tv_sec + cur_time.tv_usec*MICROS_TO_SECOND) -
 		(TOD->time.tv_sec + TOD->time.tv_usec*MICROS_TO_SECOND);
-	unsigned th_diff = secs_diff * 10;
-
+	
+	th_diff = secs_diff * 10;
 	TOD->th_secs -= th_diff;
 	if (TOD->th_secs <= 0) {
 		TOD->th_secs = 0x9;
@@ -77,30 +78,13 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 			}
 		}
 	}
-	/* straight-up decimal arithmetics
-	 * if (TOD->th_secs <= 0) {
-		TOD->secs -= abs(TOD->th_secs) / 10;
-		TOD->th_secs = 10 - abs(TOD->th_secs) % 10;
-		if (TOD->secs <= 0) {
-			TOD->mins -= abs(TOD->secs) / 60;
-			TOD->secs = 60 - abs(TOD->secs) % 60;
-			if (TOD->mins <= 0) {
-				TOD->hrs -= abs(TOD->mins) / 60;
-				TOD->mins = 60 - abs(TOD->mins) % 60;
-				if (TOD->hrs <= 0) {
-					TOD->hrs = 12;
-					TOD->PM = TOD->PM ? FALSE : TRUE;
-				}
-			}
-		}
-	}*/
 
 	if (TOD->interrupt_enable
+		&& !((_6502*)bus->cpu)->get_flag(bus->cpu, 'I') 
 		&& TOD->th_secs == TOD->th_secs_alarm
 		&& TOD->secs == TOD->secs_alarm
 		&& TOD->mins == TOD->mins_alarm
-		&& TOD->hrs == TOD->hrs_alarm
-		&& !((_6502*)bus->cpu)->get_flag(bus->cpu, 'I')) {
+		&& TOD->hrs == TOD->hrs_alarm) {
 		((_6502*)bus->cpu)->irq_pending = TRUE;
 		TOD->interrupt_triggered = TRUE;
 	}
@@ -114,13 +98,34 @@ void	cia_init(_CIA *cia, uint8_t addr, void* htod) {
 	_cia_tod *tod = (_cia_tod*)htod;
 	cia->init = cia_init;
 	cia->high_addr = addr;
-	tod->th_secs = 10;
-	tod->secs = 60;
-	tod->mins = 60;
-	tod->hrs = 12;
+	tod->th_secs = 0x0;
+	tod->secs = 0x0;
+	tod->mins = 0x0;
+	tod->hrs = 0x1;
 	tod->PM = 0; // AM
 	tod->latched = 0;
 	gettimeofday(&tod->time, NULL);
 	cia->TOD = tod;
 }
+
+/* 
+ * straight-up TOD decimal arithmetics
+ * for reference
+ *
+ * if (TOD->th_secs <= 0) {
+	TOD->secs -= abs(TOD->th_secs) / 10;
+	TOD->th_secs = 10 - abs(TOD->th_secs) % 10;
+	if (TOD->secs <= 0) {
+		TOD->mins -= abs(TOD->secs) / 60;
+		TOD->secs = 60 - abs(TOD->secs) % 60;
+		if (TOD->mins <= 0) {
+			TOD->hrs -= abs(TOD->mins) / 60;
+			TOD->mins = 60 - abs(TOD->mins) % 60;
+			if (TOD->hrs <= 0) {
+				TOD->hrs = 12;
+				TOD->PM = TOD->PM ? FALSE : TRUE;
+			}
+		}
+	}
+}*/
 

@@ -37,9 +37,9 @@ void	print_help(char *line) {
 
 	printf("\tBRD $col_i: change default border color\n");
 	printf("\tBGR $col_i: change default background color\n");
-	printf("\tTXT $col_i: change default text color(not-implemented)\n\n");
+	printf("\tTXT $col_i: change default text color\n\n");
 
-	printf("\tcmd $st $en : dump memory from address st to en(not-implemented)\n");
+	printf("\tDMP $st $en : dump memory from address $st to $en\n");
 	printf("\tSCR : show CPU status\n");
 	printf("\tSVR : show VIC-II registers\n");
 	printf("\tSC1 : show CIA#1 registers\n");
@@ -81,6 +81,10 @@ void	print_memory(_bus *bus, _cmd *cmd) {
 	else if (!strcmp(cmd->cmd, "SC2")) { // cia#2 registers
 		printf("CIA#2 memory registers $%04X -> $%04X:\n", 0xDD00, 0xDD0F);
 		dump_regs(bus, 0xDD00, 0xDD0F);
+	}
+	else if (!strcmp(cmd->cmd, "DMP")) { // range memory dump
+		printf("DUMPing memory from $%04X -> $%04X:\n", cmd->st_addr, cmd->en_addr);
+		dump_mem_area(bus, cmd->st_addr, cmd->en_addr);
 	}
 	printf("\n");
 
