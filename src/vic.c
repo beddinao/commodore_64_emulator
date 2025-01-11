@@ -159,7 +159,13 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	}
 }
 
-void	vic_init(_bus *bus, _VIC_II *vic) {
+_VIC_II	*vic_init(_bus *bus) {
+	_VIC_II *vic = malloc(sizeof(_VIC_II));
+	if (!vic) {
+		free(vic);
+		free(bus->cpu);
+		return FALSE;
+	}
 	memset(vic, 0, sizeof(_VIC_II));
 	vic->init = vic_init;
 	vic->get_raster = get_raster;
@@ -174,5 +180,6 @@ void	vic_init(_bus *bus, _VIC_II *vic) {
 	vic->vic_memory[1] = &bus->RAM[0x4000];
 	vic->vic_memory[2] = &bus->RAM[0x8000];
 	vic->vic_memory[3] = &bus->RAM[0xC000];
+	return vic;
 }
 

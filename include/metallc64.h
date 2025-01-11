@@ -264,7 +264,8 @@ typedef	struct _bus {
 	uint8_t		(*ram_read)(struct _bus*, uint16_t);
 	void		(*ram_write)(struct _bus*, uint16_t, uint8_t);
 	uint8_t		(*load_roms)(struct _bus*);
-	void		(*reset)(struct _bus*);
+	struct _bus	*(*reset)();
+	void		(*clean)(struct _bus*);
 	//
 	void		*cpu;
 	void		*vic;
@@ -289,7 +290,7 @@ typedef	struct _6502 {
 	void		(*push)(struct _6502*, uint8_t);
 	void		(*set_flag)(struct _6502*, uint8_t, uint8_t);
 	uint8_t		(*get_flag)(struct _6502*, uint8_t);
-	void		(*reset)(struct _6502*, _bus*);
+	struct _6502	*(*reset)(_bus*);
 	void		*(*instruction_cycle)(void*);
 				// fetch-decode-execute
 	uint8_t		opcode;	// last fetched opcode
@@ -305,7 +306,7 @@ typedef	struct VIC_II {
 	uint16_t		(*get_raster)(struct VIC_II*);
 	void		(*increment_raster)(struct VIC_II*, uint16_t);
 	uint32_t		(*C64_to_rgb)(uint8_t);
-	void		(*init)(_bus*, struct VIC_II*);
+	struct VIC_II	*(*init)(_bus*);
 
 	uint8_t		*vic_memory[4];
 
@@ -358,7 +359,8 @@ typedef	struct CIA {
 	bool		TB_interrupt_triggered;
 			         // NMI/IRQ triggered
 			         // by underflow
-	void		(*init)(struct CIA*, uint8_t, void *);
+	struct CIA	*(*init)(_bus*, uint8_t);
+	void		(*clean)(struct CIA*);
 	void		*keys;
 	void		*TOD;
 }	_CIA;
@@ -435,10 +437,10 @@ void	*main_cycle(void*);
 void	load_instructions(_6502*);
 
 /* cpu.c */
-void	cpu_init(_6502*, _bus*);
+_6502	*cpu_init(_bus*);
 
 /* bus.c */
-void	bus_init(_bus*);
+_bus	*bus_init();
 
 /* hooks.c */
 void	setup_mlx_hooks(void*);
@@ -452,16 +454,17 @@ void	sig_handle(int);
 
 /* vic.c */
 void	vic_advance_raster(_bus*, _VIC_II*, unsigned);
-void	vic_init(_bus*, _VIC_II*);
+_VIC_II	*vic_init(_bus*);
 
 /* cia.c */
 void	cia_advance_timers(_bus*, _CIA*, unsigned);
-void	cia_init(_CIA*, uint8_t, void*);
+_CIA	*cia_init(_bus*, uint8_t);
 
 /* draw_utils.c */
 void	draw_bg(_VIC_II*, unsigned);
 void	draw_line(_VIC_II*, int, int, int, int, int);
 void	put_pixel(_VIC_II *, unsigned, unsigned, uint32_t);
+mlx_t	*init_window(_bus*, _VIC_II*);
 
 /* shell.c */
 void	*open_shell(void*);

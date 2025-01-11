@@ -438,7 +438,18 @@ uint8_t	load_roms(_bus *bus) {
 	return 1;
 }
 
-void	bus_init(_bus *bus) {
+static	void	bus_clean(_bus *bus) {
+	free(bus->vic);
+	free(bus->cpu);
+	((_CIA*)bus->cia1)->clean(bus->cia1);
+	((_CIA*)bus->cia2)->clean(bus->cia2);
+	free(bus->cia1);
+	free(bus->cia2);
+}
+
+_bus	*bus_init() {
+	_bus *bus = malloc(sizeof(_bus));
+	if (!bus) return FALSE;
 	memset(bus, 0, sizeof(_bus));
 	bus->reset = bus_init;
 	bus->cpu_read = cpu_read_;
@@ -446,6 +457,12 @@ void	bus_init(_bus *bus) {
 	bus->ram_read = ram_dir_read;
 	bus->ram_write = ram_dir_write;
 	bus->load_roms = load_roms;
+	bus->clean = bus_clean;
+	if (!bus->load_roms(bus)) {
+		free(bus);
+		return FALSE;
+	}
 	bus->RAM[1] = 0x37;
+	return bus;
 }
 

@@ -35,3 +35,19 @@ void	put_pixel(_VIC_II *vic, unsigned x, unsigned y, uint32_t color) {
 				mlx_put_pixel(vic->mlx_img, n_x, n_y, color);
 		}
 }
+
+mlx_t	*init_window(_bus * bus, _VIC_II *vic) {
+	mlx_t *mlx_ptr;
+	vic->wpdx = WPDX;
+	vic->wpdy = WPDY;
+	vic->win_height = WHEIGHT;
+	vic->win_width = WWIDTH;
+	mlx_ptr = mlx_init(vic->win_width, vic->win_height, "MetallC64", true);
+	if (!mlx_ptr || !(vic->mlx_img = mlx_new_image(mlx_ptr, vic->win_width, vic->win_height))) {
+		bus->clean(bus);
+		free(bus);
+		return FALSE;
+	}
+	draw_bg(vic, 0x0000FFFF);
+	return mlx_ptr;
+}

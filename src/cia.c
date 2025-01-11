@@ -93,10 +93,42 @@ void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 	TOD->time.tv_usec = cur_time.tv_usec;
 }
 
-void	cia_init(_CIA *cia, uint8_t addr, void* htod) {
+void	cia_clean(_CIA *cia) {
+	free(cia->TOD);
+	if (cia->high_addr == 0xDC)
+		free(cia->keys);
+}
+
+_CIA	*cia_init(_bus *bus, uint8_t addr) {
+	_cia_tod *tod = malloc(sizeof(_cia_tod));
+	_CIA *cia = malloc(sizeof(_CIA));
+	_keymap *keys = NULL;
+	if (addr == 0xDC)
+		keys = malloc(sizeof(_keymap));
+	if (!tod || !cia || (addr == 0xDC && !keys)) {
+		if (tod) free(tod);
+		if (cia) free(cia);
+		if (keys) free(keys);
+		free(bus->vic);
+		free(bus->cpu);
+		if (addr == 0xDD) {
+			_CIA *cia1 = (_CIA*)bus->cia1;
+			free(cia1->keys);
+			free(cia1->TOD);
+			free(cia1);
+		}
+		free(bus);
+		return FALSE;
+	}
 	memset(cia, 0, sizeof(_CIA));
-	_cia_tod *tod = (_cia_tod*)htod;
+	memset(tod, 0, sizeof(_cia_tod));
+	if (addr == 0xDC) {
+		memset(keys, 0, sizeof(_keymap));
+		memset(keys->matrix, 0xFF, sizeof(keys->matrix));
+		cia->keys = keys;
+	}
 	cia->init = cia_init;
+	cia->clean = cia_clean;
 	cia->high_addr = addr;
 	tod->th_secs = 0x0;
 	tod->secs = 0x0;
@@ -106,6 +138,7 @@ void	cia_init(_CIA *cia, uint8_t addr, void* htod) {
 	tod->latched = 0;
 	gettimeofday(&tod->time, NULL);
 	cia->TOD = tod;
+	return cia;
 }
 
 /* 
