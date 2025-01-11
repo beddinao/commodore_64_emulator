@@ -60,118 +60,6 @@ uint8_t vic_read_memory(_bus *bus, _VIC_II *vic, uint16_t addr) {
 	return vic->vic_memory[vic->bank][addr];
 }
 
-void vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
-    uint32_t brd_color, bg_color, fg_color, pixel_color;
-    uint8_t mode_ctrl;
-    bool bitmap_mode, extended_mode, multicolor_mode;
-    unsigned char_x, char_y, char_grid_pos;
-
-    vic->cycles += cpu_cycles;
-    for (; vic->cycles >= 63; vic->cycles -= 63) {
-        // Get current VIC-II control registers
-        mode_ctrl = bus->ram_read(bus, CNTRL1);
-        vic->control1 = mode_ctrl;
-        vic->control2 = bus->ram_read(bus, CNTRL2);
-        
-        // Update memory pointers from register $D018
-        uint8_t mem_setup = bus->ram_read(bus, 0xD018);
-        vic->screen_ram = (mem_setup & 0xF0) << 6;
-        vic->char_ram = ((mem_setup & 0x0E) << 10);
-        
-        // Get display modes
-        bitmap_mode = (mode_ctrl & 0x20) != 0;
-        extended_mode = (mode_ctrl & 0x40) != 0;
-        multicolor_mode = (vic->control2 & 0x10) != 0;
-        
-        // Get colors
-        brd_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD020));
-        bg_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD021));
-        
-        // Check if we're in the visible display area
-        if (vic->raster < 51 || vic->raster >= 251) {
-            draw_background_raster(vic, brd_color, brd_color);
-        }
-        else {
-            // Draw visible raster line
-            for (unsigned x = 0; x < 504; x++) {
-                if (x < 92 || x >= 412) {
-                    put_pixel(vic, x, vic->raster, brd_color);
-                    continue;
-                }
-                
-                // Calculate character position
-                char_x = (x - 92) >> 3;
-                char_y = (vic->raster - 51) >> 3;
-                char_grid_pos = (char_y * 40) + char_x;
-                uint8_t color_ram = bus->ram_read(bus, 0xD800 + char_grid_pos);
-                
-                if (bitmap_mode) {
-                    // Bitmap mode
-                    uint16_t bitmap_addr = vic->bitmap_ram + (char_y * 320) + (char_x * 8) + ((vic->raster - 51) & 7);
-                    uint8_t bitmap_byte = vic_read_memory(bus, vic, bitmap_addr);
-                    uint8_t color_byte = vic_read_memory(bus, vic, vic->screen_ram + char_grid_pos);
-                    
-                    uint8_t bit_pos = 7 - ((x - 92) & 7);
-                    if (multicolor_mode && (color_ram & 0x8)) {
-                        bit_pos &= 0xE;  // Round to even for multicolor
-                        uint8_t color_pair = (bitmap_byte >> bit_pos) & 3;
-                        switch (color_pair) {
-                            case 0: pixel_color = bg_color; break;
-                            case 1: pixel_color = vic->C64_to_rgb((color_byte >> 4) & 0xF); break;
-                            case 2: pixel_color = vic->C64_to_rgb(color_byte & 0xF); break;
-                            case 3: pixel_color = vic->C64_to_rgb(color_ram & 0x7); break;
-                        }
-                    } else {
-                        pixel_color = (bitmap_byte & (1 << bit_pos)) ? 
-                            vic->C64_to_rgb((color_byte >> 4) & 0xF) :
-                            vic->C64_to_rgb(color_byte & 0xF);
-                    }
-                } else {
-                    // Character mode
-                    uint8_t char_byte = vic_read_memory(bus, vic, vic->screen_ram + char_grid_pos);
-                    uint16_t char_addr = vic->char_ram + (char_byte * 8) + ((vic->raster - 51) & 7);
-                    uint8_t char_data = vic_read_memory(bus, vic, char_addr);
-                    uint8_t bit_pos = 7 - ((x - 92) & 7);
-                    
-                    if (multicolor_mode && (color_ram & 0x8)) {
-                        bit_pos &= 0xE;  // Round to even for multicolor
-                        uint8_t color_pair = (char_data >> bit_pos) & 3;
-                        switch (color_pair) {
-                            case 0: pixel_color = bg_color; break;
-                            case 1: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD022)); break;
-                            case 2: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD023)); break;
-                            case 3: pixel_color = vic->C64_to_rgb(color_ram & 0x7); break;
-                        }
-                    } else if (extended_mode) {
-                        bg_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD021 + ((char_byte >> 6) & 3)));
-                        pixel_color = (char_data & (1 << bit_pos)) ? 
-                            vic->C64_to_rgb(color_ram & 0xF) : bg_color;
-                    } else {
-                        pixel_color = (char_data & (1 << bit_pos)) ? 
-                            vic->C64_to_rgb(color_ram & 0xF) : bg_color;
-                    }
-                }
-                put_pixel(vic, x, vic->raster, pixel_color);
-            }
-        }
-
-        // Handle raster interrupt
-        if (vic->raster == vic->get_raster(vic)) {
-            uint8_t interrupt_status = bus->ram_read(bus, INTR_STATUS);
-            bus->ram_write(bus, INTR_STATUS, interrupt_status | 0x01);
-            if ((bus->ram_read(bus, INTR_ON) & 0x01) && 
-                !((_6502*)bus->cpu)->get_flag((_6502*)bus->cpu, 'I')) {
-                ((_6502*)bus->cpu)->irq_pending = 1;
-            }
-        }
-
-        vic->raster++;
-        if (vic->raster > GHEIGHT)
-            vic->raster = 0;
-    }
-}
-
-/*
 void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	uint32_t brd_color, bg_color, fg_color, pixel_color;
 	bool bitmap, extended, multicolor, visible_screen;
@@ -269,7 +157,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 		if (vic->raster > GHEIGHT)
 			vic->raster = 0;
 	}
-}*/
+}
 
 void	vic_init(_bus *bus, _VIC_II *vic) {
 	memset(vic, 0, sizeof(_VIC_II));
