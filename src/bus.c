@@ -43,8 +43,10 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 						return vic->raster & 0xFF;
 					case CNTRL1: // $D011
 						return ((vic->raster >> 0x7) & 0x1) ?
-							(bus->RAM[addr] | 0x80):
-							(bus->RAM[addr] & ~0x80);
+							(vic->control1 | 0x80):
+							(vic->control1 & ~0x80);
+					case CNTRL2: // $D016
+						return vic->control2;
 					default:	return bus->RAM[addr];
 				}
 			}
@@ -184,6 +186,12 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 			uint8_t low_nibble = addr & 0x3F;
 			addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
 			switch (addr) {
+				case CNTRL1: // $D011
+					vic->control1 = val;
+					break;
+				case CNTRL2: // $D016
+					vic->control2 = val;
+					break;
 				case MEM_SETUP: // $D018
 					vic->char_ram = (val & 0xe) << 10;
 					vic->screen_ram = (val & 0xf0) << 6;
@@ -330,7 +338,6 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 			}
 		}
 	}
-	
 	bus->RAM[addr] = val;
 }
 

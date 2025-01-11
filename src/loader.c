@@ -6,7 +6,7 @@ void	change_col(_bus* bus, _cmd *cmd) {
 		bus->RAM[BRD_COLOR] = cmd->col;
 	else if (!strcmp(cmd->cmd, "BGR"))
 		bus->RAM[BACKG_COLOR0] = cmd->col;
-	else	bus->RAM[BRD_COLOR] = cmd->col;
+	else	bus->RAM[0x0286] = cmd->col;
 	free(cmd);
 	bus->cmd = NULL;
 }

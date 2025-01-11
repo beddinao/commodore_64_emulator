@@ -1,5 +1,45 @@
 #include "metallc64.h"
 
+bool	exec_dmp(_bus *bus, char *cmd) {
+	unsigned size = strlen(cmd);
+	char *cmd_end = strstr(cmd, " ");
+	char *addr_1 = cmd_end, *addr_2;
+	unsigned i, addr1_size, addr2_size;
+
+	i = cmd_end - cmd;
+	for (; i < size && *addr_1 == ' '; i++, addr_1++);
+	if (size - i < 1) return FALSE;
+	addr_2 = strstr(addr_1+1, " ");
+	i = addr_2 - cmd;
+	for (; i < size && *addr_2 == ' '; i++, addr_2++);
+	if (size - i < 1) return FALSE;
+	addr1_size = addr_2 - addr_1;
+	if (!addr1_size || addr1_size > 5) return FALSE;
+	addr2_size = &cmd[size] - addr_2;
+	if (!addr2_size || addr2_size > 4) return FALSE;
+
+	unsigned st = strtol(addr_1, NULL, 16);
+	unsigned en = strtol(addr_2, NULL, 16);
+
+	if (st >= en || en > 0xFFFF)
+		return FALSE;
+	
+	_cmd *t_cmd = malloc(sizeof(_cmd));
+	if (!t_cmd) return FALSE;
+	memset(t_cmd, 0, sizeof(_cmd));
+	t_cmd->st_addr = st;
+	t_cmd->en_addr = en;
+	memcpy(t_cmd->cmd, cmd, 3);
+	bus->cmd = t_cmd;
+
+	pthread_mutex_lock(&bus->t_data->cmd_mutex);
+	bus->t_data->cmd = TRUE;
+	pthread_mutex_unlock(&bus->t_data->cmd_mutex);
+	sleep(1);
+
+	return TRUE;
+}
+
 void	exec_ldp(_bus *bus, char *cmd) {
 	if (bus->prg) {
 		printf("a program is already loaded\n");
@@ -150,6 +190,13 @@ uint8_t	parse_line(char *line, _bus *bus) {
 		exec_ldd(bus, line);
 	else if (!strncmp(line, "LDT", cmd_size))
 		exec_ldt(bus, line);
+	else if (!strncmp(line, "DMP", cmd_size)) {
+		if (!exec_dmp(bus, line))
+			printf("invalid DMP syntax\"%s\"\n\n \
+				usage: DMP $addr1 $addr2,\n \
+				where addr is a hex number between $0 and $FFFF\n \
+				and 2 is bigger than 1\n\n", line);
+	}
 	else if (!strncmp(line, "BRD", cmd_size)
 			|| !strncmp(line, "BGR", cmd_size)
 			|| !strncmp(line, "TXT", cmd_size)) {
