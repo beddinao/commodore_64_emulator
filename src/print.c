@@ -32,7 +32,7 @@ void	print_help(char *line) {
 	printf("invalid syntax\"%s\"\n", line);
 	printf("avilable commands:\n\n");
 	printf("\tLDP $.prg : load BASIC program to memory\n");
-	printf("\tLDD $.d64 : load D64 disk image(not-implemented)\n");
+	printf("\tLDD $.d64 : load D64 disk image\n");
 	printf("\tLDT $.T64 : load T64 tape image(not-implemented)\n\n");
 
 	printf("\tBRD $col_i: change default border color\n");

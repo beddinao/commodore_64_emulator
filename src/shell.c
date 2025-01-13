@@ -5,7 +5,8 @@ bool	exec_dmp(_bus *bus, char *cmd) {
 	char *cmd_end = strstr(cmd, " ");
 	char *addr_1 = cmd_end, *addr_2;
 	unsigned i, addr1_size, addr2_size;
-
+	
+	/* some fine parsing */
 	i = cmd_end - cmd;
 	for (; i < size && *addr_1 == ' '; i++, addr_1++);
 	if (size - i < 1) return FALSE;
@@ -40,40 +41,39 @@ bool	exec_dmp(_bus *bus, char *cmd) {
 	return TRUE;
 }
 
-void	exec_ldp(_bus *bus, char *cmd) {
-	if (bus->prg) {
-		printf("a program is already loaded\n");
-		return;
-	}
-
+FILE	*get_binary_file(char *cmd, char *path) {
 	unsigned size = strlen(cmd);
 	char *cmd_end = strstr(cmd, " ");
 	char *path_st = cmd_end, *path_en;
-	char buffer[BASIC_PRG_SIZE];
-	unsigned chars_read, ld_addr;
-	char file_path[0x400];
 	FILE *file;
 
 	for (unsigned i = cmd_end - cmd; i < size && *path_st == ' '; i++, path_st++);
 	if (size > 0x400 || !(*cmd_end)) {
 		printf("invalid file path \"%s\"\n", cmd_end);
-		return;
+		return NULL;
 	}
 
 	path_en = &cmd[size];
 	while (!isalnum(*path_en) && path_en > path_st)
 		path_en--;
-	memset(file_path, 0, sizeof(file_path));
-	memcpy(file_path, path_st, (path_en - path_st) + 1);
-	file = fopen(file_path, "rb");
+	memset(path, 0, 0x400);
+	memcpy(path, path_st, (path_en - path_st) + 1);
+	file = fopen(path, "rb");
 	if (!file) {
-		printf("failed to open file \"%s\"\n", file_path);
-		return;
+		printf("failed to open file \"%s\"\n", path);
+		return NULL;
 	}
+	return file;
+}
+
+void	exec_ldp(_bus *bus, FILE *file, char *file_path) {
+	char buffer[BASIC_PRG_SIZE];
+	unsigned chars_read, ld_addr;
+
 	memset(buffer, 0, sizeof(buffer));
 	chars_read = fread(buffer, 1, 2, file);
 	if (!chars_read || chars_read != 2) {
-		printf("invalid .prg BASIC file format\n");
+		printf("invalid PRG file format\nhint: position indicator is at %li\n", ftell(file));
 		fclose(file);
 		return;
 	}
@@ -118,16 +118,23 @@ void	exec_ldp(_bus *bus, char *cmd) {
 	sleep(1);
 }
 
-void	exec_ldd(_bus *bus, char *cmd) {
-	(void)bus;
-	(void)cmd;
-	printf("executing LDD\n");
+FILE*	exec_ldd(_bus *bus, FILE *file, char *file_path) {
+	/*
+		quietly replace .d64 FILE pointer
+		and change the path string 
+		to the new extracted .prg
+	*/
+	printf("\nextracting PRG file from D64 disk image\n");
+	file = read_d64file(bus, file, file_path);
+	printf("PRG file is stored at \"%s\"\n", file_path);
+	return file;
 }
 
-void	exec_ldt(_bus *bus, char *cmd) {
-	(void)bus;
-	(void)cmd;
-	printf("executing LDT\n");
+FILE	*exec_ldt(_bus *bus, FILE *file, char *file_path) {
+	(void)bus; (void)file_path;
+	fclose(file);
+	printf("LDT is not implemented\n");
+	return FALSE;
 }
 
 /*
@@ -184,12 +191,19 @@ uint8_t	parse_line(char *line, _bus *bus) {
 	}
 	else if ((cmd_size = cmd_end - line) != 3)
 		return 1;
-	if (!strncmp(line, "LDP", cmd_size))
-		exec_ldp(bus, line);
-	else if (!strncmp(line, "LDD", cmd_size))
-		exec_ldd(bus, line);
-	else if (!strncmp(line, "LDT", cmd_size))
-		exec_ldt(bus, line);
+	if (!strncmp(line, "LDP", cmd_size) || !strncmp(line, "LDD", cmd_size)
+		|| !strncmp(line, "LDT", cmd_size)) {
+		if (bus->prg) {
+			printf("a program is already loaded\n");
+			return 0;
+		}
+		char file_path[0x400];
+		FILE *file = get_binary_file(line, file_path);
+		if (!file) return 0;
+		if (!strncmp(line, "LDD", cmd_size) && !(file = exec_ldd(bus, file, file_path))) return 0;
+		if (!strncmp(line, "LDT", cmd_size) && !(file = exec_ldt(bus, file, file_path))) return 0;
+		exec_ldp(bus, file, file_path);
+	}
 	else if (!strncmp(line, "DMP", cmd_size)) {
 		if (!exec_dmp(bus, line))
 			printf("invalid DMP syntax\"%s\"\n\n \

@@ -4,13 +4,13 @@
 // >>>>low(00FF)>>>high(FF00)>>>> 
 
 void	stack_push(_6502 *mos6502, uint8_t val) {
-	mos6502->bus->cpu_write(mos6502->bus, STACK_ST + mos6502->SP, val);
+	mos6502->bus->ram_write(mos6502->bus, STACK_ST + mos6502->SP, val);
 	mos6502->SP--;
 }
 
 uint8_t	stack_pull(_6502 *mos6502) {
 	mos6502->SP++;
-	uint8_t	val = mos6502->bus->cpu_read(mos6502->bus, STACK_ST + mos6502->SP);
+	uint8_t	val = mos6502->bus->ram_read(mos6502->bus, STACK_ST + mos6502->SP);
 	return val;
 }
 

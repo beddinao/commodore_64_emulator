@@ -186,7 +186,14 @@
 #define KERNAL_PATH		"./assets/roms/kernal.901227-03.bin"
 #define BASIC_PATH		"./assets/roms/basic.901226-01.bin"
 #define CHAR_ROM_PATH	"./assets/roms/characters.901225-01.bin"
-
+/*
+		D64 DISK IMAGE
+*/
+#define EXTRACTED_PRGS	"./assets/prg/generated/"
+#define SECTOR_SIZE		256
+#define DIR_TRACK		18
+#define DIR_SECTOR		1
+#define SECTORS_PER_TRACK	21      // tracks 1-17
 /*
 		KBYTES UNITS in BYTES
 */
@@ -473,6 +480,9 @@ void	*open_shell(void*);
 void	prg_load_sequence(_bus*, _prg*);
 void	reset_prg(_bus*, _prg*);
 void	change_col(_bus*, _cmd*);
+
+/* d64.c */
+FILE*	read_d64file(_bus*, FILE*, char*);
 
 /* print.c */
 void	print_memory(_bus*, _cmd*);
