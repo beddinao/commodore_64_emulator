@@ -9,8 +9,10 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 
 		if (!irq_vector_low && !irq_vector_high)
 			return 0;
-		/*uint8_t _D019 = bus->ram_read(bus, INTR_STATUS);
-		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);*/
+		// whatever
+		uint8_t _D019 = bus->ram_read(bus, INTR_STATUS);
+		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);
+
 		mos6502->push(mos6502, (mos6502->PC >> 8) & 0xFF);
 		mos6502->push(mos6502, mos6502->PC & 0xFF);
 		uint8_t	status = mos6502->SR;

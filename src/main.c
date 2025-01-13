@@ -16,11 +16,10 @@ void	sig_handle(int s) {
 	_bus	*bus = (_bus*)t_data->bus;
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
 
-	/*
 	memset(bus->RAM, 0, sizeof(bus->RAM));
 	memset(bus->BASIC, 0, sizeof(bus->BASIC));
 	memset(bus->KERNAL, 0, sizeof(bus->KERNAL));
-	memset(bus->CHARACTERS, 0, sizeof(bus->CHARACTERS));*/
+	memset(bus->CHARACTERS, 0, sizeof(bus->CHARACTERS));
 
 	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
 	mlx_terminate(vic->mlx_ptr);
@@ -49,11 +48,7 @@ thread_data *t_data_init(_bus *bus) {
 	return t_data;
 }
 
-int	main(int c, char **v) {
-	if (c != 1) {
-		printf("USAGE: %s\n", v[0]);
-		return 1;
-	}
+int	main() {
 	srand(time(0));
 
 	/// / //		BUS
@@ -103,7 +98,6 @@ int	main(int c, char **v) {
 	//// / //		HOOKS
 	mlx_image_to_window(((_VIC_II*)bus->vic)->mlx_ptr, ((_VIC_II*)bus->vic)->mlx_img, 0, 0);
 	mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, WWIDTH, WHEIGHT, WWIDTH, WHEIGHT);
-		// limited window dimensions for now
 	setup_mlx_hooks(bus->vic);
 	mlx_loop(((_VIC_II*)bus->vic)->mlx_ptr);
 }
