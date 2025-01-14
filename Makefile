@@ -2,7 +2,7 @@ CC = cc
 SRC = $(wildcard src/*.c)
 HR = $(wildcard include/*.h)
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
-CFLAGS = -Iinclude -I./MLX42/include/MLX42 #-Werror -Wextra -Wall
+CFLAGS = -Iinclude -I./MLX42/include/MLX42 -Werror -Wextra -Wall
 LDFLAGS = ./MLX42/build/libmlx42.a -L ~/.brew/opt/readline/lib -lreadline
 UNAME = $(shell uname)
 NAME = MetallC64 
@@ -22,6 +22,7 @@ mlx:
 	@cmake --build ./MLX42/build
 
 $(NAME): $(OBJ)
+	mkdir -p programs/generated
 	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS)
 
 build/%.o: src/%.c $(HR)
@@ -33,6 +34,7 @@ clean:
 	rm -rf MLX42/build
 
 fclean: clean
+	rm -rf programs/generated
 	rm -rf $(NAME)
 
 re: fclean all

@@ -118,20 +118,21 @@ void	exec_ldp(_bus *bus, FILE *file, char *file_path) {
 	sleep(1);
 }
 
-FILE*	exec_ldd(_bus *bus, FILE *file, char *file_path) {
+FILE*	exec_ldd(FILE *file, char *file_path) {
 	/*
 		quietly replace .d64 FILE pointer
 		and change the path string 
 		to the new extracted .prg
 	*/
 	printf("\nextracting PRG file from D64 disk image\n");
-	file = read_d64file(bus, file, file_path);
-	printf("PRG file is stored at \"%s\"\n", file_path);
+	file = read_d64file(file, file_path);
+	if (file)
+		printf("PRG file is stored at \"%s\"\n", file_path);
 	return file;
 }
 
-FILE	*exec_ldt(_bus *bus, FILE *file, char *file_path) {
-	(void)bus; (void)file_path;
+FILE	*exec_ldt(FILE *file, char *file_path) {
+	(void)file_path;
 	fclose(file);
 	printf("LDT is not implemented\n");
 	return FALSE;
@@ -200,8 +201,8 @@ uint8_t	parse_line(char *line, _bus *bus) {
 		char file_path[0x400];
 		FILE *file = get_binary_file(line, file_path);
 		if (!file) return 0;
-		if (!strncmp(line, "LDD", cmd_size) && !(file = exec_ldd(bus, file, file_path))) return 0;
-		if (!strncmp(line, "LDT", cmd_size) && !(file = exec_ldt(bus, file, file_path))) return 0;
+		if (!strncmp(line, "LDD", cmd_size) && !(file = exec_ldd(file, file_path))) return 0;
+		if (!strncmp(line, "LDT", cmd_size) && !(file = exec_ldt(file, file_path))) return 0;
 		exec_ldp(bus, file, file_path);
 	}
 	else if (!strncmp(line, "DMP", cmd_size)) {

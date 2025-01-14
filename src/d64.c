@@ -40,7 +40,7 @@ void	gen_name(char *name, char *pre_name, unsigned size) {
 		name[pre_size + i] = (rand() % (90 - 65 + 1)) + 65;
 }
 
-FILE*	read_d64file(_bus *bus, FILE *d64file, char *file_path) {
+FILE*	read_d64file(FILE *d64file, char *file_path) {
 	unsigned char dir_sector[SECTOR_SIZE];
 	long dir_offset = calculate_offset(DIR_TRACK, DIR_SECTOR);
 
