@@ -60,64 +60,6 @@ uint8_t vic_read_memory(_bus *bus, _VIC_II *vic, uint16_t addr) {
 	return vic->vic_memory[vic->bank][addr];
 }
 
-/*
-   char_x = (x - 92) / 0x8;
-   char_y = (vic->raster - 56) / 0x8;
-   char_grid_pos = char_y * 40 + char_x;
-   uint8_t color_ram = bus->ram_read(bus, 0xD800 + char_grid_pos);
-
-   if (bitmap) {
-   uint8_t byte_offset = (char_y * 320) + (char_x * 8) + (vic->raster % 8);
-   uint8_t bitmap_data = vic_read_memory(bus, vic, vic->bitmap_ram + byte_offset);
-   uint8_t color_data = vic_read_memory(bus, vic, vic->screen_ram + char_grid_pos);
-
-   if (multicolor && (color_ram & 0x8)) {
-   uint8_t color_pair = (bitmap_data >> (6 - (((x - 92) % 8) & 0x6))) & 3;
-   switch (color_pair) {
-   case 0: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD020)); break;
-   case 1: pixel_color = vic->C64_to_rgb(color_data & 0xF); break;
-   case 2: pixel_color = vic->C64_to_rgb(color_data >> 4); break;
-   case 3: pixel_color = vic->C64_to_rgb(color_ram); break;
-   }
-   }
-   else {
-   uint8_t bit_pos = (x - 92) % 0x8;
-   if ((bitmap_data & (0x80 >> bit_pos)) & 0x1)
-   pixel_color = vic->C64_to_rgb((color_data >> 0x4) & 0xF);
-   else	pixel_color = vic->C64_to_rgb(color_data & 0xF);
-   }
-   put_pixel(vic, x, vic->raster, pixel_color);
-   }
-   else {
-   fg_color = vic->C64_to_rgb(color_ram);
-   uint8_t char_code = vic_read_memory(bus, vic, vic->screen_ram + char_grid_pos);
-   uint8_t pixel_data = vic_read_memory(bus, vic, vic->char_ram + (char_code * 0x8) + (vic->raster) % 0x8 );
-   uint8_t bit_pos = (x - 92) % 0x8;
-
-   if (multicolor) {
-   uint8_t color_pair = (pixel_data >> (6 - (((x - 92) % 8) & 0x6))) & 3;
-   switch (color_pair) {
-   case 0: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD021)); break;
-   case 1: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD022)); break;
-   case 2: pixel_color = fg_color; break;
-   case 3: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD023)); break;
-   }
-   }
-   else if (extended) {
-   uint8_t bg_index = (char_code >> 0x6) & 0x3;
-   bg_color = vic->C64_to_rgb(bus->ram_read(bus, 0xD021 + bg_index));
-   pixel_color = (pixel_data & (0x80 >> bit_pos)) ? fg_color : bg_color;
-   }
-   else {
-   bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0));
-   pixel_color = (pixel_data & (0x80 >> bit_pos)) ? fg_color : bg_color;
-   }
-
-   put_pixel(vic, x, vic->raster, pixel_color);
-   }*/
-
-
-
 void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	uint32_t brd_color, bg_color, fg_color, pixel_color;
 	uint8_t screen_ram, char_data, bitmap_data;
@@ -164,10 +106,10 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 				else {
 					pixel_x = (x - screen_pixel_start_x + x_scroll)/* % screen_pixel_w*/;
 					pixel_y = (vic->raster - screen_pixel_start_y + y_scroll)/* % screen_pixel_h*/;
-					grid_x = (pixel_x / 8)/* % screen_grid_w*/;
-					grid_y = (pixel_y / 8)/* % screen_grid_h*/;
+					grid_x = (pixel_x / 8) /*% screen_grid_w*/;
+					grid_y = (pixel_y / 8) /*% screen_grid_h*/;
 					grid_pos = grid_y * screen_grid_w + grid_x;
-					bit_pos = (pixel_x % 8 + x_scroll) % 8;
+					bit_pos = 7 - (pixel_x % 8);
 					/* fine boundaries check */
 					if (pixel_x >= screen_pixel_w || pixel_y >= screen_pixel_h)
 						pixel_color = bg_color; //brd_color;
@@ -176,12 +118,14 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 						screen_ram = vic_read_memory(bus, vic, vic->screen_ram + grid_pos);
 						//
 						if (bitmap) {
-							bitmap_data = vic_read_memory(bus, vic, vic->bitmap_ram + (grid_pos * 8) + (pixel_y % 8));
+							uint32_t bitmap_offset = ((pixel_y / 8) * screen_grid_w + (pixel_x / 8)) * 8;
+							bitmap_data = vic_read_memory(bus, vic, vic->bitmap_ram + bitmap_offset + (pixel_y % 8));
 							if (multicolor && !extended) {
 								/* multicolor bitmap mode */
-								color_pair = (bitmap_data >> (6 - ((pixel_x % 8) & 0x6))) & 3;
+								bit_pos = 6 - (((pixel_x >> 1) & 3) * 2);
+								color_pair = (bitmap_data >> bit_pos) & 0x3;
 								switch (color_pair) {
-									case 0: pixel_color = brd_color; break;
+									case 0: pixel_color = bg_color; break;
 									case 1: pixel_color = vic->C64_to_rgb(screen_ram & 0xF); break;
 									case 2: pixel_color = vic->C64_to_rgb((screen_ram >> 4) & 0xF); break;
 									case 3: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos)); break;
@@ -189,7 +133,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 							}
 							else {
 								/* standard bitmap mode */
-								if ((bitmap_data & (0x80 >> bit_pos)) & 0x1)	
+								if ((bitmap_data >> bit_pos) & 0x1)
 									pixel_color = vic->C64_to_rgb((screen_ram >> 4) & 0xF);
 								else	pixel_color = vic->C64_to_rgb(screen_ram & 0xF);
 							}
@@ -202,7 +146,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 								bg_index = (screen_ram >> 0x6) & 0x3;
 								bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0 + bg_index));
 								fg_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos));
-								pixel_color = (char_data & (0x80 >> bit_pos)) ? fg_color : bg_color;
+								pixel_color = ((char_data >> bit_pos) & 0x1) ? fg_color : bg_color;
 
 							}
 							else {
@@ -211,18 +155,20 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 								fg_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos));
 								if (multicolor) {
 									/* multicolor character mode */
-									color_pair =  (char_data >> (6 - ((pixel_x % 8) & 0x6))) & 3;
+									//pixel_x = pixel_x / 2;
+									bit_pos = 6 - (((pixel_x >> 1) & 3) * 2);
+									color_pair =  (char_data >> bit_pos) & 0x3;
 									switch (color_pair) {
 										case 0: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0)); break;
 										case 1: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR1)); break;
-										case 2: pixel_color = fg_color;
+										case 2: pixel_color = fg_color; break;
 										case 3: pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR2)); break;
 									}
 								}
 								else {
 									/* standard character mode */
 									bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0));
-									pixel_color = (char_data & (0x80 >> bit_pos)) ? fg_color : bg_color;
+									pixel_color = ((char_data >> bit_pos) & 0x1) ? fg_color : bg_color;
 								}
 							}
 						}

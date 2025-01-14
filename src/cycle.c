@@ -6,9 +6,6 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 		uint8_t irq_vector_low = bus->KERNAL[irq_ker_addr];
 		uint8_t irq_vector_high = bus->KERNAL[irq_ker_addr + 1];
 		mos6502->irq_pending = FALSE;
-
-		if (!irq_vector_low && !irq_vector_high)
-			return 0;
 		// whatever
 		uint8_t _D019 = bus->ram_read(bus, INTR_STATUS);
 		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);
@@ -20,6 +17,8 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 		status |= 0x20;
 		mos6502->push(mos6502, status);
 		mos6502->set_flag(mos6502, 'I', 1);
+		if (!irq_vector_low && !irq_vector_high)
+			return 0;
 		mos6502->PC = irq_vector_high << 8 | irq_vector_low;
 		return 7;
 	}
@@ -32,9 +31,6 @@ uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
 		uint8_t nmi_vector_low = bus->KERNAL[nmi_ker_addr];
 		uint8_t nmi_vector_high = bus->KERNAL[nmi_ker_addr + 1];
 		mos6502->nmi_pending = FALSE;
-
-		if (!nmi_vector_low && !nmi_vector_high)
-			return 0;
 		mos6502->push(mos6502, (mos6502->PC >> 8) & 0xFF);
 		mos6502->push(mos6502, mos6502->PC & 0xFF);
 		uint8_t	status = mos6502->SR;
@@ -42,6 +38,8 @@ uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
 		status |= 0x20;
 		mos6502->push(mos6502, status);
 		mos6502->set_flag(mos6502, 'I', 1);
+		if (!nmi_vector_low && !nmi_vector_high)
+			return 0;
 		mos6502->PC = (nmi_vector_high << 8) | nmi_vector_low;
 		return 7;
 	}

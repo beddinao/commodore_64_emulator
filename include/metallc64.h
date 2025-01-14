@@ -189,7 +189,7 @@
 /*
 		D64 DISK IMAGE
 */
-#define EXTRACTED_PRGS	"./assets/prg/generated/"
+#define EXTRACTED_PRGS	"./programs/generated/"
 #define SECTOR_SIZE		256
 #define DIR_TRACK		18
 #define DIR_SECTOR		1
@@ -482,7 +482,7 @@ void	reset_prg(_bus*, _prg*);
 void	change_col(_bus*, _cmd*);
 
 /* d64.c */
-FILE*	read_d64file(_bus*, FILE*, char*);
+FILE*	read_d64file(FILE*, char*);
 
 /* print.c */
 void	print_memory(_bus*, _cmd*);
