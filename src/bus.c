@@ -23,7 +23,7 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 	if (addr >= BASIC_ROM_START && addr <= BASIC_ROM_END && basic_rom_enabled)
 		return bus->BASIC[addr - BASIC_ROM_START];
 
-	if (addr >= IO_CHAR_START && addr <= IO_CHAR_END) {
+	if (addr >= IO_CHAR_START && addr <= IO_CHAR_END && io_enabled) {
 		/*  CHARACTERS  */
 		if (char_rom_enabled)
 			return bus->CHARACTERS[addr - IO_CHAR_START];
@@ -36,8 +36,12 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 				addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
 				switch (addr) {
 					case INTR_STATUS: // $D019
-						retuv = bus->RAM[addr];
-						bus->RAM[addr] &= ~0x1F;
+						if (vic->raster_interrupt_triggered) retuv |= 0x1;
+						if (vic->sp_bg_interrupt_triggered) retuv |= 0x2;
+						if (vic->sp_sp_interrupt_triggered) retuv |= 0x4;
+						vic->raster_interrupt_triggered = FALSE;
+						vic->sp_bg_interrupt_triggered = FALSE;
+						vic->sp_sp_interrupt_triggered = FALSE;
 						return retuv;
 					case RASTER: // $D012
 						return vic->raster & 0xFF;
@@ -47,6 +51,12 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 							(vic->control1 & ~0x80);
 					case CNTRL2: // $D016
 						return vic->control2;
+					case 0xD01E:
+						retuv = vic->sp_sp_collision;
+						return retuv;
+					case 0xD01F:
+						retuv = vic->sp_bg_collision;
+						return retuv;
 					default:	return bus->RAM[addr];
 				}
 			}
@@ -76,38 +86,38 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 					case 0xDC06: /* Timer B low */  return cia1->timerB & 0xFF;
 					case 0xDC07: /* Timer B high*/  return (cia1->timerB >> 0x8) & 0xFF;
 					case 0xDC08: /* TOD th secs*/
-							retuv = tod1->latched ? tod1->th_secs_latch : tod1->th_secs;
-							tod1->latched = FALSE;
-							return (retuv/10) << 4 | (retuv%10); 
-							// 123 Decimal -> (12 << 4 | 3) -> 11000011 195
+								  retuv = tod1->latched ? tod1->th_secs_latch : tod1->th_secs;
+								  tod1->latched = FALSE;
+								  return (retuv/10) << 4 | (retuv%10); 
+								  // 123 Decimal -> (12 << 4 | 3) -> 11000011 195
 					case 0xDC09: /* TOD secs */
-							retuv = tod1->latched ? tod1->secs_latch : tod1->secs;
-							return (retuv/10) << 4 | (retuv%10);
+								  retuv = tod1->latched ? tod1->secs_latch : tod1->secs;
+								  return (retuv/10) << 4 | (retuv%10);
 					case 0xDC0A: /* TOD mins */
-							retuv = tod1->latched ? tod1->mins_latch : tod1->mins;
-							return (retuv/10) << 4 | (retuv%10);
+								  retuv = tod1->latched ? tod1->mins_latch : tod1->mins;
+								  return (retuv/10) << 4 | (retuv%10);
 					case 0xDC0B: /* TOD hrs */
-							tod1->th_secs_latch = tod1->th_secs;
-							tod1->secs_latch = tod1->secs;
-							tod1->mins_latch = tod1->mins;
-							tod1->latched = TRUE;
-							retuv = (tod1->hrs/10) << 4 | (tod1->hrs%10);
-							return (tod1->PM) ?
-								(retuv | 0x80) :
-								(retuv & ~0x80);
+								  tod1->th_secs_latch = tod1->th_secs;
+								  tod1->secs_latch = tod1->secs;
+								  tod1->mins_latch = tod1->mins;
+								  tod1->latched = TRUE;
+								  retuv = (tod1->hrs/10) << 4 | (tod1->hrs%10);
+								  return (tod1->PM) ?
+									  (retuv | 0x80) :
+									  (retuv & ~0x80);
 					case 0xDC0C: return retuv;
 					case 0xDC0D: /* Interrupt Control */
-								 if (cia1->TA_interrupt_triggered || cia1->TB_interrupt_triggered
-									|| tod1->interrupt_triggered) {
-									 retuv |= 0x80;
-									 if (cia1->TA_interrupt_triggered) retuv |= 0x1;
-									 if (cia1->TB_interrupt_triggered) retuv |= 0x2;
-									 if (tod1->interrupt_triggered) retuv |= 0x4;
-									 cia1->TA_interrupt_triggered = FALSE;
-									 cia1->TB_interrupt_triggered = FALSE;
-									 tod1->interrupt_triggered = FALSE;
-								 }
-								 return retuv;
+						   if (cia1->TA_interrupt_triggered || cia1->TB_interrupt_triggered
+								   || tod1->interrupt_triggered) {
+							   retuv |= 0x80;
+							   if (cia1->TA_interrupt_triggered) retuv |= 0x1;
+							   if (cia1->TB_interrupt_triggered) retuv |= 0x2;
+							   if (tod1->interrupt_triggered) retuv |= 0x4;
+							   cia1->TA_interrupt_triggered = FALSE;
+							   cia1->TB_interrupt_triggered = FALSE;
+							   tod1->interrupt_triggered = FALSE;
+						   }
+						   return retuv;
 					case 0xDC0E: return retuv;
 					case 0xDC0F: return retuv;
 						   /*
@@ -118,37 +128,37 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 					case 0xDD06: /* Timer B low */ return cia2->timerB & 0xFF;
 					case 0xDD07: /* Timer B high */ return (cia2->timerB >> 0x8) & 0xFF;
 					case 0xDD08: /* TOD th secs*/
-							retuv = tod2->latched ? tod2->th_secs_latch : tod2->th_secs;
-							tod2->latched = FALSE;
-							return (retuv/10) << 4 | (retuv%10);
+								  retuv = tod2->latched ? tod2->th_secs_latch : tod2->th_secs;
+								  tod2->latched = FALSE;
+								  return (retuv/10) << 4 | (retuv%10);
 					case 0xDD09: /* TOD secs */
-							retuv = tod2->latched ? tod2->secs_latch : tod2->secs;
-							return (retuv/10) << 4 | (retuv%10);
+								  retuv = tod2->latched ? tod2->secs_latch : tod2->secs;
+								  return (retuv/10) << 4 | (retuv%10);
 					case 0xDD0A: /* TOD mins */
-							retuv = tod2->latched ? tod2->mins_latch : tod2->mins;
-							return (retuv/10) << 4 | (retuv%10);
+								  retuv = tod2->latched ? tod2->mins_latch : tod2->mins;
+								  return (retuv/10) << 4 | (retuv%10);
 					case 0xDD0B: /* TOD hrs */
-							tod2->th_secs_latch = tod2->th_secs;
-							tod2->secs_latch = tod2->secs;
-							tod2->mins_latch = tod2->mins;
-							tod2->latched = TRUE;
-							retuv = (tod2->hrs/10) << 4 | (tod2->hrs%10);
-							return (tod2->PM) ?
-								(retuv | 0x80) :
-								(retuv & ~0x80);
+								  tod2->th_secs_latch = tod2->th_secs;
+								  tod2->secs_latch = tod2->secs;
+								  tod2->mins_latch = tod2->mins;
+								  tod2->latched = TRUE;
+								  retuv = (tod2->hrs/10) << 4 | (tod2->hrs%10);
+								  return (tod2->PM) ?
+									  (retuv | 0x80) :
+									  (retuv & ~0x80);
 					case 0xDD0C: return retuv;
 					case 0xDD0D: /* Interrupt Control */
-								 if (cia2->TA_interrupt_triggered || cia2->TB_interrupt_triggered
-									|| tod2->interrupt_triggered) {
-									 retuv |= 0x80;
-									 if (cia2->TA_interrupt_triggered) retuv |= 0x1;
-									 if (cia2->TB_interrupt_triggered) retuv |= 0x2;
-									 if (tod2->interrupt_triggered) retuv |= 0x4;
-									 cia2->TA_interrupt_triggered = FALSE;
-									 cia2->TB_interrupt_triggered = FALSE;
-									 tod2->interrupt_triggered = FALSE;
-								 }
-								 return retuv;
+						   if (cia2->TA_interrupt_triggered || cia2->TB_interrupt_triggered
+								   || tod2->interrupt_triggered) {
+							   retuv |= 0x80;
+							   if (cia2->TA_interrupt_triggered) retuv |= 0x1;
+							   if (cia2->TB_interrupt_triggered) retuv |= 0x2;
+							   if (tod2->interrupt_triggered) retuv |= 0x4;
+							   cia2->TA_interrupt_triggered = FALSE;
+							   cia2->TB_interrupt_triggered = FALSE;
+							   tod2->interrupt_triggered = FALSE;
+						   }
+						   return retuv;
 					case 0xDD0E: return retuv;
 					case 0xDD0F: return retuv;
 					default:
@@ -170,6 +180,7 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 
 	switch (addr) {
 		case 0x01: bus->RAM[addr] = val; return;
+		case 0xD015: bus->RAM[addr] = 0x0; return;
 			 // protected: BASIC TOP RAM / PRG max addr
 			 //case 0x37: bus->RAM[addr] = 0x00; return;
 			 //case 0x38: bus->RAM[addr] = 0xA0; return;
@@ -185,19 +196,65 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 			// Mirror $D000-$D3FF -> $D000-$D03F
 			uint8_t low_nibble = addr & 0x3F;
 			addr = ((addr >> 0x8) & 0xFF) << 0x8 | low_nibble;
-			switch (addr) {
-				case CNTRL1: // $D011
-					vic->control1 = val;
-					break;
-				case CNTRL2: // $D016
-					vic->control2 = val;
-					break;
-				case MEM_SETUP: // $D018
-					vic->char_ram = (val & 0xe) << 10;
-					vic->screen_ram = (val & 0xf0) << 6;
-					vic->bitmap_ram = (val & 0x8) << 10;
-					bus->RAM[addr] |= 0x1;
-					break;
+			if (addr <= 0xD00F) {
+				if ((addr & 0xF) % 2)
+					vic->sprite_y[(addr & 0xF) / 2] = val;
+				else	vic->sprite_x[(addr & 0xF) / 2] = val;
+			}
+			else if (addr >= 0xD027 && addr <= 0xD02E)
+				vic->sprite_colors[(addr & 0xFF)-0x27] = val & 0xF;
+			else {
+				switch (addr) {
+					case 0xD010:
+						vic->sprite_8x = val;
+						break;
+					case CNTRL1: // $D011
+						vic->control1 = val;
+						break;
+					case 0xD015:
+						vic->sprite_enable = val;
+						break;
+					case CNTRL2: // $D016
+						vic->control2 = val;
+						break;
+					case 0xD017:
+						vic->sprite_expand_y = val;
+						break;
+					case MEM_SETUP: // $D018
+						vic->screen_ram = (val & 0xf0) << 6;
+						if ((vic->control1 >> 0x5) & 0x1) 
+							vic->bitmap_ram = (val & 0x8) << 10;
+						else {
+							uint8_t bva = (val >> 0x1) & 0x7;
+							vic->char_rom_on = FALSE;
+							if ((bva == 0x3 || bva == 0x2)
+								&& (vic->bank == VIC_BANK_0 || vic->bank == VIC_BANK_2))
+								vic->char_rom_on = TRUE;
+							vic->char_ram = (val & 0xe) << 10;
+						}
+						bus->RAM[addr] |= 0x1;
+						break;
+					case 0xD01A:
+						vic->raster_interrupt_enable = val & 0x1;
+						vic->sp_bg_interrupt_enable = (val >> 0x1) & 0x1;
+						vic->sp_sp_interrupt_enable = (val >> 0x2) & 0x1;
+						break;
+					case 0xD01B:
+						vic->sprite_priority = val;
+						break;
+					case 0xD01C:
+						vic->sprite_multicolor_enable = val;
+						break;
+					case 0xD01D:
+						vic->sprite_expand_x = val;
+						break;
+					case 0xD025:
+						vic->sprite_multicolor0 = val & 0xF;
+						break;
+					case 0xD026:
+						vic->sprite_multicolor1 = val & 0xF;
+						break;
+				}
 			}
 		}
 		// CIAs Registers

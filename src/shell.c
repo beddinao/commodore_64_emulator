@@ -48,7 +48,7 @@ FILE	*get_binary_file(char *cmd, char *path) {
 	FILE *file;
 
 	for (unsigned i = cmd_end - cmd; i < size && *path_st == ' '; i++, path_st++);
-	if (size > 0x400 || !(*cmd_end)) {
+	if (size > PATH_MAX_SIZE || !(*cmd_end)) {
 		printf("invalid file path \"%s\"\n", cmd_end);
 		return NULL;
 	}
@@ -56,7 +56,7 @@ FILE	*get_binary_file(char *cmd, char *path) {
 	path_en = &cmd[size];
 	while (!isalnum(*path_en) && path_en > path_st)
 		path_en--;
-	memset(path, 0, 0x400);
+	memset(path, 0, PATH_MAX_SIZE);
 	memcpy(path, path_st, (path_en - path_st) + 1);
 	file = fopen(path, "rb");
 	if (!file) {
@@ -198,7 +198,7 @@ uint8_t	parse_line(char *line, _bus *bus) {
 			printf("a program is already loaded\n");
 			return 0;
 		}
-		char file_path[0x400];
+		char file_path[PATH_MAX_SIZE];
 		FILE *file = get_binary_file(line, file_path);
 		if (!file) return 0;
 		if (!strncmp(line, "LDD", cmd_size) && !(file = exec_ldd(file, file_path))) return 0;
