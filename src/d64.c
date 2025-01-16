@@ -9,7 +9,7 @@ FILE	*dump_prg(FILE *d64file, int track, int sector, char *prg_file) {
 	unsigned char buffer[SECTOR_SIZE];
 	FILE *prg = fopen(prg_file, "w+b");
 	if (!prg) {
-		printf("failed to extract .prg file from .d64 disk image\n");
+		printf("failed to extract .prg (%s) file from .d64 disk image\n", prg_file);
 		return FALSE;
 	}
 	while (track != 0) {
@@ -33,10 +33,11 @@ FILE	*dump_prg(FILE *d64file, int track, int sector, char *prg_file) {
 
 void	gen_name(char *name, char *pre_name, unsigned size) {
 	unsigned pre_size = strlen(pre_name);
-	if (pre_size + sizeof(name) > 0x400) return;
-	memset(name, 0, 0x400);
+	memset(name, 0, PATH_MAX_SIZE);
+	if (pre_size + size > PATH_MAX_SIZE) return;
 	memcpy(name, pre_name, pre_size);
-	for (unsigned i = 0; i < size; i++)
+	memcpy(name + (pre_size + (size-4)), ".prg", 4);
+	for (unsigned i = 0; i < size-4; i++)
 		name[pre_size + i] = (rand() % (90 - 65 + 1)) + 65;
 }
 
@@ -65,14 +66,14 @@ FILE*	read_d64file(FILE *d64file, char *file_path) {
 			int start_track = dir_sector[entry_offset + 3];
 			int start_sector = dir_sector[entry_offset + 4];
 
-			char prg_name[0x400];
-			gen_name(prg_name, EXTRACTED_PRGS, 10);
+			char prg_name[PATH_MAX_SIZE];
+			gen_name(prg_name, EXTRACTED_PRGS, 14);
 
 			FILE *prg = dump_prg(d64file, start_track, start_sector, prg_name);
 			fclose(d64file);
 			if (!prg) return FALSE;
 
-			memset(file_path, 0, 0x400);
+			memset(file_path, 0, PATH_MAX_SIZE);
 			memcpy(file_path, prg_name, strlen(prg_name));
 			return prg;
 		}

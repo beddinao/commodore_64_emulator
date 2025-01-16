@@ -169,6 +169,14 @@
 #define TIMERA_CNTRL	0x0E   // Timer A control
 #define TIMERB_CNTRL	0x0F   // Timer B control
 /*
+		SPRITES
+		higher region of screen ram
+*/
+#define SPRT_H		21
+#define SPRT_W		24
+#define SPRT_PTRS_ADDR	0x03F8 // relative to screen ram
+#define SPRT_PTRS_SIZE	0x8    // bytes
+/*
 		TIMING
 		PAL system Configurations
 */
@@ -243,6 +251,7 @@
 #endif
 
 #define SHELL_PRMPT		"C64Shell$ "
+#define PATH_MAX_SIZE	0x400
 
 typedef	struct thread_data {
 	pthread_t		worker;   // => main cycle
@@ -326,13 +335,51 @@ typedef	struct VIC_II {
 				// pixels, X/Y
 
 	uint16_t		raster;   // dynamic raster counter
-	uint16_t		char_ram; // dynamic character ram
+	bool		raster_interrupt_enable;
+	bool		raster_interrupt_triggered;
+
 	uint16_t		screen_ram;
 				// dynamic screen ram
-	uint16_t		bank;	// current bank address	
+	uint16_t		bank;	// current bank address
 	uint16_t		bitmap_ram;
-	unsigned		cycles;	// vic independent 
+	uint16_t		char_ram; // dynamic character ram
+	bool		char_rom_on;
+				// $D018 bits#1#3 values %010 | %011
+				// in bank0 | bank2
+				// sets this flag to fetch ROM not RAM
+
+	unsigned		cycles;	// vic independent
 				// cycles counter
+	uint8_t		sprite_enable;
+				// $D015, bit#x = sprite#x
+	uint16_t		sprite_ptrs;
+	uint8_t		sprite_x[8];
+	uint8_t		sprite_y[8];
+	uint8_t		sprite_8x;
+				// $D000-$D010
+				// x:%2, y:%3
+	uint8_t		sprite_colors[8];
+				// $D017-$D02E
+				// bits#0-#3
+	uint8_t		sprite_multicolor_enable;
+	uint8_t		sprite_multicolor0;
+	uint8_t		sprite_multicolor1;
+				// bit#x on/off$D01C
+				// 0:$D025, 1:$D026
+	uint8_t		sprite_expand_x;
+	uint8_t		sprite_expand_y;
+				// double w:$D01D, h:$D017
+	uint8_t		sprite_priority;
+				// $D01B
+				// bit#x 0:front 1:back
+	bool		sp_sp_interrupt_enable;
+	bool		sp_bg_interrupt_enable;
+	bool		sp_sp_interrupt_triggered;
+	bool		sp_bg_interrupt_triggered;
+
+	uint8_t		sp_sp_collision;
+	uint8_t		sp_bg_collision;
+
 	uint8_t		control1;
 	uint8_t		control2;
 	_bus		*bus;	// BUS Address
@@ -422,7 +469,7 @@ typedef	struct cia_clock {
 
 typedef	struct basic_prg {
 	bool		loaded;
-	char		path[0x400];
+	char		path[PATH_MAX_SIZE];
 	char		buffer[BASIC_PRG_SIZE];
 	uint16_t		ld_addr;
 	uint16_t		en_addr;

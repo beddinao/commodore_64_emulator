@@ -5,10 +5,11 @@ uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 		uint16_t irq_ker_addr = IRQ_BRK - KERNAL_ROM_START;
 		uint8_t irq_vector_low = bus->KERNAL[irq_ker_addr];
 		uint8_t irq_vector_high = bus->KERNAL[irq_ker_addr + 1];
+
 		mos6502->irq_pending = FALSE;
-		// whatever
-		uint8_t _D019 = bus->ram_read(bus, INTR_STATUS);
-		bus->cpu_write(bus, INTR_STATUS, _D019 | 0x1);
+		((_VIC_II*)bus->vic)->raster_interrupt_triggered = FALSE;
+		((_VIC_II*)bus->vic)->sp_sp_interrupt_triggered = FALSE;
+		((_VIC_II*)bus->vic)->sp_bg_interrupt_triggered = FALSE;
 
 		mos6502->push(mos6502, (mos6502->PC >> 8) & 0xFF);
 		mos6502->push(mos6502, mos6502->PC & 0xFF);

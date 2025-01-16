@@ -24,21 +24,21 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 	_keymap	*keys = ((_CIA*)bus->cia1)->keys;
 	
 	switch (keydata.key) {
-		case MLX_KEY_KP_0:	keydata.key = MLX_KEY_0; break;
-		case MLX_KEY_KP_1:	keydata.key = MLX_KEY_1; break;
-		case MLX_KEY_KP_2:	keydata.key = MLX_KEY_2; break;
-		case MLX_KEY_KP_3:	keydata.key = MLX_KEY_3; break;
-		case MLX_KEY_KP_4:	keydata.key = MLX_KEY_4; break;
-		case MLX_KEY_KP_5:	keydata.key = MLX_KEY_5; break;
-		case MLX_KEY_KP_6:	keydata.key = MLX_KEY_6; break;
-		case MLX_KEY_KP_7:	keydata.key = MLX_KEY_7; break;
-		case MLX_KEY_KP_8:	keydata.key = MLX_KEY_8; break;
-		case MLX_KEY_KP_9:	keydata.key = MLX_KEY_9; break;
-		case MLX_KEY_KP_ENTER:	keydata.key = MLX_KEY_ENTER; break;
-		case MLX_KEY_KP_EQUAL:	keydata.key = MLX_KEY_EQUAL; break;
-		case MLX_KEY_LEFT_CONTROL:	keydata.key = MLX_KEY_RIGHT_CONTROL; break;
-		case MLX_KEY_DELETE:	keydata.key = MLX_KEY_BACKSPACE; break;
-		case MLX_KEY_LEFT_SUPER:	keydata.key = MLX_KEY_RIGHT_SUPER; break;
+		case MLX_KEY_KP_0: keydata.key = MLX_KEY_0; break;
+		case MLX_KEY_KP_1: keydata.key = MLX_KEY_1; break;
+		case MLX_KEY_KP_2: keydata.key = MLX_KEY_2; break;
+		case MLX_KEY_KP_3: keydata.key = MLX_KEY_3; break;
+		case MLX_KEY_KP_4: keydata.key = MLX_KEY_4; break;
+		case MLX_KEY_KP_5: keydata.key = MLX_KEY_5; break;
+		case MLX_KEY_KP_6: keydata.key = MLX_KEY_6; break;
+		case MLX_KEY_KP_7: keydata.key = MLX_KEY_7; break;
+		case MLX_KEY_KP_8: keydata.key = MLX_KEY_8; break;
+		case MLX_KEY_KP_9: keydata.key = MLX_KEY_9; break;
+		case MLX_KEY_KP_ENTER: keydata.key = MLX_KEY_ENTER; break;
+		case MLX_KEY_KP_EQUAL: keydata.key = MLX_KEY_EQUAL; break;
+		case MLX_KEY_LEFT_CONTROL: keydata.key = MLX_KEY_RIGHT_CONTROL; break;
+		case MLX_KEY_DELETE: keydata.key = MLX_KEY_BACKSPACE; break;
+		case MLX_KEY_LEFT_SUPER: keydata.key = MLX_KEY_RIGHT_SUPER; break;
 		default:	break;
 	}
 
@@ -67,10 +67,6 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 			         set_key(keys, 0, 2, keydata.action);
 			         break;
 		/* NUMS */
-		/*case MLX_KEY_1: set_key(keys, 0, 4, keydata.action); break;
-		case MLX_KEY_2: set_key(keys, 0, 5, keydata.action); break;
-		case MLX_KEY_3: set_key(keys, 0, 6, keydata.action); break;
-		case MLX_KEY_4: set_key(keys, 0, 3, keydata.action); break;*/
 		case MLX_KEY_1: set_key(keys, 7, 0, keydata.action); break;
 		case MLX_KEY_2: set_key(keys, 7, 3, keydata.action); break;
 		case MLX_KEY_3: set_key(keys, 1, 0, keydata.action); break;
@@ -125,8 +121,7 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 }
 
 void	setup_mlx_hooks(void *p) {
-	_VIC_II	*vic = (_VIC_II*)p;
-
+	_VIC_II *vic = (_VIC_II*)p;
 	mlx_close_hook(vic->mlx_ptr, close_hook, vic);
 	mlx_resize_hook(vic->mlx_ptr, resize_hook, vic);
 	mlx_key_hook(vic->mlx_ptr, key_hook, vic);
