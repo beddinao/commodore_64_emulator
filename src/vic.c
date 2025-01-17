@@ -76,8 +76,6 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	unsigned screen_pixel_w = screen_grid_w * 8;
 	unsigned screen_pixel_start_x = (GWIDTH - screen_pixel_w) / 2;
 	unsigned screen_pixel_start_y = (GHEIGHT - screen_pixel_h) / 2;
-	/*unsigned screen_pixel_end_x = GWIDTH - screen_pixel_start_x;
-	  unsigned screen_pixel_end_y = GHEIGHT - screen_pixel_start_y;*/
 	unsigned pixel_x, pixel_y;
 	unsigned grid_x, grid_y, grid_pos;
 	uint32_t fg_color, pixel_color;
@@ -88,16 +86,15 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	uint8_t sp_line, sp_data;
 	uint16_t sp_x, sp_addr;
 	bool sp_behind;
-
 	/*
 	   for collision detection
 	   screen_line - screen/fourground x pixels
 	   sprite_line - sprites non-transparent x pixels
-	   */
+	*/
 	bool screen_line[GWIDTH];
 	bool sprite_line[GWIDTH];
 
-	//TODO: temp
+	//TODO:debug
 	y_scroll = 0;
 	x_scroll = 0;
 
@@ -105,6 +102,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	for (; vic->cycles >= VIC_CYCLES_PER_LINE; vic->cycles -= VIC_CYCLES_PER_LINE) {
 		memset(screen_line, 0, sizeof(screen_line));
 		memset(sprite_line, 0, sizeof(sprite_line));
+		/* borders */
 		if (!visible_screen || vic->raster < DYSTART || vic->raster >= DYEND) {
 			pixel_color = brd_color;
 			for (unsigned x = 0; x < GWIDTH; x++)
@@ -114,6 +112,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 			for (unsigned x = 0; x < GWIDTH; x++) {
 				if (x < DXSTART || x >= DXEND)
 					pixel_color = brd_color;
+				/* screen */
 				else {
 					pixel_x = (x - screen_pixel_start_x + x_scroll) % screen_pixel_w;
 					pixel_y = (vic->raster - screen_pixel_start_y + y_scroll) % screen_pixel_h;
@@ -122,8 +121,8 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 					grid_pos = grid_y * screen_grid_w + grid_x;
 					bit_pos = 7 - (pixel_x % 8);
 					/* fine boundaries check */
-					if (pixel_x >= screen_pixel_w || pixel_y >= screen_pixel_h)
-						pixel_color = bg_color; //brd_color;
+					if (pixel_x >= DXEND || pixel_y >= DYEND)
+						pixel_color = 0xFF0000FF; //brd_color;
 					else {
 						//
 						screen_ram = vic_read_memory(bus, vic, vic->screen_ram + grid_pos);
@@ -197,7 +196,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 				put_pixel(vic, x, vic->raster, pixel_color);
 			}
 		}
-		/* sprites */
+		/* sprites TODO:fix */
 		if (vic->sprite_enable) {
 			for (unsigned sp_i = 0; sp_i < 0x8; sp_i++) {
 				if ((vic->sprite_enable >> sp_i) & 0x1) {
@@ -260,7 +259,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 				}
 			}
 		}
-		/* raster interrupts */
+		/* raster interrupt */
 		vic->raster++;
 		if (vic->raster == vic->get_raster(vic)) {
 			if (vic->raster_interrupt_enable) {

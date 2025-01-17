@@ -69,6 +69,8 @@ void	*main_cycle(void *p) {
 		}
 		else if (bus->t_data->reset) {
 			reset_prg(bus, (_prg*)bus->prg);
+			mos6502 = (_6502*)bus->cpu;
+			vic = (_VIC_II*)bus->vic;
 			bus->t_data->reset = FALSE;
 		}
 		pthread_mutex_unlock(&bus->t_data->prg_mutex);

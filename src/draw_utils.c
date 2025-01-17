@@ -31,7 +31,7 @@ void	put_pixel(_VIC_II *vic, unsigned x, unsigned y, uint32_t color) {
 	         new_y = y * vic->wpdy;
 	for (unsigned n_y = new_y; n_y < new_y + vic->wpdy; n_y++)
 		for (unsigned n_x = new_x; n_x < new_x + vic->wpdx; n_x++) {
-			if (n_x < vic->win_width && n_y < vic->win_height)
+			if (n_x < vic->win_width && n_y < vic->win_height) 
 				mlx_put_pixel(vic->mlx_img, n_x, n_y, color);
 		}
 }

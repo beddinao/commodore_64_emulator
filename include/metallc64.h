@@ -240,7 +240,11 @@
 #define RST		"\x1B[0m"
 #define RED		"\x1B[31m"
 #define BLU		"\x1B[34m"
+#define CYN		"\x1B[36m"
 #define WHT		"\x1B[37m"
+#define GRN		"\x1B[32m"
+#define YEL		"\x1B[33m"
+#define ORG		"\e[0;91m"
 #define UND		"\033[4m"
 
 #ifndef TRUE
@@ -250,7 +254,7 @@
 #define FALSE		0
 #endif
 
-#define SHELL_PRMPT		"C64Shell$ "
+#define SHELL_PRMPT		"\x1B[37mC64Shell\x1B[0m$ "
 #define PATH_MAX_SIZE	0x400
 
 typedef	struct thread_data {
@@ -499,12 +503,13 @@ _bus	*bus_init();
 /* hooks.c */
 void	setup_mlx_hooks(void*);
 void	key_hook(mlx_key_data_t, void*);
+void	set_key(_keymap*, uint8_t, uint8_t, action_t);
 
 /* ppu.c */
 void	loop_hook(void*);
 
 /* main.c */
-void	sig_handle(int);
+void	exit_handle(int);
 
 /* vic.c */
 void	vic_advance_raster(_bus*, _VIC_II*, unsigned);

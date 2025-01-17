@@ -36,7 +36,7 @@ bool	exec_dmp(_bus *bus, char *cmd) {
 	pthread_mutex_lock(&bus->t_data->cmd_mutex);
 	bus->t_data->cmd = TRUE;
 	pthread_mutex_unlock(&bus->t_data->cmd_mutex);
-	sleep(1);
+	usleep(100000);
 
 	return TRUE;
 }
@@ -49,7 +49,7 @@ FILE	*get_binary_file(char *cmd, char *path) {
 
 	for (unsigned i = cmd_end - cmd; i < size && *path_st == ' '; i++, path_st++);
 	if (size > PATH_MAX_SIZE || !(*cmd_end)) {
-		printf("invalid file path \"%s\"\n", cmd_end);
+		printf(":%serror:%s invalid file path \"%s\"\n", RED, RST, cmd_end);
 		return NULL;
 	}
 
@@ -60,7 +60,7 @@ FILE	*get_binary_file(char *cmd, char *path) {
 	memcpy(path, path_st, (path_en - path_st) + 1);
 	file = fopen(path, "rb");
 	if (!file) {
-		printf("failed to open file \"%s\"\n", path);
+		printf(":%serror:%s failed to open file \"%s\"\n", RED, RST, path);
 		return NULL;
 	}
 	return file;
@@ -73,35 +73,36 @@ void	exec_ldp(_bus *bus, FILE *file, char *file_path) {
 	memset(buffer, 0, sizeof(buffer));
 	chars_read = fread(buffer, 1, 2, file);
 	if (!chars_read || chars_read != 2) {
-		printf("invalid PRG file format\nhint: position indicator is at %li\n", ftell(file));
+		printf(":%serror:%s invalid PRG file format\nhint: position indicator is at %li\n",
+				RED, RST, ftell(file));
 		fclose(file);
 		return;
 	}
 	ld_addr = buffer[1] << 0x8 | buffer[0];
 	if (!ld_addr || ld_addr != BASIC_PRG_START) {
-		printf("invalid BASIC program load address $%04X(.prg first two bytes):\n\
-				must be inside BASIC prg area $%04X - $%04X\n\
+		printf(":%serror:%s invalid BASIC program load address $%04x(.prg first two bytes):\n\
+				must be inside BASIC prg area $%04x - $%04x\n\
 				typically at $801\n",
-				ld_addr, BASIC_PRG_START, BASIC_PRG_END);
+				RED, RST, ld_addr, BASIC_PRG_START, BASIC_PRG_END);
 		fclose(file);
 		return;
 	}
 	memset(buffer, 0, sizeof(buffer));
 	chars_read = fread(buffer, 1, BASIC_PRG_SIZE, file);
 	if (!chars_read || ld_addr + chars_read > BASIC_PRG_END || ld_addr + chars_read < BASIC_PRG_START) {
-		printf("invalid BASIC program size $%04X, += load-address($%04X) > $%04X:\n\
-				must fit inside the specified BASIC prg area $%04X - $%04X\n",
-				chars_read, ld_addr, BASIC_PRG_END, BASIC_PRG_START, BASIC_PRG_END);
+		printf(":%serror:%s invalid BASIC program size $%04x, += load-address($%04x) > $%04x:\n\
+				must fit inside the specified BASIC prg area $%04x - $%04x\n",
+				RED, RST, chars_read, ld_addr, BASIC_PRG_END, BASIC_PRG_START, BASIC_PRG_END);
 		fclose(file);
 		return;
 	}
 	fclose(file);
-	printf("loading [%s] with size $%04X at $%04X, $801 -> $%04X ...\n",
-			file_path, chars_read, ld_addr, ld_addr + chars_read);
+	printf("\t- loading $%04x(%u) bytes at $%04x -> $%04x ...\n",
+			chars_read, chars_read, ld_addr, ld_addr + chars_read);
 
 	_prg *prg = malloc(sizeof(_prg));
 	if (!prg) {
-		printf("BASIC program failed to load to RAM\n");
+		printf(":%serror:%s BASIC program failed to load to RAM\n", RED, RST);
 		return;
 	}
 	memset(prg, 0, sizeof(_prg));
@@ -115,7 +116,7 @@ void	exec_ldp(_bus *bus, FILE *file, char *file_path) {
 	pthread_mutex_lock(&bus->t_data->prg_mutex);
 	bus->t_data->load = TRUE;
 	pthread_mutex_unlock(&bus->t_data->prg_mutex);
-	sleep(1);
+	usleep(100000);
 }
 
 FILE*	exec_ldd(FILE *file, char *file_path) {
@@ -124,17 +125,17 @@ FILE*	exec_ldd(FILE *file, char *file_path) {
 		and change the path string 
 		to the new extracted .prg
 	*/
-	printf("\nextracting PRG file from D64 disk image\n");
+	printf("\t- extracting first PRG file from D64 disk image..\n");
 	file = read_d64file(file, file_path);
 	if (file)
-		printf("PRG file is stored at \"%s\"\n", file_path);
+		printf("\t- found prg, storing at \"%s\"..\n", file_path);
 	return file;
 }
 
 FILE	*exec_ldt(FILE *file, char *file_path) {
 	(void)file_path;
 	fclose(file);
-	printf("LDT is not implemented\n");
+	printf(":%serror:%s LDT is not implemented\n", RED, RST);
 	return FALSE;
 }
 
@@ -158,16 +159,17 @@ uint8_t	parse_line(char *line, _bus *bus) {
 	if (!cmd_end) {
 		if (!strcmp(line, "CLR")) {
 			if (!bus->prg) {
-				printf("you must load a program first\n");
+				printf(":%serror:%s you must load a program first\n", RED, RST);
 				return 0;
 			}
+			printf("\n");
 			pthread_mutex_lock(&bus->t_data->prg_mutex);
 			bus->t_data->reset = TRUE;
 			pthread_mutex_unlock(&bus->t_data->prg_mutex);
-			sleep(1);
+			usleep(100000);
+			printf("\n");
 		}
 		else if (!strcmp(line, "EXT")) {
-			printf("exiting..\n");
 			pthread_mutex_lock(&bus->t_data->halt_mutex);
 			bus->t_data->halt = TRUE;
 			pthread_mutex_unlock(&bus->t_data->halt_mutex);
@@ -183,9 +185,9 @@ uint8_t	parse_line(char *line, _bus *bus) {
 				pthread_mutex_lock(&bus->t_data->cmd_mutex);
 				bus->t_data->cmd = TRUE;
 				pthread_mutex_unlock(&bus->t_data->cmd_mutex);
-				sleep(1);
+				usleep(100000);
 			}
-			else printf("memory dump failed\n");
+			else printf(":%serror: memory dump failed%s\n", RED, RST);
 		}
 		else 	return 1;
 		return 0;
@@ -195,22 +197,21 @@ uint8_t	parse_line(char *line, _bus *bus) {
 	if (!strncmp(line, "LDP", cmd_size) || !strncmp(line, "LDD", cmd_size)
 		|| !strncmp(line, "LDT", cmd_size)) {
 		if (bus->prg) {
-			printf("a program is already loaded\n");
+			printf(":%serror:%s a program is already loaded\n", RED, RST);
 			return 0;
 		}
 		char file_path[PATH_MAX_SIZE];
 		FILE *file = get_binary_file(line, file_path);
 		if (!file) return 0;
+		printf("\n");
 		if (!strncmp(line, "LDD", cmd_size) && !(file = exec_ldd(file, file_path))) return 0;
 		if (!strncmp(line, "LDT", cmd_size) && !(file = exec_ldt(file, file_path))) return 0;
 		exec_ldp(bus, file, file_path);
+		printf("\n");
 	}
 	else if (!strncmp(line, "DMP", cmd_size)) {
 		if (!exec_dmp(bus, line))
-			printf("invalid DMP syntax\"%s\"\n\n \
-				usage: DMP $addr1 $addr2,\n \
-				where addr is a hex number between $0 and $FFFF\n \
-				and 2 is bigger than 1\n\n", line);
+			printf("%sinvalid DMP syntax%s\"%s\"\n\n\tusage: DMP $addr1 $addr2,\n\twhere addr is a hex number between $0 and $FFFF\n\tand 2 is bigger than 1\n\n", RED, RST, line);
 	}
 	else if (!strncmp(line, "BRD", cmd_size)
 			|| !strncmp(line, "BGR", cmd_size)
@@ -227,9 +228,9 @@ uint8_t	parse_line(char *line, _bus *bus) {
 			pthread_mutex_lock(&bus->t_data->cmd_mutex);
 			bus->t_data->cmd = TRUE;
 			pthread_mutex_unlock(&bus->t_data->cmd_mutex);
-			sleep(1);
+			usleep(100000);
 		}
-		else printf("changing color failed\n");
+		else printf(":%serror:%s changing color failed\n", RED, RST);
 	}
 	else return 1;
 	return 0;
@@ -241,9 +242,11 @@ void	*open_shell(void *p) {
 
 	while (1) {
 		bus->t_data->line = readline(SHELL_PRMPT);
+		if (!bus->t_data->line || !strlen(bus->t_data->line))
+			continue;
 		if (!(parse_res = parse_line(bus->t_data->line, bus)))
 			add_history(bus->t_data->line);
-		else	
+		else
 			switch (parse_res) {
 				case 1: print_help(bus->t_data->line); break;
 				case 2: print_col_help(bus->t_data->line); break;

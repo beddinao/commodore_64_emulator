@@ -2,12 +2,13 @@
 
 thread_data	*t_data;
 
-void	sig_handle(int s) {
+void	exit_handle(int s) {
 	pthread_cancel(t_data->worker);
 	pthread_cancel(t_data->worker_2);
 	pthread_join(t_data->worker, NULL);
 	pthread_join(t_data->worker_2, NULL);
 
+	printf("\nexiting..\n");
 	/// / //		CLEAN
 	pthread_mutex_destroy(&t_data->halt_mutex);
 	pthread_mutex_destroy(&t_data->prg_mutex);
@@ -84,20 +85,21 @@ int	main() {
 		return 1;
 	}
 
+	// // /		CLEAN
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGTERM, SIG_IGN);
+	signal(SIGHUP, SIG_IGN);
+
 	/// / //		CYCLE
 	pthread_create(&t_data->worker, NULL, main_cycle, bus);
 
 	/// / //		SHELL
 	pthread_create(&t_data->worker_2, NULL, open_shell, bus);
 
-	// / //		CLEAN
-	signal(SIGINT, sig_handle);
-	signal(SIGQUIT, sig_handle);
-	signal(SIGTERM, sig_handle);
-	
 	//// / //		HOOKS
 	mlx_image_to_window(((_VIC_II*)bus->vic)->mlx_ptr, ((_VIC_II*)bus->vic)->mlx_img, 0, 0);
 	mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, WWIDTH, WHEIGHT, WWIDTH, WHEIGHT);
-	setup_mlx_hooks(bus->vic);
+	setup_mlx_hooks(bus);
 	mlx_loop(((_VIC_II*)bus->vic)->mlx_ptr);
 }
