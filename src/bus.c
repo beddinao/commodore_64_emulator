@@ -222,16 +222,16 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 						break;
 					case MEM_SETUP: // $D018
 						vic->screen_ram = (val & 0xf0) << 6;
-						if ((vic->control1 >> 0x5) & 0x1) 
+						//if ((vic->control1 >> 0x5) & 0x1)
 							vic->bitmap_ram = (val & 0x8) << 10;
-						else {
+						//else {
 							uint8_t bva = (val >> 0x1) & 0x7;
 							vic->char_rom_on = FALSE;
 							if ((bva == 0x3 || bva == 0x2)
 								&& (vic->bank == VIC_BANK_0 || vic->bank == VIC_BANK_2))
 								vic->char_rom_on = TRUE;
 							vic->char_ram = (val & 0xe) << 10;
-						}
+						//}
 						bus->RAM[addr] |= 0x1;
 						break;
 					case INTR_ON: // $D01A
