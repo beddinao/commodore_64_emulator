@@ -234,6 +234,7 @@
 #define WWIDTH		GWIDTH*WPDX
 #define MHEIGHT		GHEIGHT // window min height
 #define MWIDTH		GWIDTH  // window min width
+#define HTOW		GWIDTH / GHEIGHT
 /*
 		ANSI CODES
 */
@@ -334,8 +335,8 @@ typedef	struct VIC_II {
 	mlx_image_t	*mlx_img;
 	unsigned		win_width;
 	unsigned		win_height;
-	uint8_t		wpdx;
-	uint8_t		wpdy;	// window pixels per display
+	float		wpdx;
+	float		wpdy;	// window pixels per display
 				// pixels, X/Y
 
 	uint16_t		raster;   // dynamic raster counter

@@ -99,7 +99,7 @@ int	main() {
 
 	//// / //		HOOKS
 	mlx_image_to_window(((_VIC_II*)bus->vic)->mlx_ptr, ((_VIC_II*)bus->vic)->mlx_img, 0, 0);
-	mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, WWIDTH, WHEIGHT, WWIDTH, WHEIGHT);
+	mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, GWIDTH, GHEIGHT, GWIDTH*4, GHEIGHT*4);
 	setup_mlx_hooks(bus);
 	mlx_loop(((_VIC_II*)bus->vic)->mlx_ptr);
 }

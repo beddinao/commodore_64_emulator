@@ -51,10 +51,10 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 							(vic->control1 & ~0x80);
 					case CNTRL2: // $D016
 						return vic->control2;
-					case 0xD01E:
+					case SPR_SPR_COLL: // $D01E
 						retuv = vic->sp_sp_collision;
 						return retuv;
-					case 0xD01F:
+					case SPR_BACK_COLL: // $D01F
 						retuv = vic->sp_bg_collision;
 						return retuv;
 					default:	return bus->RAM[addr];
@@ -179,9 +179,9 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_cia_tod* tod2 = (_cia_tod*)cia2->TOD;
 
 	switch (addr) {
+		case IO_PORT_DR: /* $1 */ bus->RAM[addr] = val; return;
+		case SPRITES_ON: /* $D015 TODO:remove */ bus->RAM[addr] = 0x0; return;
 		// protected: BASIC TOP RAM / PRG max addr
-		case 0x01: bus->RAM[addr] = val; return;
-		case 0xD015: /* TODO:remove */ bus->RAM[addr] = 0x0; return;
 		//case 0x37: bus->RAM[addr] = 0x00; return;
 		//case 0x38: bus->RAM[addr] = 0xA0; return;
 	}
@@ -205,19 +205,19 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 				vic->sprite_colors[(addr & 0xFF)-0x27] = val & 0xF;
 			else {
 				switch (addr) {
-					case 0xD010:
+					case MSBS_X: // $D010
 						vic->sprite_8x = val;
 						break;
 					case CNTRL1: // $D011
 						vic->control1 = val;
 						break;
-					case 0xD015:
+					case SPRITES_ON: // $D015
 						vic->sprite_enable = val;
 						break;
 					case CNTRL2: // $D016
 						vic->control2 = val;
 						break;
-					case 0xD017:
+					case SPRITE_EXP_Y: // $D017
 						vic->sprite_expand_y = val;
 						break;
 					case MEM_SETUP: // $D018
@@ -234,24 +234,24 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 						}
 						bus->RAM[addr] |= 0x1;
 						break;
-					case 0xD01A:
+					case INTR_ON: // $D01A
 						vic->raster_interrupt_enable = val & 0x1;
 						vic->sp_bg_interrupt_enable = (val >> 0x1) & 0x1;
 						vic->sp_sp_interrupt_enable = (val >> 0x2) & 0x1;
 						break;
-					case 0xD01B:
+					case SPRITE_PRT: // $D01B
 						vic->sprite_priority = val;
 						break;
-					case 0xD01C:
+					case SPRITE_MULTI_COL: // $D01C
 						vic->sprite_multicolor_enable = val;
 						break;
-					case 0xD01D:
+					case SPRITE_EXP_X: // $D01D
 						vic->sprite_expand_x = val;
 						break;
-					case 0xD025:
+					case SPR_MULTI_COL0: // $D025
 						vic->sprite_multicolor0 = val & 0xF;
 						break;
-					case 0xD026:
+					case SPR_MULTI_COL1: // $D026
 						vic->sprite_multicolor1 = val & 0xF;
 						break;
 				}
@@ -463,10 +463,10 @@ uint8_t	load_kernal(_bus *bus) {
  %s\n",
 	WHT, RST, WHT, RST, WHT, RST,
  	"\e[0;97m", RST, "\e[0;97m", RST, "\e[1;97m", RST,
-	WHT, WWIDTH, WHEIGHT,
- 	bus->KERNAL[nmi_ker_addr + 1] << 0x8 | bus->KERNAL[nmi_ker_addr],
+	WHT, bus->KERNAL[nmi_ker_addr + 1] << 0x8 | bus->KERNAL[nmi_ker_addr],
 	bus->KERNAL[rstv_ker_addr + 1] << 0x8 | bus->KERNAL[rstv_ker_addr],
-	bus->KERNAL[irq_ker_addr + 1] << 0x8 | bus->KERNAL[irq_ker_addr], RST);
+	bus->KERNAL[irq_ker_addr + 1] << 0x8 | bus->KERNAL[irq_ker_addr],
+	WWIDTH, WHEIGHT, RST);
 	return 1;
 }
 

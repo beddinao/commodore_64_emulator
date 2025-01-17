@@ -18,25 +18,19 @@ void	increment_raster(_VIC_II *vic, uint16_t raster) {
 	else	cntrl1 &= ~0x80;
 	vic->bus->ram_write(vic->bus, CNTRL1, cntrl1);
 }
-
+/*
+	not the original C64 color pallete
+*/
 uint32_t	C64_to_rgb(uint8_t color) {
 	uint32_t c64_colors[16] = {
-		0x000000,
-		0xFFFFFF,
-		0x68372B,
-		0x70A4B2,
-		0x6F3D86,
-		0x588D43,
-		0x352879,
-		0xB8C76F,
-		0x6F4F25,
-		0x433900,
-		0x9A6759,
-		0x444444,
-		0x6C6C6C,
-		0x9AD284,
-		0x6C5EB5,
-		0x959595,
+		0x000000, 0xFFFFFF,
+		0x68372B, 0x70A4B2,
+		0x6F3D86, 0x588D43,
+		0x352879, 0xB8C76F,
+		0x6F4F25, 0x433900,
+		0x9A6759, 0x444444,
+		0x6C6C6C, 0x9AD284,
+		0x6C5EB5, 0x959595,
 	};
 	return c64_colors[color & 0xF] << 0x8 | 0xFF;
 }
@@ -122,7 +116,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 					bit_pos = 7 - (pixel_x % 8);
 					/* fine boundaries check */
 					if (pixel_x >= DXEND || pixel_y >= DYEND)
-						pixel_color = 0xFF0000FF; //brd_color;
+						pixel_color = bg_color; //brd_color;
 					else {
 						//
 						screen_ram = vic_read_memory(bus, vic, vic->screen_ram + grid_pos);
