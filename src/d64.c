@@ -9,7 +9,7 @@ FILE	*dump_prg(FILE *d64file, int track, int sector, char *prg_file) {
 	unsigned char buffer[SECTOR_SIZE];
 	FILE *prg = fopen(prg_file, "w+b");
 	if (!prg) {
-		printf("failed to extract .prg (%s) file from .d64 disk image\n", prg_file);
+		printf("%serror:%s failed to extract .prg file from .d64 disk image\n", RED, RST);
 		return FALSE;
 	}
 	while (track != 0) {
@@ -47,13 +47,13 @@ FILE*	read_d64file(FILE *d64file, char *file_path) {
 
 	if (fseek(d64file, dir_offset, SEEK_SET) < 0) {
 		fclose(d64file);
-		printf("invalid D64 disk image\n");
+		printf("%serror:%s invalid D64 disk image\n", RED, RST);
 		return FALSE;
 	}
 	memset(dir_sector, 0, sizeof(dir_sector));
 	unsigned chars_read = fread(dir_sector, 1, SECTOR_SIZE, d64file);
 	if (!chars_read || chars_read != SECTOR_SIZE) {
-		printf("invalid D64 disk image\n");
+		printf("%serror:%s invalid D64 disk image\n", RED, RST);
 		fclose(d64file);
 		return FALSE;
 	}
@@ -78,7 +78,7 @@ FILE*	read_d64file(FILE *d64file, char *file_path) {
 			return prg;
 		}
 	}
-	printf("no PRG files found in \"%s\"\n", file_path);
+	printf("%swarn:%s no PRG files found in \"%s\"\n", YEL, RST, file_path);
 	fclose(d64file);
 	return FALSE;
 }

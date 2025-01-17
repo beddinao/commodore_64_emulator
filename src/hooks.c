@@ -6,13 +6,18 @@ void	close_hook(void *p) {
 }
 
 void	resize_hook(int w, int h, void *p) {
+	(void)h;
 	_bus *bus = (_bus*)p;
 	pthread_mutex_lock(&bus->t_data->prg_mutex);
 	_VIC_II *vic = (_VIC_II*)bus->vic;
-	vic->win_height = h;
-	vic->win_width = w;
-	vic->wpdy = h / GHEIGHT;
-	vic->wpdx = w / GWIDTH;
+	float new_wpd = (float)w / (float)GWIDTH;
+	if (new_wpd != vic->wpdx) {
+		vic->win_width = w;
+		vic->wpdx = new_wpd;
+		vic->wpdy = vic->wpdx;
+		vic->win_height = vic->win_width * HTOW;
+		mlx_resize_image(vic->mlx_img, vic->win_width, vic->win_height);
+	}
 	pthread_mutex_unlock(&bus->t_data->prg_mutex);
 }
 
