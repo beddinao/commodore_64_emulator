@@ -2,15 +2,18 @@
 
 void	close_hook(void *p) {
 	(void)p;
-	sig_handle(0);
+	exit_handle(0);
 }
 
 void	resize_hook(int w, int h, void *p) {
-	_VIC_II	*vic = (_VIC_II*)p;
+	_bus *bus = (_bus*)p;
+	pthread_mutex_lock(&bus->t_data->prg_mutex);
+	_VIC_II *vic = (_VIC_II*)bus->vic;
 	vic->win_height = h;
 	vic->win_width = w;
 	vic->wpdy = h / GHEIGHT;
 	vic->wpdx = w / GWIDTH;
+	pthread_mutex_unlock(&bus->t_data->prg_mutex);
 }
 
 void	set_key(_keymap *keys, uint8_t row, uint8_t col, action_t act) {
@@ -19,9 +22,8 @@ void	set_key(_keymap *keys, uint8_t row, uint8_t col, action_t act) {
 }
 
 void	key_hook(mlx_key_data_t keydata, void *p) {
-	_VIC_II	*vic = (_VIC_II*)p;
-	_bus	*bus = vic->bus;
-	_keymap	*keys = ((_CIA*)bus->cia1)->keys;
+	_bus *bus = (_bus*)p;
+	_keymap *keys = ((_CIA*)bus->cia1)->keys;
 	
 	switch (keydata.key) {
 		case MLX_KEY_KP_0: keydata.key = MLX_KEY_0; break;
@@ -121,9 +123,10 @@ void	key_hook(mlx_key_data_t keydata, void *p) {
 }
 
 void	setup_mlx_hooks(void *p) {
-	_VIC_II *vic = (_VIC_II*)p;
-	mlx_close_hook(vic->mlx_ptr, close_hook, vic);
-	mlx_resize_hook(vic->mlx_ptr, resize_hook, vic);
-	mlx_key_hook(vic->mlx_ptr, key_hook, vic);
-	mlx_loop_hook(vic->mlx_ptr, loop_hook, vic);
+	_bus *bus = (_bus*)p;
+	_VIC_II *vic = (_VIC_II*)bus->vic;
+	mlx_close_hook(vic->mlx_ptr, close_hook, bus);
+	mlx_resize_hook(vic->mlx_ptr, resize_hook, bus);
+	mlx_key_hook(vic->mlx_ptr, key_hook, bus);
+	mlx_loop_hook(vic->mlx_ptr, loop_hook, bus);
 }

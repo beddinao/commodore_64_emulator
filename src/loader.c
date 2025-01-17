@@ -12,9 +12,8 @@ void	change_col(_bus* bus, _cmd *cmd) {
 }
 
 void	prg_load_sequence(_bus *bus, _prg* prg) {
-	/* clear region */
-	memset(bus->RAM + BASIC_PRG_START, 0, prg->size);
 	/* load to RAM */
+	memset(bus->RAM + BASIC_PRG_START, 0, prg->size);
 	memcpy(bus->RAM + BASIC_PRG_START, prg->buffer, prg->size);
 	/* ZERO-PAGE pointers setup */
 	// leading zero byte
@@ -35,37 +34,22 @@ void	prg_load_sequence(_bus *bus, _prg* prg) {
 	bus->RAM[0x33] = prg->en_addr & 0xFF;
 	bus->RAM[0x34] = (prg->en_addr >> 0x8) & 0xFF;
 	prg->loaded = TRUE;
-	printf("program loaded successfully at $%04X\n", BASIC_PRG_START);
+	printf("\t:%sloaded%s program successfully at $%04x\n", GRN, RST, BASIC_PRG_START);
+	printf("\t!Use the kernal %sRUN%s command to execute\n", UND, RST);
 }
 
 void	reset_prg(_bus *bus, _prg* prg) {
-	printf("clearing program from memory..\n");
-	memset(bus->RAM + BASIC_PRG_START, 0, prg->size);
-	bus->RAM[0x800] = 0x00;
-	//
-	bus->RAM[0x2F] = 0x05;
-	bus->RAM[0x30] = 0x08;
-	//
-	bus->RAM[0x31] = 0x05;
-	bus->RAM[0x32] = 0x08;
-	//
-	bus->RAM[0x33] = 0x00;
-	bus->RAM[0x34] = 0xA0;
-	//// Current BASIC line pointer
-	bus->RAM[0x7A] = 0x01;
-	bus->RAM[0x7B] = 0x08;
-	//// Current BASIC line number
-	bus->RAM[0xAE] = 0x00;
-	bus->RAM[0xAF] = 0x00;
-	bus->RAM[0x2B] = 0x01;  // Start of BASIC text
-	bus->RAM[0x2C] = 0x08;
-	bus->RAM[0x2D] = 0x03;  // Start of variables
-	bus->RAM[0x2E] = 0x08;
-	//
-	((_6502*)bus->cpu)->PC = 0xE394;
-	((_6502*)bus->cpu)->set_flag((_6502*)bus->cpu, 'D', 0);
-	//
-	printf(":freed $%04X(%u) Bytes of memory\n", prg->size, prg->size);
-	free(prg);
+	printf("\t- clearing program from memory..\n");
+	/* hard reset */
+	memset(bus->RAM, 0, sizeof(bus->RAM));
+	bus->RAM[1] = 0x37;
+	free(bus->cpu);
+	bus->cpu = cpu_init(bus);
+	if (!bus->cpu) {
+		printf("%s:error%s: hard reset failed exiting..\n\n", RED, RST);
+		exit(1);
+	}
 	bus->prg = NULL;
+	printf("\t:%sfreed%s $%04x(%u) Bytes of memory\n", GRN, RST, prg->size, prg->size);
+	free(prg);
 }

@@ -179,11 +179,11 @@ void	cpu_write_(_bus *bus, uint16_t addr, uint8_t val) {
 	_cia_tod* tod2 = (_cia_tod*)cia2->TOD;
 
 	switch (addr) {
+		// protected: BASIC TOP RAM / PRG max addr
 		case 0x01: bus->RAM[addr] = val; return;
-		case 0xD015: bus->RAM[addr] = 0x0; return;
-			 // protected: BASIC TOP RAM / PRG max addr
-			 //case 0x37: bus->RAM[addr] = 0x00; return;
-			 //case 0x38: bus->RAM[addr] = 0xA0; return;
+		case 0xD015: /* TODO:remove */ bus->RAM[addr] = 0x0; return;
+		//case 0x37: bus->RAM[addr] = 0x00; return;
+		//case 0x38: bus->RAM[addr] = 0xA0; return;
 	}
 
 	uint8_t proc_port = bus->RAM[1];
@@ -445,12 +445,28 @@ uint8_t	load_kernal(_bus *bus) {
 	unsigned nmi_ker_addr = NMI - KERNAL_ROM_START;
 	unsigned rstv_ker_addr = RSTV - KERNAL_ROM_START;
 	unsigned irq_ker_addr = IRQ_BRK - KERNAL_ROM_START;
-
-	printf("kernal interrupt vectors: NMI: %04X, RSTV: %04X, IRQ: %04X\n",
-			bus->KERNAL[nmi_ker_addr + 1] << 0x8 | bus->KERNAL[nmi_ker_addr],
-			bus->KERNAL[rstv_ker_addr + 1] << 0x8 | bus->KERNAL[rstv_ker_addr],
-			bus->KERNAL[irq_ker_addr + 1] << 0x8 | bus->KERNAL[irq_ker_addr]);
-
+	printf("\n\
+%s       __  __      _        _ _  _____  __ _  _%s\n\
+%s      |  \\/  |    | |      | | |/ ____|/ /| || |%s\n\
+%s      | \\  / | ___| |_ __ _| | | |    / /_| || |_%s\n\
+%s      | |\\/| |/ _ \\ __/ _` | | | |   | '_ \\__   _|%s\n\
+%s      | |  | |  __/ || (_| | | | |___| (_) | | |%s\n\
+%s      |_|  |_|\\___|\\__\\__,_|_|_|\\_____\\___/  |_|%s\n\
+      the metall Commodore 64 emulator\n\
+ %s\n\
+      - Kernal interrupt vectors:\n\
+        NMI: $%04x, RST: $%04x, IRQ: $%04x\n\
+      - Window dimensions:\n\
+        504x312 (PAL-display) -> %ux%u\n\
+      - HLP/HELP/help for a list of commands\n\
+      - NOTE: Not very accurate emulator\n\
+ %s\n",
+	WHT, RST, WHT, RST, WHT, RST,
+ 	"\e[0;97m", RST, "\e[0;97m", RST, "\e[1;97m", RST,
+	WHT, WWIDTH, WHEIGHT,
+ 	bus->KERNAL[nmi_ker_addr + 1] << 0x8 | bus->KERNAL[nmi_ker_addr],
+	bus->KERNAL[rstv_ker_addr + 1] << 0x8 | bus->KERNAL[rstv_ker_addr],
+	bus->KERNAL[irq_ker_addr + 1] << 0x8 | bus->KERNAL[irq_ker_addr], RST);
 	return 1;
 }
 
