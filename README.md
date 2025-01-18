@@ -57,7 +57,25 @@ The emulator includes a **command shell** running on a separate thread, allowing
 MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>, a lightweight graphics library based on GLFW. This allows for simple rendering of the Commodore 64 display.
 
 ## screenshots
-Here are some BASIC programs that the emulator successfully ran:
+
+`10_print one liners at ./programs/bas/10_print.bas`
+
+<div align="center" width="100%">
+  <img  width="49%" src="./images/gifs/recording_1.gif" title="10_print 1" />
+  <img  width="49%" src="./images/gifs/recording_3.gif" title="10_print 3" />
+</div>
+
+
+`animated demos`
+
+<div align="center" width="100%">
+  <img  width="30%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
+  <img  width="30%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
+  <img  width="30%" src="./images/gifs/hellas_guys.gif" title="hellas guys"/>
+</div>
+
+`some art brought from the C64 demoScene`
+
 <div align="center" width="100%">
   <img  width="30%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
   <img  width="30%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
@@ -67,12 +85,7 @@ Here are some BASIC programs that the emulator successfully ran:
   <img  width="30%" src="./images/screenshots/dark_faces.png" title="dark faces" />
   <img  width="30%" src="./images/screenshots/highlander.png" title="highlander" />
   <img  width="30%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
-  <img  width="30%" src="./images/screenshots/monopole.png" title="monopole game"/>
-</div>
-<div align="center" width="100%"><br>
-  <img  width="30%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
-  <img  width="30%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
-  <img  width="30%" src="./images/gifs/hellas_guys.gif" title="hellas guys"/>
+  <img  width="30%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
 </div>
 
 
