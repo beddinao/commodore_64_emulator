@@ -35,24 +35,46 @@ The emulator includes a **command shell** running on a separate thread, allowing
 
 ### available commands:  
 
-| **Command**  | **Description** | **Command**  | **Description** |
-|----------------|---------------|--------|---------------|
-| `LDP [path]` | Load a BASIC program (`.prg`) into memory. | `SCR` | Show CPU status. |
-| `LDD [path]` | Load a (`.d64`) D64 disk image. | `SVR` | Show VIC-II status. |
-| `BRD [1-16]` | Change the border color. | `SC1` | Show CIA#1 status. |
-| `BGR [1-16]` | Change the background color. | `SC2` | Show CIA#2 status. |
-| `TXT [1-16]` | Change the text color. | `CLR` | Clear the loaded program from memory **and perform a hard reset**. |
-| `DMP $st $en` | Dump memory from address `$st` to `$en` in the range `0-FFFF`. | `EXT` | Exit the emulator. |
+| **command**  | **description** |
+|----------------|---------------|
+| `LDP [path]` | Load a BASIC program (`.prg`) into memory. |
+| `LDD [path]` | Load a (`.d64`) D64 disk image. |
+|-|-|
+| `BRD [1-16]` | Change the border color. |
+| `BGR [1-16]` | Change the background color. |
+| `TXT [1-16]` | Change the text color. |
+|-|-|
+| `DMP $st $en` | Dump memory from address `$st` to `$en` in the range `0-FFFF`. |
+| `SCR` | Show CPU status. |
+| `SVR` | Show VIC-II status. |
+| `SC1` | Show CIA#1 status. |
+| `SC2` | Show CIA#2 status. |
+|-|-|
+| `CLR` | Clear the loaded program from memory **and perform a hard reset**. |
+| `EXT` | Exit the emulator. |
 
 ## graphics library:
 MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>, a lightweight graphics library based on GLFW. This allows for simple rendering of the Commodore 64 display.
+
+## screenshots
+<div align="center" width="100%">
+  <img  width="33%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
+  <img  width="33%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
+  <img  width="33%" src="./images/screenshots/show_time.png" title="show time" />
+  <img  width="33%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
+  <img  width="33%" src="./images/screenshots/dark_faces.png" title="dark faces" />
+  <img  width="33%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
+  <img  width="33%" src="./images/screenshots/highlander.png" title="highlander" />
+  <img  width="33%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
+  <img  width="33%" src="./images/screenshots/monopole.png" title="monopole game"/>
+</div>
+
 
 ## system requirements
 - **`Linux or Macos`**
 - **`glfw (libglfw3-dev)`**
 - **`readline (libreadline-dev)`**
 - **`cmake >= 3.18`**
-
 
 ## **upcoming features:**  
 - **Full hardware sprite support** (partial-progress)  
