@@ -60,10 +60,10 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
 Here are some BASIC programs that the emulator successfully ran. 
 <div align="center" width="100%">
   <img  width="30%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
-  <img  width="30%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
+  <img  width="30%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
   <img  width="30%" src="./images/screenshots/show_time.png" title="show time" />
   <img  width="30%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
-  <img  width="30%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
+  <img  width="30%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
   <img  width="30%" src="./images/screenshots/dark_faces.png" title="dark faces" />
   <img  width="30%" src="./images/screenshots/highlander.png" title="highlander" />
   <img  width="30%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
