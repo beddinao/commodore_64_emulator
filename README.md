@@ -31,7 +31,7 @@ MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**
 - **CIA-1 & CIA-2** `(Basic support for keyboard and timers)`
 
 ## shell interface  
-The emulator includes a **command shell** running on a separate thread, allowing users to interact with the emulator.  
+The emulator has a **command shell** that runs in a separate thread:
 
 ### available commands:  
 
@@ -54,7 +54,7 @@ The emulator includes a **command shell** running on a separate thread, allowing
 | `EXT` | Exit the emulator. |
 
 ## graphics library:
-MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>, a lightweight graphics library based on GLFW. This allows for simple rendering of the Commodore 64 display.
+MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>, a lightweight graphics library based on GLFW and OpenGL.
 
 ## screenshots
 
@@ -69,23 +69,23 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
 `animated demos`
 
 <div align="center" width="100%">
-  <img  width="30%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
-  <img  width="30%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
-  <img  width="30%" src="./images/gifs/hellas_guys.gif" title="hellas guys"/>
+  <img  width="40%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
+  <img  width="40%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
+  <img  width="40%" src="./images/gifs/hellas_guys.gif" title="hellas guys"/>
 </div>
 
 `some art brought from the C64 demoScene`
 
 <div align="center" width="100%">
-  <img  width="30%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
-  <img  width="30%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
-  <img  width="30%" src="./images/screenshots/show_time.png" title="show time" />
-  <img  width="30%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
-  <img  width="30%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
-  <img  width="30%" src="./images/screenshots/dark_faces.png" title="dark faces" />
-  <img  width="30%" src="./images/screenshots/highlander.png" title="highlander" />
-  <img  width="30%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
-  <img  width="30%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
+  <img  width="40%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
+  <img  width="40%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
+  <img  width="40%" src="./images/screenshots/show_time.png" title="show time" />
+  <img  width="40%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
+  <img  width="40%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
+  <img  width="40%" src="./images/screenshots/dark_faces.png" title="dark faces" />
+  <img  width="40%" src="./images/screenshots/highlander.png" title="highlander" />
+  <img  width="40%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
+  <img  width="40%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
 </div>
 
 
