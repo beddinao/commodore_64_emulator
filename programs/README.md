@@ -24,6 +24,7 @@ This folder contains **C64 demo programs** that were downloaded from the [C-64 S
 | `honcho of the seven raging coding seas.prg` | [csdb.dk](https://csdb.dk/release/?id=226520) | 
 | `noslackers.prg` | [csdb.dk](https://csdb.dk/release/?id=247872) | 
 | `petsciitracing.prg` | [csdb.dk](https://csdb.dk/release/?id=157375) | 
+| `efucollab.prg` | [csdb.dk](https://csdb.dk/release/?id=171604) | 
 
 **`./games/`:**
 |  |  |  
