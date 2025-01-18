@@ -53,20 +53,23 @@ MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**
 
 ## basic functionality test
 
-10 PRINT one liners at `./programs/bas/10_print.bas`
+some one line BASIC programs at `./programs/bas/10_print.bas`
 
 `10 PRINT CHR$(205.5+RND(1)); : GOTO 10`
+
+<div align="center" width="100%">
+  <img  width="100%" src="./images/gifs/recording_1.gif" title="10_print 1" />
+</div>
 
 `10 PRINT CHR$(32+(INT(RND(1)+.5)*81)); : GOTO 10`
 
 <div align="center" width="100%">
-  <img  width="49%" src="./images/gifs/recording_1.gif" title="10_print 1" />
-  <img  width="49%" src="./images/gifs/recording_3.gif" title="10_print 3" />
+  <img  width="100%" src="./images/gifs/recording_3.gif" title="10_print 3" />
 </div>
 
 
 ## shell interface  
-The emulator has a **command shell** that runs in a separate thread:
+The emulator has a **command shell** that runs in a separate thread for debugging<br> and general hardware behaviour observation:
 
 ### available commands:  
 
@@ -75,15 +78,15 @@ The emulator has a **command shell** that runs in a separate thread:
 | `LDP [path]` | Load a BASIC program (`.prg`) into memory. |
 | `LDD [path]` | Load a (`.d64`) D64 disk image. |
 |-|-|
+| `DMP $st $en` | Dump memory from address `$st` to `$en`. |
+| `SCR` | Show CPU status/registers. |
+| `SVR` | Show VIC-II status/registers. |
+| `SC1` | Show CIA#1 status/registers. |
+| `SC2` | Show CIA#2 status/registers. |
+|-|-|
 | `BRD [1-16]` | Change the border color. |
 | `BGR [1-16]` | Change the background color. |
 | `TXT [1-16]` | Change the text color. |
-|-|-|
-| `DMP $st $en` | Dump memory from address `$st` to `$en` in the range `0-FFFF`. |
-| `SCR` | Show CPU status. |
-| `SVR` | Show VIC-II status. |
-| `SC1` | Show CIA#1 status. |
-| `SC2` | Show CIA#2 status. |
 |-|-|
 | `CLR` | Clear the loaded program from memory **and perform a hard reset**. |
 | `EXT` | Exit the emulator. |
@@ -95,24 +98,25 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
 
 `animated demos`
 
-<div align="center" width="100%">
-  <img  width="40%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
-  <img  width="40%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
-  <img  width="40%" src="./images/gifs/hellas_guys.gif" title="hellas guys"/>
+<div align="left" width="100%">
+  <img  width="49%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
+  <img  width="49%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
+  <img  width="49%" src="./images/gifs/hellas_guys.gif" title="hellas guys"/>
 </div>
 
 `some art brought from the C64 demoScene`
 
 <div align="center" width="100%">
-  <img  width="40%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
-  <img  width="40%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
-  <img  width="40%" src="./images/screenshots/show_time.png" title="show time" />
-  <img  width="40%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
-  <img  width="40%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
-  <img  width="40%" src="./images/screenshots/dark_faces.png" title="dark faces" />
-  <img  width="40%" src="./images/screenshots/highlander.png" title="highlander" />
-  <img  width="40%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
-  <img  width="40%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
+  <img  width="49%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
+  <img  width="49%" src="./images/screenshots/show_time.png" title="show time" />
+  <img  width="49%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
+  <img  width="49%" src="./images/screenshots/chillin.png" title="chillin" />
+  <img  width="49%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
+  <img  width="49%" src="./images/screenshots/honcho_of_the_seven_raging_coding_seas.png" title="honcho of the seven raging coding seas"/>
+  <img  width="49%" src="./images/screenshots/dark_faces.png" title="dark faces" />
+  <img  width="49%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
+  <img  width="49%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
+  <img  width="49%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
 </div>
 
 
