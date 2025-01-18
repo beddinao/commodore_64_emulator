@@ -57,7 +57,7 @@ The emulator includes a **command shell** running on a separate thread, allowing
 MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>, a lightweight graphics library based on GLFW. This allows for simple rendering of the Commodore 64 display.
 
 ## screenshots
-Here are some BASIC programs that the emulator successfully ran. 
+Here are some BASIC programs that the emulator successfully ran:
 <div align="center" width="100%">
   <img  width="30%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
   <img  width="30%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
