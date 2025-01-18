@@ -18,7 +18,7 @@ The **Commodore 64 (C64)** is one of the most iconic home computers of all time.
 The C64 was popular for **gaming, programming, and productivity**, with thousands of titles released for it.  
 
 ## about this emulator  
-MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs and games**. However, it is **not cycle-accurate** and **not highly precise**, meaning some programs **may not work as expected or as in real hardware**.  
+MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**. However, it is **not cycle-accurate** and **not highly precise**, meaning some programs **may not work as expected or as in real hardware**.  
 
 ### current limitations:  
 - **VIC-II (Graphics) is not fully accurate** and may have **visual glitches**.  
