@@ -30,6 +30,20 @@ MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**
 - **VIC-II** `(Partial sprite emulation)`
 - **CIA-1 & CIA-2** `(Basic support for keyboard and timers)`
 
+## basic functionality test
+
+10 PRINT one liners at `./programs/bas/10_print.bas`
+
+`10 PRINT CHR$(205.5+RND(1)); : GOTO 10`
+
+`10 PRINT CHR$(32+(INT(RND(1)+.5)*81)); : GOTO 10`
+
+<div align="center" width="100%">
+  <img  width="49%" src="./images/gifs/recording_1.gif" title="10_print 1" />
+  <img  width="49%" src="./images/gifs/recording_3.gif" title="10_print 3" />
+</div>
+
+
 ## shell interface  
 The emulator has a **command shell** that runs in a separate thread:
 
@@ -57,14 +71,6 @@ The emulator has a **command shell** that runs in a separate thread:
 MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>, a lightweight graphics library based on GLFW and OpenGL.
 
 ## screenshots
-
-`10_print one liners at ./programs/bas/10_print.bas`
-
-<div align="center" width="100%">
-  <img  width="49%" src="./images/gifs/recording_1.gif" title="10_print 1" />
-  <img  width="49%" src="./images/gifs/recording_3.gif" title="10_print 3" />
-</div>
-
 
 `animated demos`
 
