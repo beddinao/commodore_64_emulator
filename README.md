@@ -101,7 +101,6 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
 <div align="left" width="100%">
   <img  width="49%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
   <img  width="49%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
-  <img  width="49%" src="./images/gifs/hellas_guys.gif" title="hellas guys"/>
 </div>
 
 `some art brought from the C64 demoScene`
