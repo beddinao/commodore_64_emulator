@@ -104,3 +104,10 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
 ## **upcoming features:**  
 - **Full hardware sprite support** (partial-progress)  
 - **SID sound emulation**
+
+## useful-resources
+- C64 Wiki: https://www.c64-wiki.com/wiki/Main_Page
+- memory map: https://sta.c64.org/cbm64mem.html
+- VIC-II ultimate resource: https://www.zimmers.net/cbmpics/cbm/c64/vic-ii.txt
+- 6502 ultimate resource: https://www.masswerk.at/6502/6502_instruction_set.html
+- 6502 BCD: http://www.6502.org/tutorials/decimal_mode.html
