@@ -26,9 +26,30 @@ MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**
 - Some **hardware features are missing or incomplete**.
 
 ### main components implemented:  
-- **<a href="https://github.com/beddinao/MOS-6502-Emulator">6510 CPU</a>**` (instruction accurate independant emulator)`
-- **VIC-II** `(Partial sprite emulation)`
-- **CIA-1 & CIA-2** `(Basic support for keyboard and timers)`
+- **<a href="https://github.com/beddinao/MOS-6502-Emulator">6510 CPU</a>**  `(instruction accurate independant emulator)`
+- **VIC-II**  `(Video Interface Chip)`
+  ```
+    • 16 KB address space for screen, character, and sprite memory
+    • 320 × 200 pixels video resolution (160 × 200 in multicolor mode)
+    • 40 × 25 characters text resolution
+    • 8 hardware sprites, each 24 × 21 pixels (12 × 21 in multicolor mode)
+    • 16 colors
+    • Raster interrupts for advanced effects and timing control
+    • Smooth scrolling
+    • Three character display modes and two bitmap modes:
+      - Standard Character Mode
+      - Multicolor Character Mode
+      - Extended Background Color Mode
+      - Standard Bitmap Mode
+      - Multicolor Bitmap Mode
+  ```
+- **CIA-1 & CIA-2**  `(Complex Interface Adapters)`
+  ```
+    • keyboard input scanning for detecting key presses
+    • timer A & Timer B in each chip for generating delays and timing events
+    • memory management registers for I/O mapping and bank switching
+    • time of Day (TOD) clock
+  ```
 
 ## basic functionality test
 
