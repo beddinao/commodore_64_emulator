@@ -26,7 +26,7 @@ MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**
 - Some **hardware features are missing or incomplete**.
 
 ### main components implemented:  
-- **<a href="https://github.com/beddinao/MOS-6502-Emulator">6510 CPU</a>**  `(instruction accurate independant emulator)`
+- **6510 CPU** a bit modified version of <a href="https://github.com/beddinao/MOS-6502-Emulator">**6502**</a>  `(instruction accurate independant emulator)`
 - **VIC-II**  `(Video Interface Chip)`
   ```
     • 16 KB address space for screen, character, and sprite memory
