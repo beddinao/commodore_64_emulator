@@ -11,6 +11,7 @@ This folder contains **C64 demo programs** that were downloaded from the [C-64 S
 | `highlander_music-tri.d64` | [csdb.dk](https://csdb.dk/release/?id=124884) | 
 | `obey.d64` | [csdb.dk](https://csdb.dk/release/?id=81164) | 
 | `wool_on_her_mind.d64` | [csdb.dk](https://csdb.dk/release/?id=41421) | 
+| `Tetris_Demo.d64` | [csdb.dk](https://csdb.dk/release/?id=205694) | 
 
 **`./graphic_demos/PRG`:**
 |  |  |  
@@ -25,10 +26,12 @@ This folder contains **C64 demo programs** that were downloaded from the [C-64 S
 | `noslackers.prg` | [csdb.dk](https://csdb.dk/release/?id=247872) | 
 | `petsciitracing.prg` | [csdb.dk](https://csdb.dk/release/?id=157375) | 
 | `efucollab.prg` | [csdb.dk](https://csdb.dk/release/?id=171604) | 
+| `quiet nights.prg` | [csdb.dk](https://csdb.dk/release/?id=239364) | 
 
 **`./games/`:**
 |  |  |  
 |-------------|----------------|  
 | `monopole.prg` | [csdb.dk](https://csdb.dk/release/?id=136697) | 
+| `basictetris.prg` | [csdb.dk](https://csdb.dk/release/?id=174788) | 
 | `Back to Nature (19xx)(-).prg` | [csdb.dk](https://csdb.dk/release/?id=132873) | 
 | `2-D Cube (19xx)(-).prg` | [csdb.dk](https://csdb.dk/release/?id=404) | 
