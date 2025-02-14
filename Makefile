@@ -2,18 +2,19 @@ CC = cc
 SRC = $(wildcard src/*.c)
 HR = $(wildcard include/*.h)
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
-MLX_PATH = "./assets/MLX42"
+MLX_PATH = ./assets/MLX42
 CFLAGS = -Iinclude -I$(MLX_PATH)/include/MLX42 -Werror -Wextra -Wall
-LDFLAGS = $(MLX_PATH)/build/libmlx42.a -L ~/.brew/opt/readline/lib -lreadline
+LDFLAGS = $(MLX_PATH)/build/libmlx42.a -lreadline -lglfw
 UNAME = $(shell uname)
 NAME = MetallC64
 
 ifeq ($(UNAME), Linux)
-	LDFLAGS += -lglfw -ldl -pthread -lm
+	LDFLAGS += -ldl -pthread -lm
 endif
 ifeq ($(UNAME), Darwin)
-	#LDFLAGS += -lglfw -L $(shell brew --prefix glfw)/lib -framework Cocoa -framework IOKit
-	LDFLAGS += -lglfw -L ~/.brew/opt/glfw/lib  -I ~/.brew/opt/readline/include -framework Cocoa -framework IOKit
+	READLINE_PATH = $(shell brew --prefix readline)
+	GLFW_PATH = $(shell brew --prefix glfw)
+	LDFLAGS += -L $(GLFW_PATH)/lib -L $(READLINE_PATH)/lib -I $(READLINE_PATH)/include -framework Cocoa -framework IOKit
 endif
 
 all: mlx $(NAME)
