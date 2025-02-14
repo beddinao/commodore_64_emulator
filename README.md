@@ -102,25 +102,27 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
   <img  width="49%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
   <img  width="49%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
 </div>
+<br><br>
 
 `basic games`
 
 <div align="center" width="100%">
-	<img width="49%" src="./images/screenshots/monopole" title="monopole" />
-	<img width="49%" src="./images/screenshots/tetris" title="tetris" />
+	<img width="49%" src="./images/screenshots/monopole.png" title="monopole" />
+	<img width="49%" src="./images/screenshots/tetris.png" title="tetris" />
 </div>
+<br> <br>
 
 `some art brought from the C64 demoScene`
 
 <div align="center" width="100%">
+  <img  width="49%" src="./images/screenshots/quiet_nights.png" title="quiet nights" />
+  <img  width="49%" src="./images/screenshots/tetris_intro.png" title="tetris intro" />
   <img  width="49%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
   <img  width="49%" src="./images/screenshots/show_time.png" title="show time" />
   <img  width="49%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
   <img  width="49%" src="./images/screenshots/chillin.png" title="chillin" />
   <img  width="49%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
   <img  width="49%" src="./images/screenshots/honcho_of_the_seven_raging_coding_seas.png" title="honcho of the seven raging coding seas"/>
-  <img  width="49%" src="./images/screenshots/quiet_nights.png" title="quiet nights" />
-  <img  width="49%" src="./images/screenshots/tetris_intro" title="tetris intro" />
   <img  width="49%" src="./images/screenshots/dark_faces.png" title="dark faces" />
   <img  width="49%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
   <img  width="49%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
