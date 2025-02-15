@@ -12,6 +12,8 @@ This folder contains **C64 demo programs** that were downloaded from the [C-64 S
 | `obey.d64` | [csdb.dk](https://csdb.dk/release/?id=81164) | 
 | `wool_on_her_mind.d64` | [csdb.dk](https://csdb.dk/release/?id=41421) | 
 | `Tetris_Demo.d64` | [csdb.dk](https://csdb.dk/release/?id=205694) | 
+| `WILLY-THE-WUZZ_GLOBE-VECTOR.D64` | [csdb.dk](https://csdb.dk/release/?id=99129) | 
+| `Magic_Bytes_Demo_1989_SDC.d64` | [csdb.dk](https://csdb.dk/release/?id=90684) | 
 
 **`./graphic_demos/PRG`:**
 |  |  |  
@@ -27,6 +29,7 @@ This folder contains **C64 demo programs** that were downloaded from the [C-64 S
 | `petsciitracing.prg` | [csdb.dk](https://csdb.dk/release/?id=157375) | 
 | `efucollab.prg` | [csdb.dk](https://csdb.dk/release/?id=171604) | 
 | `quiet nights.prg` | [csdb.dk](https://csdb.dk/release/?id=239364) | 
+| `hole vector.prg` | [csdb.dk](https://csdb.dk/release/?id=84142) | 
 
 **`./games/`:**
 |  |  |  
