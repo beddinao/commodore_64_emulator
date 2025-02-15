@@ -99,8 +99,13 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
 `animated demos`
 
 <div align="left" width="100%">
+<img  width="49%" src="./images/gifs/hole_vector-willy_the_wuzz.gif" title="hole-vector"/>
+  <img  width="49%" src="./images/gifs/globe-willy_the_wuzz.gif" title="globe"/>
+	<br><br>
   <img  width="49%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
   <img  width="49%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
+  
+
 </div>
 <br><br>
 
@@ -123,7 +128,8 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
   <img  width="49%" src="./images/screenshots/chillin.png" title="chillin" />
   <img  width="49%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
   <img  width="49%" src="./images/screenshots/honcho_of_the_seven_raging_coding_seas.png" title="honcho of the seven raging coding seas"/>
-  <img  width="49%" src="./images/screenshots/dark_faces.png" title="dark faces" />
+  <img  width="49%" src="./images/screenshots/Magic_Bytes.png" title="Magic Bytes" />
+  <!-- <img  width="49%" src="./images/screenshots/dark_faces.png" title="dark faces" /> -->
   <img  width="49%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
   <img  width="49%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
   <img  width="49%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
