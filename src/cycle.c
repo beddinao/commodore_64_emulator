@@ -107,7 +107,6 @@ void	*main_cycle(void *p) {
 	return NULL;
 }
 /*
-   Fuck the NES 
 
    8000  78 D8 A9  	A:00 X:00 Y:00 P:24 SP:FD	SEI_IMP
    8001  D8 A9 10  	A:00 X:00 Y:00 P:24 SP:FD	CLD_IMP
