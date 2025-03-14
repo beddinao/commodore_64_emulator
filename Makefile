@@ -20,7 +20,7 @@ endif
 all: mlx $(NAME)
 
 mlx:
-	@cmake -B $(MLX_PATH)/build $(MLX_PATH)
+	@cmake -B $(MLX_PATH)/build $(MLX_PATH) -D CMAKE_CXX_COMPILER="g++"
 	@cmake --build $(MLX_PATH)/build
 
 $(NAME): $(OBJ)
