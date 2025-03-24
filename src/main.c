@@ -3,8 +3,11 @@
 thread_data	*t_data;
 
 void	exit_handle(int s) {
-	pthread_cancel(t_data->worker);
 	pthread_cancel(t_data->worker_2);
+	pthread_mutex_lock(&t_data->halt_mutex);
+	t_data->halt = TRUE;
+	pthread_mutex_unlock(&t_data->halt_mutex);
+
 	pthread_join(t_data->worker, NULL);
 	pthread_join(t_data->worker_2, NULL);
 
