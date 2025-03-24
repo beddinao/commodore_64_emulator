@@ -83,6 +83,13 @@ void	*main_cycle(void *p) {
 			bus->t_data->cmd = FALSE;
 		}
 		pthread_mutex_unlock(&bus->t_data->cmd_mutex);
+		/* check halting request */
+		pthread_mutex_lock(&bus->t_data->halt_mutex);
+		if (bus->t_data->halt) {
+			pthread_mutex_unlock(&bus->t_data->halt_mutex);
+			pthread_exit(NULL);
+		}
+		pthread_mutex_unlock(&bus->t_data->halt_mutex);
 
 		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
