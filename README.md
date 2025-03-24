@@ -4,7 +4,7 @@ A <a href="https://en.wikipedia.org/wiki/Commodore_64">Commodore 64</a> emulator
 
 ## about the Commodore 64  
 The **Commodore 64 (C64)** is one of the most iconic home computers of all time. Released in **1982**, it became the **best-selling computer** ever, due to its powerful hardware, affordability, and massive software library. It featured:
-```
+```java
 - 6510 CPU, a modified version of the 6502.  
 - VIC-II (Video Interface Chip) for graphics and sprites.  
 - 6581 SID (Sound Interface Device) for advanced sound synthesis.  
