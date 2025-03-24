@@ -1,7 +1,3 @@
-<div align="center" width="100%" >
-  <img align="center" src="./images/Commodore_64_logo.png" />
-</div>
-
 # *`MetallC64`*
 
 A <a href="https://en.wikipedia.org/wiki/Commodore_64">Commodore 64</a> emulator written in C.<br>
