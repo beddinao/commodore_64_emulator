@@ -9,7 +9,7 @@ FILE	*dump_prg(FILE *d64file, int track, int sector, char *prg_file) {
 	unsigned char buffer[SECTOR_SIZE];
 	FILE *prg = fopen(prg_file, "w+b");
 	if (!prg) {
-		printf("%serror:%s failed to extract .prg file from .d64 disk image\n", RED, RST);
+		printf("%serror:%s failed to extract .prg file from .d64 disk image: %s\n", RED, RST, prg_file);
 		return FALSE;
 	}
 	while (track != 0) {
