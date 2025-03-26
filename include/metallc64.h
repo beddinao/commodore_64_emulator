@@ -13,7 +13,7 @@
 #include <limits.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "MLX42.h"
+#include <SDL3/SDL.h> 
 
 /*
 		ADDRESSABLE RANGE
@@ -331,8 +331,8 @@ typedef	struct VIC_II {
 
 	uint8_t		*vic_memory[4];
 
-	mlx_t		*mlx_ptr; // MLX42 window
-	mlx_image_t	*mlx_img;
+	SDL_Window	*win; // MLX42 window
+	SDL_Renderer	*renderer;
 	unsigned		win_width;
 	unsigned		win_height;
 	float		wpdx;
@@ -502,7 +502,7 @@ _6502	*cpu_init(_bus*);
 _bus	*bus_init();
 
 /* hooks.c */
-void	setup_mlx_hooks(void*);
+void	setup_hooks(void*);
 void	key_hook(mlx_key_data_t, void*);
 void	set_key(_keymap*, uint8_t, uint8_t, action_t);
 
@@ -524,7 +524,7 @@ _CIA	*cia_init(_bus*, uint8_t);
 void	draw_bg(_VIC_II*, unsigned);
 void	draw_line(_VIC_II*, int, int, int, int, int);
 void	put_pixel(_VIC_II *, unsigned, unsigned, uint32_t);
-mlx_t	*init_window(_bus*, _VIC_II*);
+SDL_Window	*init_window(_bus*, _VIC_II*);
 
 /* shell.c */
 void	*open_shell(void*);

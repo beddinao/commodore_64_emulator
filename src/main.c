@@ -25,8 +25,8 @@ void	exit_handle(int s) {
 	memset(bus->KERNAL, 0, sizeof(bus->KERNAL));
 	memset(bus->CHARACTERS, 0, sizeof(bus->CHARACTERS));
 
-	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
-	mlx_terminate(vic->mlx_ptr);
+	SDL_DestroyRenderer(vic->renderer);
+	SDL_DestroyWindow(vic->win);
 
 	if (t_data->line) free(t_data->line);
 	if (bus->prg) free(bus->prg);
@@ -34,6 +34,7 @@ void	exit_handle(int s) {
 	bus->clean(bus);
 	free(t_data);
 	free(bus);
+	SDL_Quit();
 	exit(s);
 }
 
@@ -82,8 +83,8 @@ int	main() {
 		return 1;
 
 	// / ///		GRAPHIC WINDOW
-	((_VIC_II*)bus->vic)->mlx_ptr = init_window(bus, bus->vic);
-	if (!((_VIC_II*)bus->vic)->mlx_ptr) {
+	((_VIC_II*)bus->vic)->win = init_window(bus, bus->vic);
+	if (!((_VIC_II*)bus->vic)->win) {
 		free(t_data);
 		return 1;
 	}
@@ -101,8 +102,9 @@ int	main() {
 	pthread_create(&t_data->worker_2, NULL, open_shell, bus);
 
 	//// / //		HOOKS
-	mlx_image_to_window(((_VIC_II*)bus->vic)->mlx_ptr, ((_VIC_II*)bus->vic)->mlx_img, 0, 0);
-	mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, GWIDTH, GHEIGHT, GWIDTH*4, GHEIGHT*4);
-	setup_mlx_hooks(bus);
-	mlx_loop(((_VIC_II*)bus->vic)->mlx_ptr);
+	//mlx_image_to_window(((_VIC_II*)bus->vic)->mlx_ptr, ((_VIC_II*)bus->vic)->mlx_img, 0, 0);
+	//mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, GWIDTH, GHEIGHT, GWIDTH*4, GHEIGHT*4);
+	setup_hooks(bus);
+	//mlx_loop(((_VIC_II*)bus->vic)->mlx_ptr);
+	main_loop(bus);
 }
