@@ -1,9 +1,9 @@
 #include "metallc64.h"
 
 void	draw_bg(_VIC_II *vic, uint32_t color) {
-	for (unsigned y = 0; y < vic->win_height; y++)
-		for (unsigned x = 0; x < vic->win_width; x++)
-			mlx_put_pixel(vic->mlx_img, x, y, color);
+	SDL_SetRenderDrawColor(vic->renderer, 0xFF, 0x0, 0x0, 0x0);
+	SDL_RenderClear(vic->renderer);
+	SDL_RenderPresent(vic->renderer);
 }
 
 void	draw_line(_VIC_II *vic, int x0, int y0, int x1, int y1, int color) {
@@ -36,14 +36,18 @@ void	put_pixel(_VIC_II *vic, unsigned x, unsigned y, uint32_t color) {
 		}
 }
 
-mlx_t	*init_window(_bus * bus, _VIC_II *vic) {
-	mlx_t *mlx_ptr;
+SDL_Window *init_window(_bus * bus, _VIC_II *vic) {
+	SDL_Window *win;	
 	vic->wpdx = WPDX;
 	vic->wpdy = WPDY;
 	vic->win_height = WHEIGHT;
 	vic->win_width = WWIDTH;
-	mlx_ptr = mlx_init(vic->win_width, vic->win_height, "MetallC64", true);
-	if (!mlx_ptr || !(vic->mlx_img = mlx_new_image(mlx_ptr, vic->win_width, vic->win_height))) {
+	if (!SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS))
+		return False;
+	win = SDL_CreateWindow("MetallC64", vic->win_width, vic->win_height,
+			SDL_WINDOW_RESIZABLE|
+			SDL_WINDOW_ALWAYS_ON_TOP);
+	if (!win || !(vic->renderer = SDL_CreateRenderer(win, NULL))) {
 		bus->clean(bus);
 		free(bus);
 		return FALSE;
