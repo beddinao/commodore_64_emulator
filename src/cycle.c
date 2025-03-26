@@ -59,8 +59,23 @@ void	main_cycle(void *p) {
 	struct	timespec	frame_start_time = {0},
 			frame_end_time = {0},
 			sleep_time = {0};
+	SDL_Event	event;
 
 	while (1) {
+		/*
+			CLOCK START 
+		*/
+		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
+		/* polling pending events */
+		if (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_EVENT_QUIT:
+					exit_handle(0);
+				case SDL_EVENT_KEY_DOWN:
+					key_event_handle(bus, &event);
+					break;
+			}
+		}
 		/* check prg load/reset requests */
 		pthread_mutex_lock(&bus->t_data->prg_mutex);
 		if (bus->t_data->load) {
@@ -74,7 +89,7 @@ void	main_cycle(void *p) {
 			bus->t_data->reset = FALSE;
 		}
 		pthread_mutex_unlock(&bus->t_data->prg_mutex);
-		/* check memory_dump/color_change request */
+		/* check memory_dump/color_change requests */
 		pthread_mutex_lock(&bus->t_data->cmd_mutex);
 		if (bus->t_data->cmd) {
 			if (((_cmd*)bus->cmd)->col)
@@ -87,11 +102,9 @@ void	main_cycle(void *p) {
 		pthread_mutex_lock(&bus->t_data->halt_mutex);
 		if (bus->t_data->halt) {
 			pthread_mutex_unlock(&bus->t_data->halt_mutex);
-			pthread_exit(NULL);
+			exit_handle(0);
 		}
 		pthread_mutex_unlock(&bus->t_data->halt_mutex);
-		/* CLOCK START */
-		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
 		draw_bg(vic, C64_to_rgb(bus->ram_read(bus, BRD_COLOR)));
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
@@ -105,7 +118,9 @@ void	main_cycle(void *p) {
 		}
 		SDL_RenderPresent(vic->renderer);
 		clock_gettime(CLOCK_MONOTONIC, &frame_end_time);
-		/* CLOCK END */
+		/*
+			CLOCK END
+		*/
 		elapsed_nanoseconds = (frame_end_time.tv_sec - frame_start_time.tv_sec) * NANOS_TO_SECOND
 			+ (frame_end_time.tv_nsec - frame_start_time.tv_nsec);
 		if (elapsed_nanoseconds < NANOS_PER_FRAME) {
