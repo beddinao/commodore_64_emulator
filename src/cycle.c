@@ -49,7 +49,7 @@ uint8_t	NMI_interrupt(_bus *bus, _6502 *mos6502) {
 
 // /// /	CYCLE
 
-void	*main_cycle(void *p) {
+void	main_cycle(void *p) {
 	_bus	*bus = (_bus*)p;
 	_6502	*mos6502 = (_6502*)bus->cpu;
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
@@ -90,8 +90,9 @@ void	*main_cycle(void *p) {
 			pthread_exit(NULL);
 		}
 		pthread_mutex_unlock(&bus->t_data->halt_mutex);
-
+		/* CLOCK START */
 		clock_gettime(CLOCK_MONOTONIC, &frame_start_time);
+		draw_bg(vic, C64_to_rgb(bus->ram_read(bus, BRD_COLOR)));
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);
 			instruction_cycles = mos6502->opcodes[mos6502->opcode](mos6502);
@@ -102,7 +103,9 @@ void	*main_cycle(void *p) {
 			instruction_cycles += IRQ_interrupt(bus, mos6502);
 			frame_cycles += instruction_cycles;
 		}
+		SDL_RenderPresent(vic->renderer);
 		clock_gettime(CLOCK_MONOTONIC, &frame_end_time);
+		/* CLOCK END */
 		elapsed_nanoseconds = (frame_end_time.tv_sec - frame_start_time.tv_sec) * NANOS_TO_SECOND
 			+ (frame_end_time.tv_nsec - frame_start_time.tv_nsec);
 		if (elapsed_nanoseconds < NANOS_PER_FRAME) {
@@ -111,7 +114,6 @@ void	*main_cycle(void *p) {
 			nanosleep(&sleep_time, NULL);
 		}
 	}
-	return NULL;
 }
 /*
 

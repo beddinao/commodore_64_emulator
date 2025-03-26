@@ -19,8 +19,8 @@ void	increment_raster(_VIC_II *vic, uint16_t raster) {
 	vic->bus->ram_write(vic->bus, CNTRL1, cntrl1);
 }
 /*
-	not the original C64 color pallete
-*/
+   not the original C64 color pallete
+   */
 uint32_t	C64_to_rgb(uint8_t color) {
 	uint32_t c64_colors[16] = {
 		0x000000, 0xFFFFFF,
@@ -84,7 +84,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	   for collision detection
 	   screen_line - screen/fourground x pixels
 	   sprite_line - sprites non-transparent x pixels
-	*/
+	   */
 	bool screen_line[GWIDTH];
 	bool sprite_line[GWIDTH];
 
@@ -96,93 +96,82 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	for (; vic->cycles >= VIC_CYCLES_PER_LINE; vic->cycles -= VIC_CYCLES_PER_LINE) {
 		memset(screen_line, 0, sizeof(screen_line));
 		memset(sprite_line, 0, sizeof(sprite_line));
-		/* borders */
-		if (!visible_screen || vic->raster < DYSTART || vic->raster >= DYEND) {
-			pixel_color = brd_color;
-			for (unsigned x = 0; x < GWIDTH; x++)
-				put_pixel(vic, x, vic->raster, pixel_color);
-		}
-		else {
-			for (unsigned x = 0; x < GWIDTH; x++) {
-				if (x < DXSTART || x >= DXEND)
-					pixel_color = brd_color;
-				/* screen */
+		if (visible_screen && vic->raster > DYSTART && vic->raster < DYEND) {
+			for (unsigned x = DXSTART; x < DXEND; x++) {
+				pixel_x = (x - screen_pixel_start_x + x_scroll) % screen_pixel_w;
+				pixel_y = (vic->raster - screen_pixel_start_y + y_scroll) % screen_pixel_h;
+				grid_x = (pixel_x / 8) % screen_grid_w;
+				grid_y = (pixel_y / 8) % screen_grid_h;
+				grid_pos = grid_y * screen_grid_w + grid_x;
+				bit_pos = 7 - (pixel_x % 8);
+				/* fine boundaries check */
+				if (pixel_x >= DXEND || pixel_y >= DYEND)
+					pixel_color = bg_color; //brd_color;
 				else {
-					pixel_x = (x - screen_pixel_start_x + x_scroll) % screen_pixel_w;
-					pixel_y = (vic->raster - screen_pixel_start_y + y_scroll) % screen_pixel_h;
-					grid_x = (pixel_x / 8) % screen_grid_w;
-					grid_y = (pixel_y / 8) % screen_grid_h;
-					grid_pos = grid_y * screen_grid_w + grid_x;
-					bit_pos = 7 - (pixel_x % 8);
-					/* fine boundaries check */
-					if (pixel_x >= DXEND || pixel_y >= DYEND)
-						pixel_color = bg_color; //brd_color;
-					else {
-						//
-						screen_ram = vic_read_memory(bus, vic, vic->screen_ram + grid_pos);
-						//
-						if (bitmap) {
-							uint32_t bitmap_offset = ((pixel_y / 8) * screen_grid_w + (pixel_x / 8)) * 8;
-							bitmap_data = vic_read_memory(bus, vic, vic->bitmap_ram + bitmap_offset + (pixel_y % 8));
-							if (multicolor && !extended) {
-								/* multicolor bitmap mode */
-								bit_pos = 6 - (((pixel_x >> 1) & 3) * 2);
-								color_pair = (bitmap_data >> bit_pos) & 0x3;
-								switch (color_pair) {
-									case 0: /* 00 */ pixel_color = bg_color; break;
-									case 1: /* 01 */ pixel_color = vic->C64_to_rgb((screen_ram >> 4) & 0xF); break;
-									case 2: /* 10 */ pixel_color = vic->C64_to_rgb(screen_ram & 0xF); break;
-									case 3: /* 11 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos)); break;
-								}
-								screen_line[x] = color_pair != 0;
+					//
+					screen_ram = vic_read_memory(bus, vic, vic->screen_ram + grid_pos);
+					//
+					if (bitmap) {
+						uint32_t bitmap_offset = ((pixel_y / 8) * screen_grid_w + (pixel_x / 8)) * 8;
+						bitmap_data = vic_read_memory(bus, vic, vic->bitmap_ram + bitmap_offset + (pixel_y % 8));
+						if (multicolor && !extended) {
+							/* multicolor bitmap mode */
+							bit_pos = 6 - (((pixel_x >> 1) & 3) * 2);
+							color_pair = (bitmap_data >> bit_pos) & 0x3;
+							switch (color_pair) {
+								case 0: /* 00 */ pixel_color = bg_color; break;
+								case 1: /* 01 */ pixel_color = vic->C64_to_rgb((screen_ram >> 4) & 0xF); break;
+								case 2: /* 10 */ pixel_color = vic->C64_to_rgb(screen_ram & 0xF); break;
+								case 3: /* 11 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos)); break;
 							}
-							else {
-								/* standard bitmap mode */
-								if ((bitmap_data >> bit_pos) & 0x1)
-									pixel_color = vic->C64_to_rgb((screen_ram >> 4) & 0xF);
-								else	pixel_color = vic->C64_to_rgb(screen_ram & 0xF);
-								screen_line[x] = TRUE;
-							}
+							screen_line[x] = color_pair != 0;
 						}
 						else {
-							if (extended && !multicolor) {
-								/* extended background color mode */
-								char_data = vic_read_memory(bus, vic,
-										vic->char_ram + ((screen_ram & 0x3F) * 8) + (pixel_y % 8));
-								bg_index = (screen_ram >> 0x6) & 0x3;
-								bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0 + bg_index));
-								fg_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos));
+							/* standard bitmap mode */
+							if ((bitmap_data >> bit_pos) & 0x1)
+								pixel_color = vic->C64_to_rgb((screen_ram >> 4) & 0xF);
+							else	pixel_color = vic->C64_to_rgb(screen_ram & 0xF);
+							screen_line[x] = TRUE;
+						}
+					}
+					else {
+						if (extended && !multicolor) {
+							/* extended background color mode */
+							char_data = vic_read_memory(bus, vic,
+									vic->char_ram + ((screen_ram & 0x3F) * 8) + (pixel_y % 8));
+							bg_index = (screen_ram >> 0x6) & 0x3;
+							bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0 + bg_index));
+							fg_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos));
+							if ((char_data >> bit_pos) & 0x1) {
+								pixel_color = fg_color;
+								screen_line[x] = TRUE;
+							}
+							else pixel_color = bg_color;
+						}
+						else {
+							char_data = vic_read_memory(bus, vic,
+									vic->char_ram + (screen_ram * 8) + (pixel_y % 8));
+							fg_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos));
+							if (multicolor) {
+								/* multicolor character mode */
+								bit_pos = 6 - (((pixel_x >> 1) & 3) * 2);
+								color_pair =  (char_data >> bit_pos) & 0x3;
+								switch (color_pair) {
+									case 0: /* 00 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0)); break;
+									case 1: /* 01 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR1)); break;
+									case 2: /* 10 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR2)); break;
+									case 3: /* 11 */ pixel_color = fg_color; break;
+								}
+								screen_line[x] = color_pair == 0x3;
+							}
+							else {
+								/* standard character mode */
+								bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0));
 								if ((char_data >> bit_pos) & 0x1) {
 									pixel_color = fg_color;
 									screen_line[x] = TRUE;
 								}
-								else pixel_color = bg_color;
-							}
-							else {
-								char_data = vic_read_memory(bus, vic,
-										vic->char_ram + (screen_ram * 8) + (pixel_y % 8));
-								fg_color = vic->C64_to_rgb(bus->ram_read(bus, VIC_COLOR_START + grid_pos));
-								if (multicolor) {
-									/* multicolor character mode */
-									bit_pos = 6 - (((pixel_x >> 1) & 3) * 2);
-									color_pair =  (char_data >> bit_pos) & 0x3;
-									switch (color_pair) {
-										case 0: /* 00 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0)); break;
-										case 1: /* 01 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR1)); break;
-										case 2: /* 10 */ pixel_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR2)); break;
-										case 3: /* 11 */ pixel_color = fg_color; break;
-									}
-									screen_line[x] = color_pair == 0x3;
-								}
-								else {
-									/* standard character mode */
-									bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0));
-									if ((char_data >> bit_pos) & 0x1) {
-										pixel_color = fg_color;
-										screen_line[x] = TRUE;
-									}
-									else	pixel_color = bg_color;
-								}
+								else	pixel_color = bg_color;
 							}
 						}
 					}
