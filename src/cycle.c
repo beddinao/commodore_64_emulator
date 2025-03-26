@@ -72,7 +72,10 @@ void	main_cycle(void *p) {
 				case SDL_EVENT_QUIT:
 					exit_handle(0);
 				case SDL_EVENT_KEY_DOWN:
-					key_event_handle(bus, &event);
+					key_event_handle(bus, &event, TRUE);
+					break;
+				case SDL_EVENT_KEY_UP:
+					key_event_handle(bus, &event, FALSE);
 					break;
 			}
 		}

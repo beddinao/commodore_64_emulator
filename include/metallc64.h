@@ -506,7 +506,7 @@ void	key_hook(SDL_Keycode, void*);
 void	set_key(_keymap*, uint8_t, uint8_t, action_t);
 
 */
-void	key_event_handle(_bus*, SDL_Event*);
+void	key_event_handle(_bus*, SDL_Event*, bool);
 
 /* ppu.c */
 void	loop_hook(void*);
