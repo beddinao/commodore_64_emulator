@@ -259,8 +259,7 @@
 #define PATH_MAX_SIZE	0x400
 
 typedef	struct thread_data {
-	pthread_t		worker;   // => main cycle
-	pthread_t		worker_2; // => shell interface
+	pthread_t		worker;   // => shell interface 
 	pthread_mutex_t	halt_mutex;
 	pthread_mutex_t	prg_mutex;
 	pthread_mutex_t	cmd_mutex;
@@ -331,7 +330,7 @@ typedef	struct VIC_II {
 
 	uint8_t		*vic_memory[4];
 
-	SDL_Window	*win; // MLX42 window
+	SDL_Window	*win; // SDL window 
 	SDL_Renderer	*renderer;
 	unsigned		win_width;
 	unsigned		win_height;
@@ -490,7 +489,7 @@ typedef	struct cmd {
 }	_cmd;
 
 /* cycle.c */
-void	*main_cycle(void*);
+void	main_cycle(void*);
 
 /* instructions.c */
 void	load_instructions(_6502*);
@@ -501,10 +500,12 @@ _6502	*cpu_init(_bus*);
 /* bus.c */
 _bus	*bus_init();
 
-/* hooks.c */
+/* hooks.c 
 void	setup_hooks(void*);
-void	key_hook(mlx_key_data_t, void*);
+void	key_hook(SDL_Keycode, void*);
 void	set_key(_keymap*, uint8_t, uint8_t, action_t);
+
+*/
 
 /* ppu.c */
 void	loop_hook(void*);
@@ -513,6 +514,7 @@ void	loop_hook(void*);
 void	exit_handle(int);
 
 /* vic.c */
+uint32_t	C64_to_rgb(uint8_t);
 void	vic_advance_raster(_bus*, _VIC_II*, unsigned);
 _VIC_II	*vic_init(_bus*);
 
@@ -521,8 +523,9 @@ void	cia_advance_timers(_bus*, _CIA*, unsigned);
 _CIA	*cia_init(_bus*, uint8_t);
 
 /* draw_utils.c */
-void	draw_bg(_VIC_II*, unsigned);
+void	draw_bg(_VIC_II*, uint32_t);
 void	draw_line(_VIC_II*, int, int, int, int, int);
+void	put_raster(_VIC_II *, unsigned, unsigned, unsigned, uint32_t);
 void	put_pixel(_VIC_II *, unsigned, unsigned, uint32_t);
 SDL_Window	*init_window(_bus*, _VIC_II*);
 

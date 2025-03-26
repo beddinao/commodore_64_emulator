@@ -1,8 +1,8 @@
-CC = cc
+CC = gcc
 SRC = $(wildcard src/*.c)
 HR = $(wildcard include/*.h)
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
-CFLAGS = -Iinclude -Werror -Wextra -Wall $(shell pkg-config --cflags --libs sdl3)
+CFLAGS = -Iinclude $(shell pkg-config --cflags --libs sdl3) 
 LDFLAGS = -lreadline 
 UNAME = $(shell uname)
 NAME = MetallC64
