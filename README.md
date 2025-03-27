@@ -63,7 +63,6 @@ some one line BASIC programs at `./programs/bas/10_print.bas`
   <img  width="100%" src="./images/gifs/recording_3.gif" title="10_print 3" />
 </div>
 
-
 ## shell interface  
 The emulator has a **command shell** that runs in a separate thread for debugging<br> and general hardware behaviour observation:
 
@@ -87,8 +86,26 @@ The emulator has a **command shell** that runs in a separate thread for debuggin
 | `CLR` | Clear the loaded program from memory **and perform a hard reset**. |
 | `EXT` | Exit the emulator. |
 
-## graphics library:
-MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>, a lightweight graphics library based on GLFW and OpenGL.
+
+## graphic libraries:
+MetallC64 uses <a href="https://www.libsdl.org/">SDL3</a> as the main library.<br>
+however the v1.0 branch still uses <a href="https://github.com/codam-coding-college/MLX42">MLX42<a>, a lightweight library on top of GLFW.
+
+## system requirements
+- **`Linux or MacOS`**
+- **`readline (libreadline-dev)`**
+- **`cmake >= 3.18`**
+- if trying to compile the v1.0 branch mlx42 needs **`glfw (libglfw3-dev)`**
+
+## installation
+- clone this repository and cd to it
+```bash
+git clone git@github.com:beddinao/MetallC64.git && cd MetallC64
+```
+- compile everything including the SDL/MLX42 source and run the emulator
+```bash
+make && ./MetallC64
+```
 
 ## screenshots
 
@@ -131,16 +148,9 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
   <img  width="49%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
 </div>
 
-
-## system requirements
-- **`Linux or Macos`**
-- **`glfw (libglfw3-dev)`**
-- **`readline (libreadline-dev)`**
-- **`cmake >= 3.18`**
-
 ## **upcoming features:**  
 - **Full hardware sprite support** (partial-progress)  
-- **SID sound emulation**
+- **SID sound emulation** (partial-progress)
 
 ## useful-resources
 - C64 Wiki: https://www.c64-wiki.com/wiki/Main_Page
@@ -148,3 +158,4 @@ MetallC64 uses <a href="https://github.com/codam-coding-college/MLX42">MLX42</a>
 - VIC-II ultimate resource: https://www.zimmers.net/cbmpics/cbm/c64/vic-ii.txt
 - 6502 ultimate resource: https://www.masswerk.at/6502/6502_instruction_set.html
 - 6502 BCD: http://www.6502.org/tutorials/decimal_mode.html
+
