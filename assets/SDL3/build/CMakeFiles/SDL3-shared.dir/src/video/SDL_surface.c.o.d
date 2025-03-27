@@ -1,0 +1,21 @@
+CMakeFiles/SDL3-shared.dir/src/video/SDL_surface.c.o: \
+ /root/MetallC64/assets/SDL3/src/video/SDL_surface.c \
+ /usr/include/stdc-predef.h \
+ /root/MetallC64/assets/SDL3/src/SDL_internal.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_sysvideo.h \
+ /root/MetallC64/assets/SDL3/include/SDL3/SDL_vulkan.h \
+ /root/MetallC64/assets/SDL3/include/SDL3/SDL_stdinc.h \
+ /root/MetallC64/assets/SDL3/include/SDL3/SDL_error.h \
+ /root/MetallC64/assets/SDL3/include/SDL3/SDL_video.h \
+ /root/MetallC64/assets/SDL3/include/SDL3/SDL_begin_code.h \
+ /root/MetallC64/assets/SDL3/include/SDL3/SDL_close_code.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_surface_c.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_blit.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_video_c.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_RLEaccel_c.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_pixels_c.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_stb_c.h \
+ /root/MetallC64/assets/SDL3/src/video/SDL_yuv_c.h \
+ /root/MetallC64/assets/SDL3/src/video/../render/SDL_sysrender.h \
+ /root/MetallC64/assets/SDL3/src/video/../render/../video/SDL_surface_c.h \
+ /root/MetallC64/assets/SDL3/src/video/../render/SDL_yuv_sw_c.h

@@ -2,16 +2,29 @@ CC = cc
 SRC = $(wildcard src/*.c)
 HR = $(wildcard include/*.h)
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
-SDL_C_FLAGS = $(shell pkg-config --cflags sdl3)
-SDL_LIBS_FLAGS = $(shell pkg-config --libs sdl3)
-CFLAGS = -Iinclude $(SDL_C_FLAGS) -Wall -Wextra -Werror
-LDFLAGS = -lreadline $(SDL_LIBS_FLAGS)
+SDL_PATH = ./assets/SDL3
+CFLAGS = -Iinclude
+LDFLAGS = -lreadline -Llib -Wl,-rpath,lib -Wl,--enable-new-dtags -lSDL3 
 NAME = MetallC64
 
-all: $(NAME)
-	
+all: dirs_set sdl $(NAME)
+
+sdl:
+	@cmake -B $(SDL_PATH)/build $(SDL_PATH)
+	@cmake --build $(SDL_PATH)/build
+	@cp -r $(SDL_PATH)/include/SDL3 include
+	@cp -r $(SDL_PATH)/build/libSDL3* lib
+
+dirs_set:
+	@mkdir -p programs/generated
+	@mkdir -p lib
+
+dirs_rem:
+	rm -rf programs/generated
+	rm -rf lib
+
 $(NAME): $(OBJ)
-	mkdir -p programs/generated
+	@mkdir -p programs/generated
 	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS)
 
 build/%.o: src/%.c $(HR)
@@ -21,8 +34,9 @@ build/%.o: src/%.c $(HR)
 clean:
 	rm -rf build
 
-fclean: clean
-	rm -rf programs/generated
+fclean: clean dirs_rem
+	rm -rf include/SDL3
+	rm -rf $(SDL_PATH)/build
 	rm -rf $(NAME)
 
 re: fclean all
