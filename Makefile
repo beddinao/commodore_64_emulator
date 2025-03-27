@@ -1,16 +1,12 @@
-CC = gcc
+CC = cc
 SRC = $(wildcard src/*.c)
 HR = $(wildcard include/*.h)
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
-CFLAGS = -Iinclude $(shell pkg-config --cflags --libs sdl3) 
-LDFLAGS = -lreadline 
-UNAME = $(shell uname)
+SDL_C_FLAGS = $(shell pkg-config --cflags sdl3)
+SDL_LIBS_FLAGS = $(shell pkg-config --libs sdl3)
+CFLAGS = -Iinclude $(SDL_C_FLAGS) -Wall -Wextra -Werror
+LDFLAGS = -lreadline $(SDL_LIBS_FLAGS)
 NAME = MetallC64
-
-ifeq ($(UNAME), Darwin)
-	READLINE_PATH = $(shell brew --prefix readline)
-	LDFLAGS += -L $(READLINE_PATH)/lib -I $(READLINE_PATH)/include 
-endif
 
 all: $(NAME)
 	

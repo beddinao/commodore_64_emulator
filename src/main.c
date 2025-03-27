@@ -22,6 +22,7 @@ void	exit_handle(int s) {
 
 	SDL_DestroyRenderer(vic->renderer);
 	SDL_DestroyWindow(vic->win);
+	SDL_Quit();
 
 	if (t_data->line) free(t_data->line);
 	if (bus->prg) free(bus->prg);
@@ -29,7 +30,6 @@ void	exit_handle(int s) {
 	bus->clean(bus);
 	free(t_data);
 	free(bus);
-	SDL_Quit();
 	exit(s);
 }
 

@@ -500,13 +500,9 @@ _6502	*cpu_init(_bus*);
 /* bus.c */
 _bus	*bus_init();
 
-/* hooks.c 
-void	setup_hooks(void*);
-void	key_hook(SDL_Keycode, void*);
-void	set_key(_keymap*, uint8_t, uint8_t, action_t);
-
-*/
+/* hooks.c */
 void	key_event_handle(_bus*, SDL_Event*, bool);
+void	window_event_handle(_bus*);
 
 /* ppu.c */
 void	loop_hook(void*);

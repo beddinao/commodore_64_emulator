@@ -55,7 +55,6 @@ uint8_t vic_read_memory(_bus *bus, _VIC_II *vic, uint16_t addr) {
 }
 
 void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
-	uint32_t brd_color = vic->C64_to_rgb(bus->ram_read(bus, BRD_COLOR));
 	uint32_t bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0));
 	bool bitmap = (vic->control1 >> 0x5) & 0x1;
 	bool extended = (vic->control1 >> 0x6) & 0x1;
