@@ -3,13 +3,8 @@
 thread_data	*t_data;
 
 void	exit_handle(int s) {
-	pthread_cancel(t_data->worker_2);
-	pthread_mutex_lock(&t_data->halt_mutex);
-	t_data->halt = TRUE;
-	pthread_mutex_unlock(&t_data->halt_mutex);
-
+	pthread_cancel(t_data->worker);
 	pthread_join(t_data->worker, NULL);
-	pthread_join(t_data->worker_2, NULL);
 
 	printf("\nexiting..\n");
 	/// / //		CLEAN
@@ -25,8 +20,9 @@ void	exit_handle(int s) {
 	memset(bus->KERNAL, 0, sizeof(bus->KERNAL));
 	memset(bus->CHARACTERS, 0, sizeof(bus->CHARACTERS));
 
-	mlx_delete_image(vic->mlx_ptr, vic->mlx_img);
-	mlx_terminate(vic->mlx_ptr);
+	SDL_DestroyRenderer(vic->renderer);
+	SDL_DestroyWindow(vic->win);
+	SDL_Quit();
 
 	if (t_data->line) free(t_data->line);
 	if (bus->prg) free(bus->prg);
@@ -82,8 +78,8 @@ int	main() {
 		return 1;
 
 	// / ///		GRAPHIC WINDOW
-	((_VIC_II*)bus->vic)->mlx_ptr = init_window(bus, bus->vic);
-	if (!((_VIC_II*)bus->vic)->mlx_ptr) {
+	((_VIC_II*)bus->vic)->win = init_window(bus, bus->vic);
+	if (!((_VIC_II*)bus->vic)->win) {
 		free(t_data);
 		return 1;
 	}
@@ -94,15 +90,9 @@ int	main() {
 	signal(SIGTERM, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
 
-	/// / //		CYCLE
-	pthread_create(&t_data->worker, NULL, main_cycle, bus);
-
 	/// / //		SHELL
-	pthread_create(&t_data->worker_2, NULL, open_shell, bus);
+	pthread_create(&t_data->worker, NULL, open_shell, bus);
 
-	//// / //		HOOKS
-	mlx_image_to_window(((_VIC_II*)bus->vic)->mlx_ptr, ((_VIC_II*)bus->vic)->mlx_img, 0, 0);
-	mlx_set_window_limit(((_VIC_II*)bus->vic)->mlx_ptr, GWIDTH, GHEIGHT, GWIDTH*4, GHEIGHT*4);
-	setup_mlx_hooks(bus);
-	mlx_loop(((_VIC_II*)bus->vic)->mlx_ptr);
+	//// / //		CYCLE
+	main_cycle(bus);
 }

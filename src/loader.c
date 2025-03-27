@@ -36,6 +36,7 @@ void	prg_load_sequence(_bus *bus, _prg* prg) {
 	prg->loaded = TRUE;
 	printf("\t:%sloaded%s program successfully at $%04x\n", GRN, RST, BASIC_PRG_START);
 	printf("\t!Use the kernal %sRUN%s command to execute\n", UND, RST);
+	printf("\t!Use the Shell %sCLR%s command to free\n", UND, RST);
 }
 
 void	reset_prg(_bus *bus, _prg* prg) {
