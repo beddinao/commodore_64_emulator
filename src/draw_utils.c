@@ -51,8 +51,8 @@ SDL_Window *init_window(_bus * bus, _VIC_II *vic) {
 	if (!SDL_Init(SDL_INIT_EVENTS))
 		return FALSE;
 	win = SDL_CreateWindow("MetallC64", vic->win_width, vic->win_height,
-			SDL_WINDOW_RESIZABLE|
-			SDL_WINDOW_ALWAYS_ON_TOP);
+			SDL_WINDOW_RESIZABLE/*|
+			SDL_WINDOW_ALWAYS_ON_TOP*/);
 	if (!win || !(vic->renderer = SDL_CreateRenderer(win, NULL))) {
 		if (win) SDL_DestroyWindow(win);
 		bus->clean(bus);
