@@ -5,7 +5,7 @@ OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
 SDL_PATH = ./assets/SDL3
 CFLAGS = -Iinclude
 LDFLAGS = -Llib -Wl,-rpath,lib -Wl,-lSDL3 
-NAME = MetallC64
+NAME = MetallC64.html
 
 all: dirs_set sdl $(NAME)
 
