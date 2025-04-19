@@ -93,5 +93,5 @@ int	main() {
 	/// / //		SHELL
 
 	//// / //		CYCLE
-	emscripten_set_main_loop_args(main_cycle, bus, 0, 1);
+	emscripten_set_main_loop_arg(main_cycle, bus, 0, 1);
 }
