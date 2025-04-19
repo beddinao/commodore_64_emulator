@@ -11,9 +11,8 @@
 #include <signal.h>
 #include <ctype.h>
 #include <limits.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <SDL3/SDL.h> 
+#include <emscripten/emscripten.h>
 
 /*
 		ADDRESSABLE RANGE

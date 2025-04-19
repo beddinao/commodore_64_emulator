@@ -4,14 +4,12 @@ HR = $(wildcard include/*.h)
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
 SDL_PATH = ./assets/SDL3
 CFLAGS = -Iinclude
-LDFLAGS = -lreadline -Llib -Wl,-rpath,lib -Wl,-lSDL3 
+LDFLAGS = -Llib -Wl,-rpath,lib -Wl,-lSDL3 
 NAME = MetallC64
 
 all: dirs_set sdl $(NAME)
 
 sdl:
-	@cmake -B $(SDL_PATH)/build $(SDL_PATH) -D CMAKE_CXX_COMPILER="g++"
-	@cmake --build $(SDL_PATH)/build
 	@cp -r $(SDL_PATH)/include/SDL3 include
 	@cp -r $(SDL_PATH)/build/libSDL3* lib
 
@@ -25,7 +23,7 @@ dirs_rem:
 
 $(NAME): $(OBJ)
 	@mkdir -p programs/generated
-	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS)
+	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) -sALLOW_MEMORY_GROWTH=1
 
 build/%.o: src/%.c $(HR)
 	@mkdir -p $(dir $@)

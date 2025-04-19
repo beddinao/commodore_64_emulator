@@ -91,8 +91,7 @@ int	main() {
 	signal(SIGHUP, SIG_IGN);
 
 	/// / //		SHELL
-	pthread_create(&t_data->worker, NULL, open_shell, bus);
 
 	//// / //		CYCLE
-	main_cycle(bus);
+	emscripten_set_main_loop_args(main_cycle, bus, 0, 1);
 }

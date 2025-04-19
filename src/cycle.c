@@ -61,7 +61,7 @@ void	main_cycle(void *p) {
 			sleep_time = {0};
 	SDL_Event	event;
 
-	while (1) {
+	//while (1) {
 		/*
 			CLOCK START 
 		*/
@@ -128,7 +128,7 @@ void	main_cycle(void *p) {
 			sleep_time.tv_nsec = NANOS_PER_FRAME - elapsed_nanoseconds;
 			nanosleep(&sleep_time, NULL);
 		}
-	}
+	//}
 }
 /*
 
