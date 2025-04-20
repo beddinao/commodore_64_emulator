@@ -1,0 +1,377 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeDetermineSystem.cmake:200 (message)"
+      - "CMakeLists.txt:8 (project)"
+    message: |
+      The target system is: Emscripten - 1 - x86
+      The host system is: Darwin - 19.6.0 - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:8 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: /goinfre/beddinao/emsdk/upstream/emscripten/emcc 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      shared:INFO: (Emscripten: Running sanity checks)
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out.js"
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out.wasm"
+      
+      The C compiler identification could not be found in:
+        /goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/3.31.6/CompilerIdC/a.out.js
+      
+      The C compiler identification is Clang, found in:
+        /goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/3.31.6/CompilerIdC/a.out.wasm
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:74 (try_compile)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:8 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ"
+      binary: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ"
+    cmakeVariables:
+      CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS: "/goinfre/beddinao/emsdk/upstream/emscripten/emscan-deps"
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules"
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ'
+        
+        Run Build Command(s): /Users/beddinao/.brew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_5d6e2/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_5d6e2.dir/build.make CMakeFiles/cmTC_5d6e2.dir/build
+        Building C object CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc   -v -MD -MT CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -c /Users/beddinao/.brew/share/cmake/Modules/CMakeCCompilerABI.c
+         /goinfre/beddinao/emsdk/upstream/bin/clang -target wasm32-unknown-emscripten -fignore-exceptions -mllvm -combiner-global-alias-analysis=false -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr --sysroot=/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot -DEMSCRIPTEN -Xclang -iwithsysroot/include/fakesdl -Xclang -iwithsysroot/include/compat -v -MD -MT CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o.d -oCMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -c /Users/beddinao/.brew/share/cmake/Modules/CMakeCCompilerABI.c
+        clang version 21.0.0git (https:/github.com/llvm/llvm-project 57025b42c43b2f14f7e58692bc19cd53d1b8a45e)
+        Target: wasm32-unknown-emscripten
+        Thread model: posix
+        InstalledDir: /goinfre/beddinao/emsdk/upstream/bin
+         (in-process)
+         "/goinfre/beddinao/emsdk/upstream/bin/clang-21" -cc1 -triple wasm32-unknown-emscripten -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model static -mframe-pointer=none -ffp-contract=on -fno-rounding-math -mconstructor-aliases -target-cpu generic -fvisibility=hidden -debugger-tuning=gdb -fdebug-compilation-dir=/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ -v -fcoverage-compilation-dir=/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ -resource-dir /goinfre/beddinao/emsdk/upstream/lib/clang/21 -dependency-file CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -sys-header-deps -D EMSCRIPTEN -isysroot /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot -internal-isystem /goinfre/beddinao/emsdk/upstream/lib/clang/21/include -internal-isystem /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/wasm32-emscripten -internal-isystem /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include -ferror-limit 19 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fignore-exceptions -iwithsysroot/include/fakesdl -iwithsysroot/include/compat -mllvm -combiner-global-alias-analysis=false -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr -o CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -x c /Users/beddinao/.brew/share/cmake/Modules/CMakeCCompilerABI.c
+        clang -cc1 version 21.0.0git based upon LLVM 21.0.0git default target x86_64-apple-darwin19.6.0
+        ignoring nonexistent directory "/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/wasm32-emscripten"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl
+         /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/compat
+         /goinfre/beddinao/emsdk/upstream/lib/clang/21/include
+         /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include
+        End of search list.
+        Linking C executable cmTC_5d6e2.js
+        /Users/beddinao/.brew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5d6e2.dir/link.txt --verbose=1
+         /goinfre/beddinao/emsdk/upstream/bin/clang --version
+         /goinfre/beddinao/emsdk/upstream/bin/wasm-ld -o cmTC_5d6e2.wasm CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -L/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten -L/goinfre/beddinao/emsdk/upstream/emscripten/src/lib -lGL-getprocaddr -lal -lhtml5 -lstubs-debug -lnoexit -lc-debug -ldlmalloc-debug -lcompiler_rt -lc++-noexcept -lc++abi-debug-noexcept -lsockets -mllvm -combiner-global-alias-analysis=false -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr /var/folders/zz/zyxvpxvq6csfxvn_n000ck680034jk/T/tmpkld5s4gwlibemscripten_js_symbols.so --strip-debug --export=emscripten_stack_get_end --export=emscripten_stack_get_free --export=emscripten_stack_get_base --export=emscripten_stack_get_current --export=emscripten_stack_init --export=_emscripten_stack_alloc --export=__wasm_call_ctors --export=_emscripten_stack_restore --export-if-defined=__start_em_asm --export-if-defined=__stop_em_asm --export-if-defined=__start_em_lib_deps --export-if-defined=__stop_em_lib_deps --export-if-defined=__start_em_js --export-if-defined=__stop_em_js --export-if-defined=main --export-if-defined=__main_argc_argv --export-if-defined=fflush --export-table -z stack-size=65536 --no-growable-memory --initial-heap=16777216 --no-entry --stack-first --table-base=1
+         /goinfre/beddinao/emsdk/upstream/bin/llvm-objcopy cmTC_5d6e2.wasm cmTC_5d6e2.wasm --remove-section=.debug* --remove-section=producers --remove-section=name
+         /goinfre/beddinao/emsdk/node/20.18.0_64bit/bin/node /goinfre/beddinao/emsdk/upstream/emscripten/tools/compiler.mjs -
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc  -v @CMakeFiles/cmTC_5d6e2.dir/objects1.rsp -o cmTC_5d6e2.js
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:182 (message)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:8 (project)"
+    message: |
+      Parsed C implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl]
+          add: [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/compat]
+          add: [/goinfre/beddinao/emsdk/upstream/lib/clang/21/include]
+          add: [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include]
+        end of search list found
+        collapse include dir [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl] ==> [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl]
+        collapse include dir [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/compat] ==> [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/compat]
+        collapse include dir [/goinfre/beddinao/emsdk/upstream/lib/clang/21/include] ==> [/goinfre/beddinao/emsdk/upstream/lib/clang/21/include]
+        collapse include dir [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include] ==> [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include]
+        implicit include dirs: [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl;/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/compat;/goinfre/beddinao/emsdk/upstream/lib/clang/21/include;/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:218 (message)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:8 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?))("|,| |$)]
+        ignore line: [Change Dir: '/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ']
+        ignore line: []
+        ignore line: [Run Build Command(s): /Users/beddinao/.brew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_5d6e2/fast]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_5d6e2.dir/build.make CMakeFiles/cmTC_5d6e2.dir/build]
+        ignore line: [Building C object CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o]
+        ignore line: [/goinfre/beddinao/emsdk/upstream/emscripten/emcc   -v -MD -MT CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -c /Users/beddinao/.brew/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [ /goinfre/beddinao/emsdk/upstream/bin/clang -target wasm32-unknown-emscripten -fignore-exceptions -mllvm -combiner-global-alias-analysis=false -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr --sysroot=/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot -DEMSCRIPTEN -Xclang -iwithsysroot/include/fakesdl -Xclang -iwithsysroot/include/compat -v -MD -MT CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o.d -oCMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -c /Users/beddinao/.brew/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [clang version 21.0.0git (https:/github.com/llvm/llvm-project 57025b42c43b2f14f7e58692bc19cd53d1b8a45e)]
+        ignore line: [Target: wasm32-unknown-emscripten]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /goinfre/beddinao/emsdk/upstream/bin]
+        ignore line: [ (in-process)]
+        ignore line: [ "/goinfre/beddinao/emsdk/upstream/bin/clang-21" -cc1 -triple wasm32-unknown-emscripten -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model static -mframe-pointer=none -ffp-contract=on -fno-rounding-math -mconstructor-aliases -target-cpu generic -fvisibility=hidden -debugger-tuning=gdb -fdebug-compilation-dir=/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ -v -fcoverage-compilation-dir=/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-DxcyDQ -resource-dir /goinfre/beddinao/emsdk/upstream/lib/clang/21 -dependency-file CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -sys-header-deps -D EMSCRIPTEN -isysroot /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot -internal-isystem /goinfre/beddinao/emsdk/upstream/lib/clang/21/include -internal-isystem /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/wasm32-emscripten -internal-isystem /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include -ferror-limit 19 -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fignore-exceptions -iwithsysroot/include/fakesdl -iwithsysroot/include/compat -mllvm -combiner-global-alias-analysis=false -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr -o CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -x c /Users/beddinao/.brew/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [clang -cc1 version 21.0.0git based upon LLVM 21.0.0git default target x86_64-apple-darwin19.6.0]
+        ignore line: [ignoring nonexistent directory "/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/wasm32-emscripten"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl]
+        ignore line: [ /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include/compat]
+        ignore line: [ /goinfre/beddinao/emsdk/upstream/lib/clang/21/include]
+        ignore line: [ /goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/include]
+        ignore line: [End of search list.]
+        ignore line: [Linking C executable cmTC_5d6e2.js]
+        ignore line: [/Users/beddinao/.brew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5d6e2.dir/link.txt --verbose=1]
+        ignore line: [ /goinfre/beddinao/emsdk/upstream/bin/clang --version]
+        link line: [ /goinfre/beddinao/emsdk/upstream/bin/wasm-ld -o cmTC_5d6e2.wasm CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o -L/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten -L/goinfre/beddinao/emsdk/upstream/emscripten/src/lib -lGL-getprocaddr -lal -lhtml5 -lstubs-debug -lnoexit -lc-debug -ldlmalloc-debug -lcompiler_rt -lc++-noexcept -lc++abi-debug-noexcept -lsockets -mllvm -combiner-global-alias-analysis=false -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr /var/folders/zz/zyxvpxvq6csfxvn_n000ck680034jk/T/tmpkld5s4gwlibemscripten_js_symbols.so --strip-debug --export=emscripten_stack_get_end --export=emscripten_stack_get_free --export=emscripten_stack_get_base --export=emscripten_stack_get_current --export=emscripten_stack_init --export=_emscripten_stack_alloc --export=__wasm_call_ctors --export=_emscripten_stack_restore --export-if-defined=__start_em_asm --export-if-defined=__stop_em_asm --export-if-defined=__start_em_lib_deps --export-if-defined=__stop_em_lib_deps --export-if-defined=__start_em_js --export-if-defined=__stop_em_js --export-if-defined=main --export-if-defined=__main_argc_argv --export-if-defined=fflush --export-table -z stack-size=65536 --no-growable-memory --initial-heap=16777216 --no-entry --stack-first --table-base=1]
+          arg [/goinfre/beddinao/emsdk/upstream/bin/wasm-ld] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_5d6e2.wasm] ==> ignore
+          arg [CMakeFiles/cmTC_5d6e2.dir/CMakeCCompilerABI.c.o] ==> ignore
+          arg [-L/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten] ==> dir [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten]
+          arg [-L/goinfre/beddinao/emsdk/upstream/emscripten/src/lib] ==> dir [/goinfre/beddinao/emsdk/upstream/emscripten/src/lib]
+          arg [-lGL-getprocaddr] ==> lib [GL-getprocaddr]
+          arg [-lal] ==> lib [al]
+          arg [-lhtml5] ==> lib [html5]
+          arg [-lstubs-debug] ==> lib [stubs-debug]
+          arg [-lnoexit] ==> lib [noexit]
+          arg [-lc-debug] ==> lib [c-debug]
+          arg [-ldlmalloc-debug] ==> lib [dlmalloc-debug]
+          arg [-lcompiler_rt] ==> lib [compiler_rt]
+          arg [-lc++-noexcept] ==> lib [c++-noexcept]
+          arg [-lc++abi-debug-noexcept] ==> lib [c++abi-debug-noexcept]
+          arg [-lsockets] ==> lib [sockets]
+          arg [-mllvm] ==> ignore
+          arg [-combiner-global-alias-analysis=false] ==> ignore
+          arg [-mllvm] ==> ignore
+          arg [-enable-emscripten-sjlj] ==> ignore
+          arg [-mllvm] ==> ignore
+          arg [-disable-lsr] ==> ignore
+          arg [/var/folders/zz/zyxvpxvq6csfxvn_n000ck680034jk/T/tmpkld5s4gwlibemscripten_js_symbols.so] ==> ignore
+          arg [--strip-debug] ==> ignore
+          arg [--export=emscripten_stack_get_end] ==> ignore
+          arg [--export=emscripten_stack_get_free] ==> ignore
+          arg [--export=emscripten_stack_get_base] ==> ignore
+          arg [--export=emscripten_stack_get_current] ==> ignore
+          arg [--export=emscripten_stack_init] ==> ignore
+          arg [--export=_emscripten_stack_alloc] ==> ignore
+          arg [--export=__wasm_call_ctors] ==> ignore
+          arg [--export=_emscripten_stack_restore] ==> ignore
+          arg [--export-if-defined=__start_em_asm] ==> ignore
+          arg [--export-if-defined=__stop_em_asm] ==> ignore
+          arg [--export-if-defined=__start_em_lib_deps] ==> ignore
+          arg [--export-if-defined=__stop_em_lib_deps] ==> ignore
+          arg [--export-if-defined=__start_em_js] ==> ignore
+          arg [--export-if-defined=__stop_em_js] ==> ignore
+          arg [--export-if-defined=main] ==> ignore
+          arg [--export-if-defined=__main_argc_argv] ==> ignore
+          arg [--export-if-defined=fflush] ==> ignore
+          arg [--export-table] ==> ignore
+          arg [-zstack-size=65536] ==> ignore
+          arg [--no-growable-memory] ==> ignore
+          arg [--initial-heap=16777216] ==> ignore
+          arg [--no-entry] ==> ignore
+          arg [--stack-first] ==> ignore
+          arg [--table-base=1] ==> ignore
+        ignore line: [ /goinfre/beddinao/emsdk/upstream/bin/llvm-objcopy cmTC_5d6e2.wasm cmTC_5d6e2.wasm --remove-section=.debug* --remove-section=producers --remove-section=name]
+        ignore line: [ /goinfre/beddinao/emsdk/node/20.18.0_64bit/bin/node /goinfre/beddinao/emsdk/upstream/emscripten/tools/compiler.mjs -]
+        ignore line: [/goinfre/beddinao/emsdk/upstream/emscripten/emcc  -v @CMakeFiles/cmTC_5d6e2.dir/objects1.rsp -o cmTC_5d6e2.js]
+        ignore line: []
+        ignore line: []
+        collapse library dir [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten] ==> [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten]
+        collapse library dir [/goinfre/beddinao/emsdk/upstream/emscripten/src/lib] ==> [/goinfre/beddinao/emsdk/upstream/emscripten/src/lib]
+        implicit libs: [GL-getprocaddr;al;html5;stubs-debug;noexit;c-debug;dlmalloc-debug;compiler_rt;c++-noexcept;c++abi-debug-noexcept;sockets]
+        implicit objs: []
+        implicit dirs: [/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten;/goinfre/beddinao/emsdk/upstream/emscripten/src/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "cmake/sdlcpu.cmake:93 (try_compile)"
+      - "CMakeLists.txt:81 (SDL_DetectTargetCPUArchitectures)"
+    directories:
+      source: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeTmp/SDL_detect_arch/CMakeFiles/CMakeTmp"
+      binary: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeTmp/SDL_detect_arch/CMakeFiles/CMakeTmp"
+    cmakeVariables:
+      CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS: "/goinfre/beddinao/emsdk/upstream/emscripten/emscan-deps"
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/MetallC64/assets/SDL3/cmake"
+    buildResult:
+      variable: "SDL_CPU_CHECK_ALL"
+      cached: true
+      stdout: |
+        Change Dir: '/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeTmp/SDL_detect_arch/CMakeFiles/CMakeTmp'
+        
+        Run Build Command(s): /Users/beddinao/.brew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_50792/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_50792.dir/build.make CMakeFiles/cmTC_50792.dir/build
+        Building C object CMakeFiles/cmTC_50792.dir/SDL_detect_arch.c.o
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc    -MD -MT CMakeFiles/cmTC_50792.dir/SDL_detect_arch.c.o -MF CMakeFiles/cmTC_50792.dir/SDL_detect_arch.c.o.d -o CMakeFiles/cmTC_50792.dir/SDL_detect_arch.c.o -c /goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeTmp/SDL_detect_arch.c
+        Linking C static library libcmTC_50792.a
+        /Users/beddinao/.brew/bin/cmake -P CMakeFiles/cmTC_50792.dir/cmake_clean_target.cmake
+        /Users/beddinao/.brew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_50792.dir/link.txt --verbose=1
+        /goinfre/beddinao/emsdk/upstream/emscripten/emar qc libcmTC_50792.a CMakeFiles/cmTC_50792.dir/SDL_detect_arch.c.o
+        /goinfre/beddinao/emsdk/upstream/emscripten/emranlib libcmTC_50792.a
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CheckCCompilerFlag.cmake:56 (cmake_check_compiler_flag)"
+      - "cmake/sdlcompilers.cmake:152 (check_c_compiler_flag)"
+      - "CMakeLists.txt:438 (SDL_AddCommonCompilerFlags)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_FCOLOR_DIAGNOSTICS"
+    directories:
+      source: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-9rl0C1"
+      binary: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-9rl0C1"
+    cmakeVariables:
+      CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS: "/goinfre/beddinao/emsdk/upstream/emscripten/emscan-deps"
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/MetallC64/assets/SDL3/cmake"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_FCOLOR_DIAGNOSTICS"
+      cached: true
+      stdout: |
+        Change Dir: '/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-9rl0C1'
+        
+        Run Build Command(s): /Users/beddinao/.brew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_9c020/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_9c020.dir/build.make CMakeFiles/cmTC_9c020.dir/build
+        Building C object CMakeFiles/cmTC_9c020.dir/src.c.o
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc -DCOMPILER_SUPPORTS_FCOLOR_DIAGNOSTICS  -D_GNU_SOURCE=1   -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_9c020.dir/src.c.o -MF CMakeFiles/cmTC_9c020.dir/src.c.o.d -o CMakeFiles/cmTC_9c020.dir/src.c.o -c /goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-9rl0C1/src.c
+        Linking C executable cmTC_9c020.js
+        /Users/beddinao/.brew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9c020.dir/link.txt --verbose=1
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc   -D_GNU_SOURCE=1 @CMakeFiles/cmTC_9c020.dir/objects1.rsp -o cmTC_9c020.js
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/CheckSymbolExists.cmake:163 (try_compile)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CheckSymbolExists.cmake:68 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "CMakeLists.txt:1090 (check_symbol_exists)"
+    checks:
+      - "Looking for fdatasync"
+    directories:
+      source: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-GnEvmZ"
+      binary: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-GnEvmZ"
+    cmakeVariables:
+      CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS: "/goinfre/beddinao/emsdk/upstream/emscripten/emscan-deps"
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/MetallC64/assets/SDL3/cmake"
+    buildResult:
+      variable: "HAVE_FDATASYNC"
+      cached: true
+      stdout: |
+        Change Dir: '/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-GnEvmZ'
+        
+        Run Build Command(s): /Users/beddinao/.brew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_d3b78/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_d3b78.dir/build.make CMakeFiles/cmTC_d3b78.dir/build
+        Building C object CMakeFiles/cmTC_d3b78.dir/CheckSymbolExists.c.o
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc   -D_GNU_SOURCE=1 -MD -MT CMakeFiles/cmTC_d3b78.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_d3b78.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_d3b78.dir/CheckSymbolExists.c.o -c /goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-GnEvmZ/CheckSymbolExists.c
+        Linking C executable cmTC_d3b78.js
+        /Users/beddinao/.brew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d3b78.dir/link.txt --verbose=1
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc   -D_GNU_SOURCE=1 @CMakeFiles/cmTC_d3b78.dir/objects1.rsp -o cmTC_d3b78.js
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/CheckSymbolExists.cmake:163 (try_compile)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CheckSymbolExists.cmake:68 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "CMakeLists.txt:1091 (check_symbol_exists)"
+    checks:
+      - "Looking for gethostname"
+    directories:
+      source: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-YOkQ9W"
+      binary: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-YOkQ9W"
+    cmakeVariables:
+      CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS: "/goinfre/beddinao/emsdk/upstream/emscripten/emscan-deps"
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/MetallC64/assets/SDL3/cmake"
+    buildResult:
+      variable: "HAVE_GETHOSTNAME"
+      cached: true
+      stdout: |
+        Change Dir: '/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-YOkQ9W'
+        
+        Run Build Command(s): /Users/beddinao/.brew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_153d9/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_153d9.dir/build.make CMakeFiles/cmTC_153d9.dir/build
+        Building C object CMakeFiles/cmTC_153d9.dir/CheckSymbolExists.c.o
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc   -D_GNU_SOURCE=1 -MD -MT CMakeFiles/cmTC_153d9.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_153d9.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_153d9.dir/CheckSymbolExists.c.o -c /goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-YOkQ9W/CheckSymbolExists.c
+        Linking C executable cmTC_153d9.js
+        /Users/beddinao/.brew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_153d9.dir/link.txt --verbose=1
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc   -D_GNU_SOURCE=1 @CMakeFiles/cmTC_153d9.dir/objects1.rsp -o cmTC_153d9.js
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Users/beddinao/.brew/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/Users/beddinao/.brew/share/cmake/Modules/CheckCSourceCompiles.cmake:58 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:2957 (check_c_source_compiles)"
+    checks:
+      - "Performing Test HAVE_POSIX_SPAWN"
+    directories:
+      source: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-oX6WoP"
+      binary: "/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-oX6WoP"
+    cmakeVariables:
+      CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS: "/goinfre/beddinao/emsdk/upstream/emscripten/emscan-deps"
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/emsdk/upstream/emscripten/cmake/Modules;/goinfre/beddinao/MetallC64/assets/SDL3/cmake"
+    buildResult:
+      variable: "HAVE_POSIX_SPAWN"
+      cached: true
+      stdout: |
+        Change Dir: '/goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-oX6WoP'
+        
+        Run Build Command(s): /Users/beddinao/.brew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_21615/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_21615.dir/build.make CMakeFiles/cmTC_21615.dir/build
+        Building C object CMakeFiles/cmTC_21615.dir/src.c.o
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc -DHAVE_POSIX_SPAWN  -D_GNU_SOURCE=1 -MD -MT CMakeFiles/cmTC_21615.dir/src.c.o -MF CMakeFiles/cmTC_21615.dir/src.c.o.d -o CMakeFiles/cmTC_21615.dir/src.c.o -c /goinfre/beddinao/MetallC64/assets/SDL3/build/CMakeFiles/CMakeScratch/TryCompile-oX6WoP/src.c
+        Linking C executable cmTC_21615.js
+        /Users/beddinao/.brew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_21615.dir/link.txt --verbose=1
+        wasm-ld: error: CMakeFiles/cmTC_21615.dir/src.c.o: undefined symbol: posix_spawnp
+        emcc: error: '/goinfre/beddinao/emsdk/upstream/bin/wasm-ld -o cmTC_21615.wasm CMakeFiles/cmTC_21615.dir/src.c.o -L/goinfre/beddinao/emsdk/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten -L/goinfre/beddinao/emsdk/upstream/emscripten/src/lib -lGL-getprocaddr -lal -lhtml5 -lstubs-debug -lnoexit -lc-debug -ldlmalloc-debug -lcompiler_rt -lc++-noexcept -lc++abi-debug-noexcept -lsockets -mllvm -combiner-global-alias-analysis=false -mllvm -enable-emscripten-sjlj -mllvm -disable-lsr /var/folders/zz/zyxvpxvq6csfxvn_n000ck680034jk/T/tmp0fbhbswrlibemscripten_js_symbols.so --strip-debug --export=emscripten_stack_get_end --export=emscripten_stack_get_free --export=emscripten_stack_get_base --export=emscripten_stack_get_current --export=emscripten_stack_init --export=_emscripten_stack_alloc --export=__wasm_call_ctors --export=_emscripten_stack_restore --export-if-defined=__start_em_asm --export-if-defined=__stop_em_asm --export-if-defined=__start_em_lib_deps --export-if-defined=__stop_em_lib_deps --export-if-defined=__start_em_js --export-if-defined=__stop_em_js --export-if-defined=main --export-if-defined=__main_argc_argv --export-if-defined=fflush --export-table -z stack-size=65536 --no-growable-memory --initial-heap=16777216 --no-entry --stack-first --table-base=1' failed (returned 1)
+        /goinfre/beddinao/emsdk/upstream/emscripten/emcc   -D_GNU_SOURCE=1 @CMakeFiles/cmTC_21615.dir/objects1.rsp -o cmTC_21615.js
+        make[1]: *** [cmTC_21615.js] Error 1
+        make: *** [cmTC_21615/fast] Error 2
+        
+      exitCode: 2
+...

@@ -62,9 +62,12 @@ void	print_col_help(char *line) {
 	printf("\tchose between 1 and 16 as indexes to that palette\n\n");
 }
 
-void	print_memory(_bus *bus, _cmd *cmd) {
+extern thread_data *t_data;
+
+void	exec_ram_dump(char *cmd) {
+	_bus* bus = (_bus*)t_data->bus;
 	printf("\n");
-	if (!strcmp(cmd->cmd, "SCR")) { // cpu registers
+	if (!strcmp(cmd, "CPU")) { // cpu registers
 		_6502 *mos6502 = (_6502*)bus->cpu;
 		printf("%sCPU registers%s:\n", CYN, RST);
 		printf("\tSR(P): ");
@@ -76,24 +79,25 @@ void	print_memory(_bus *bus, _cmd *cmd) {
 		printf("\tpending interrupts: NMI(%u), IRQ(%u)\n",
 			mos6502->nmi_pending, mos6502->irq_pending);
 	}
-	else if (!strcmp(cmd->cmd, "SVR")) { // vic registers
+	else if (!strcmp(cmd, "VIC-II")) { // vic registers
 		printf("%sVIC-II memory registers%s $%02x -> $%02x:\n", CYN, RST, 0xD000, 0xD02E);
 		dump_regs(bus, SPRITE0_X, SPR_CLR_7);
 	}
-	else if (!strcmp(cmd->cmd, "SC1")) { // cia#1 registers
+	else if (!strcmp(cmd, "CIA-1")) { // cia#1 registers
 		printf("%sCIA#1 memory registers%s $%02x -> $%02x:\n", CYN, RST, 0xDC00, 0xDC0F);
 		dump_regs(bus, 0xDC00, 0xDC0F);
 	}
-	else if (!strcmp(cmd->cmd, "SC2")) { // cia#2 registers
+	else if (!strcmp(cmd, "CIA-2")) { // cia#2 registers
 		printf("%sCIA#2 memory registers%s $%02x -> $%02x:\n", CYN, RST, 0xDD00, 0xDD0F);
 		dump_regs(bus, 0xDD00, 0xDD0F);
 	}
-	else if (!strcmp(cmd->cmd, "DMP")) { // range memory dump
+	else printf("FUCK OFF");
+	/*else if (!strcmp(cmd, "DMP")) { // range memory dump
 		printf("%smemory from%s $%02x -> $%02x:\n", CYN, RST, cmd->st_addr, cmd->en_addr);
 		dump_mem_area(bus, cmd->st_addr, cmd->en_addr);
-	}
+	}*/
 	printf("\n");
 
-	free(cmd);
-	bus->cmd = NULL;
+	/*free(cmd);
+	bus->cmd = NULL;*/
 }

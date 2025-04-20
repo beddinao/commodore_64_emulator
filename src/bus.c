@@ -1790,20 +1790,20 @@ uint8_t	load_kernal(_bus *bus) {
 	unsigned rstv_ker_addr = RSTV - KERNAL_ROM_START;
 	unsigned irq_ker_addr = IRQ_BRK - KERNAL_ROM_START;
 	printf("\n\
-			%s       __  __      _        _ _  _____  __ _  _%s\n\
-			%s      |  \\/  |    | |      | | |/ ____|/ /| || |%s\n\
-			%s      | \\  / | ___| |_ __ _| | | |    / /_| || |_%s\n\
-			%s      | |\\/| |/ _ \\ __/ _` | | | |   | '_ \\__   _|%s\n\
-			%s      | |  | |  __/ || (_| | | | |___| (_) | | |%s\n\
-			%s      |_|  |_|\\___|\\__\\__,_|_|_|\\_____\\___/  |_|%s\n\
-				the metall Commodore 64 emulator\n\
-				%s\n\
-				- Kernal interrupt vectors:\n\
-				NMI: $%04x, RST: $%04x, IRQ: $%04x\n\
-				- Window dimensions:\n\
-				504x312 (PAL-display) -> %ux%u\n\
-				- HLP/HELP/help for a list of commands\n\
-				- NOTE: Not very accurate emulator\n\
+%s       __  __      _        _ _  _____  __ _  _%s\n\
+%s      |  \\/  |    | |      | | |/ ____|/ /| || |%s\n\
+%s      | \\  / | ___| |_ __ _| | | |    / /_| || |_%s\n\
+%s      | |\\/| |/ _ \\ __/ _` | | | |   | '_ \\__   _|%s\n\
+%s      | |  | |  __/ || (_| | | | |___| (_) | | |%s\n\
+%s      |_|  |_|\\___|\\__\\__,_|_|_|\\_____\\___/  |_|%s\n\
+	the metall Commodore 64 emulator\n\
+%s\n\
+	- Kernal interrupt vectors:\n\
+		NMI: $%04x, RST: $%04x, IRQ: $%04x\n\
+	- Window dimensions:\n\
+		504x312 (PAL-display) -> %ux%u\n\
+	- HLP/HELP/help for a list of commands\n\
+	- NOTE: Not very accurate emulator\n\
 				%s\n",
 			WHT, RST, WHT, RST, WHT, RST,
 			"", RST, "", RST, "", RST,

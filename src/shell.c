@@ -78,35 +78,10 @@ void	exec_ldp(uint8_t *program, unsigned size) {
 	bus->prg = prg;
 
 	bus->t_data->load = TRUE;
-	// prg_load_sequence(bus, prg);
-	//
-	//
-	/*uint16_t en_addr = BASIC_PRG_START + size + 1;
-	memset(bus->RAM + BASIC_PRG_START, 0, size);
-	memcpy(bus->RAM + BASIC_PRG_START, program + 2, size);
-	bus->RAM[0x800] = 0x00;
-	// $2B-$2C TXTTAB
-	bus->RAM[0x2B] = 0x01;
-	bus->RAM[0x2C] = 0x08;
-	// $2D-$2E VARTAB
-	bus->RAM[0x2D] = en_addr & 0xFF;
-	bus->RAM[0x2E] = (en_addr >> 0x8) & 0xFF;
-	// $2F-$30 ARYTAB
-	bus->RAM[0x2F] = en_addr & 0xFF;
-	bus->RAM[0x30] = (en_addr >> 0x8) & 0xFF;
-	// $31-$32 STREND
-	bus->RAM[0x31] = en_addr & 0xFF;//0x00;
-	bus->RAM[0x32] = (en_addr >> 0x8) & 0xFF;//0xA0;
-	// $33-$34 FRETOP
-	bus->RAM[0x33] = en_addr & 0xFF;
-	bus->RAM[0x34] = (en_addr >> 0x8) & 0xFF;
-
-	printf("LOADING DONE\n");*/
 }
 
 void	exec_clr() {
 	_bus *bus = (_bus*)t_data->bus;
-
 	bus->t_data->reset = TRUE;
 }
 
