@@ -237,15 +237,15 @@
 /*
 		ANSI CODES
 */
-#define RST		"\x1B[0m"
-#define RED		"\x1B[31m"
-#define BLU		"\x1B[34m"
-#define CYN		"\x1B[36m"
-#define WHT		"\x1B[37m"
-#define GRN		"\x1B[32m"
-#define YEL		"\x1B[33m"
-#define ORG		"\e[0;91m"
-#define UND		"\033[4m"
+#define RST		""
+#define RED		""
+#define BLU		""
+#define CYN		""
+#define WHT		""
+#define GRN		""
+#define YEL		""
+#define ORG		""
+#define UND		""
 
 #ifndef TRUE
 #define TRUE		1

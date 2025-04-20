@@ -1795,7 +1795,7 @@ uint8_t	load_kernal(_bus *bus) {
 			%s      | \\  / | ___| |_ __ _| | | |    / /_| || |_%s\n\
 			%s      | |\\/| |/ _ \\ __/ _` | | | |   | '_ \\__   _|%s\n\
 			%s      | |  | |  __/ || (_| | | | |___| (_) | | |%s\n\
-				%s      |_|  |_|\\___|\\__\\__,_|_|_|\\_____\\___/  |_|%s\n\
+			%s      |_|  |_|\\___|\\__\\__,_|_|_|\\_____\\___/  |_|%s\n\
 				the metall Commodore 64 emulator\n\
 				%s\n\
 				- Kernal interrupt vectors:\n\
@@ -1806,7 +1806,7 @@ uint8_t	load_kernal(_bus *bus) {
 				- NOTE: Not very accurate emulator\n\
 				%s\n",
 			WHT, RST, WHT, RST, WHT, RST,
-			"\e[0;97m", RST, "\e[0;97m", RST, "\e[1;97m", RST,
+			"", RST, "", RST, "", RST,
 			WHT, bus->KERNAL[nmi_ker_addr + 1] << 0x8 | bus->KERNAL[nmi_ker_addr],
 			bus->KERNAL[rstv_ker_addr + 1] << 0x8 | bus->KERNAL[rstv_ker_addr],
 			bus->KERNAL[irq_ker_addr + 1] << 0x8 | bus->KERNAL[irq_ker_addr],
