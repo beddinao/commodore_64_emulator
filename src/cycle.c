@@ -90,21 +90,21 @@ void	main_cycle(void *p) {
 		}
 		pthread_mutex_unlock(&bus->t_data->prg_mutex);
 		/* check memory_dump/color_change requests */
-		pthread_mutex_lock(&bus->t_data->cmd_mutex);
+		/*pthread_mutex_lock(&bus->t_data->cmd_mutex);
 		if (bus->t_data->cmd) {
 			if (((_cmd*)bus->cmd)->col)
 				change_col(bus, (_cmd*)bus->cmd);
 			else	print_memory(bus, (_cmd*)bus->cmd);
 			bus->t_data->cmd = FALSE;
 		}
-		pthread_mutex_unlock(&bus->t_data->cmd_mutex);
+		pthread_mutex_unlock(&bus->t_data->cmd_mutex);*/
 		/* check halting request */
-		pthread_mutex_lock(&bus->t_data->halt_mutex);
+		/*pthread_mutex_lock(&bus->t_data->halt_mutex);
 		if (bus->t_data->halt) {
 			pthread_mutex_unlock(&bus->t_data->halt_mutex);
 			exit_handle(0);
 		}
-		pthread_mutex_unlock(&bus->t_data->halt_mutex);
+		pthread_mutex_unlock(&bus->t_data->halt_mutex);*/
 		draw_bg(vic, C64_to_rgb(bus->ram_read(bus, BRD_COLOR)));
 		for (unsigned frame_cycles = 0; frame_cycles < CYCLES_PER_FRAME;) {
 			mos6502->opcode = bus->cpu_read(bus, mos6502->PC);

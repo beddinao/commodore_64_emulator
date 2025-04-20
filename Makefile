@@ -23,7 +23,7 @@ dirs_rem:
 
 $(NAME): $(OBJ)
 	@mkdir -p programs/generated
-	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) -sALLOW_MEMORY_GROWTH=1
+	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) -sALLOW_MEMORY_GROWTH=1 -sEXPORTED_RUNTIME_METHODS=ccall,cwrap -sEXPORTED_FUNCTIONS=_exec_clr,_exec_ldp,_main
 
 build/%.o: src/%.c $(HR)
 	@mkdir -p $(dir $@)
