@@ -3,14 +3,14 @@
 thread_data	*t_data;
 
 void	exit_handle(int s) {
-	pthread_cancel(t_data->worker);
-	pthread_join(t_data->worker, NULL);
+	/*pthread_cancel(t_data->worker);
+	pthread_join(t_data->worker, NULL);*/
 
 	printf("\nexiting..\n");
 	/// / //		CLEAN
-	pthread_mutex_destroy(&t_data->halt_mutex);
+	/*pthread_mutex_destroy(&t_data->halt_mutex);
 	pthread_mutex_destroy(&t_data->prg_mutex);
-	pthread_mutex_destroy(&t_data->cmd_mutex);
+	pthread_mutex_destroy(&t_data->cmd_mutex);*/
 
 	_bus	*bus = (_bus*)t_data->bus;
 	_VIC_II	*vic = (_VIC_II*)bus->vic;
@@ -41,9 +41,9 @@ thread_data *t_data_init(_bus *bus) {
 		return FALSE;
 	}
 	memset(t_data, 0, sizeof(thread_data));
-	pthread_mutex_init(&t_data->halt_mutex, NULL);
+	/*pthread_mutex_init(&t_data->halt_mutex, NULL);
 	pthread_mutex_init(&t_data->prg_mutex, NULL);
-	pthread_mutex_init(&t_data->cmd_mutex, NULL);
+	pthread_mutex_init(&t_data->cmd_mutex, NULL);*/
 	t_data->bus = bus;
 	return t_data;
 }

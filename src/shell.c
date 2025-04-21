@@ -35,9 +35,9 @@ bool	exec_dmp(_bus *bus, char *cmd) {
 	memcpy(t_cmd->cmd, cmd, 3);
 	bus->cmd = t_cmd;
 
-	pthread_mutex_lock(&bus->t_data->cmd_mutex);
+	//pthread_mutex_lock(&bus->t_data->cmd_mutex);
 	bus->t_data->cmd = TRUE;
-	pthread_mutex_unlock(&bus->t_data->cmd_mutex);
+	//pthread_mutex_unlock(&bus->t_data->cmd_mutex);
 	usleep(100000);
 
 	return TRUE;

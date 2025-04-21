@@ -23,11 +23,11 @@ dirs_rem:
 
 $(NAME): $(OBJ)
 	@mkdir -p programs/generated
-	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) -sALLOW_MEMORY_GROWTH=1 -sEXPORTED_RUNTIME_METHODS=ccall,cwrap -sEXPORTED_FUNCTIONS=_exec_clr,_exec_ldp,_exec_ram_dump,_main
+	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) -O3 -sALLOW_MEMORY_GROWTH=1 -sEXPORTED_RUNTIME_METHODS=ccall,cwrap -sEXPORTED_FUNCTIONS=_exec_clr,_exec_ldp,_exec_ram_dump,_main,_main_cycle
 
 build/%.o: src/%.c $(HR)
 	@mkdir -p $(dir $@)
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CC) -O3 -c $< -o $@ $(CFLAGS)
 
 clean:
 	rm -rf build

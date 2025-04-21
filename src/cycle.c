@@ -77,7 +77,7 @@ void	main_cycle(void *p) {
 			}
 		}
 		/* check prg load/reset requests */
-		pthread_mutex_lock(&bus->t_data->prg_mutex);
+		//pthread_mutex_lock(&bus->t_data->prg_mutex);
 		if (bus->t_data->load) {
 			prg_load_sequence(bus, (_prg*)bus->prg);
 			bus->t_data->load = FALSE;
@@ -88,7 +88,7 @@ void	main_cycle(void *p) {
 			vic = (_VIC_II*)bus->vic;
 			bus->t_data->reset = FALSE;
 		}
-		pthread_mutex_unlock(&bus->t_data->prg_mutex);
+		//pthread_mutex_unlock(&bus->t_data->prg_mutex);
 		/* check memory_dump/color_change requests */
 		/*pthread_mutex_lock(&bus->t_data->cmd_mutex);
 		if (bus->t_data->cmd) {

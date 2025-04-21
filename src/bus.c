@@ -1803,7 +1803,7 @@ uint8_t	load_kernal(_bus *bus) {
 	- Window dimensions:\n\
 		504x312 (PAL-display) -> %ux%u\n\
 	- HLP/HELP/help for a list of commands\n\
-	- NOTE: Not very accurate emulator\n\
+	- NOTE: Less accurate than the Original C Project\n\
 				%s\n",
 			WHT, RST, WHT, RST, WHT, RST,
 			"", RST, "", RST, "", RST,
