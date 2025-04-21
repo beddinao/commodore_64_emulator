@@ -95,7 +95,7 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	for (; vic->cycles >= VIC_CYCLES_PER_LINE; vic->cycles -= VIC_CYCLES_PER_LINE) {
 		memset(screen_line, 0, sizeof(screen_line));
 		memset(sprite_line, 0, sizeof(sprite_line));
-		if (visible_screen && vic->raster > DYSTART && vic->raster < DYEND) {
+		if (visible_screen && vic->raster >=DYSTART && vic->raster < DYEND) {
 			for (unsigned x = DXSTART; x < DXEND; x++) {
 				pixel_x = (x - screen_pixel_start_x + x_scroll) % screen_pixel_w;
 				pixel_y = (vic->raster - screen_pixel_start_y + y_scroll) % screen_pixel_h;
