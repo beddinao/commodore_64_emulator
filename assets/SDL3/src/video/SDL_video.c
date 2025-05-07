@@ -1731,11 +1731,24 @@ SDL_VideoDisplay *SDL_GetVideoDisplayForFullscreenWindow(SDL_Window *window)
     return SDL_GetVideoDisplay(displayID);
 }
 
+#define SDL_PROP_SDL2_COMPAT_WINDOW_PREFERRED_FULLSCREEN_DISPLAY "sdl2-compat.window.preferred_fullscreen_display"
+
 SDL_DisplayID SDL_GetDisplayForWindow(SDL_Window *window)
 {
     SDL_DisplayID displayID = 0;
 
     CHECK_WINDOW_MAGIC(window, 0);
+
+    /* sdl2-compat calls this function to get a display on which to make the window fullscreen,
+     * so pass it the preferred fullscreen display ID in a property.
+     */
+    SDL_PropertiesID window_props = SDL_GetWindowProperties(window);
+    SDL_VideoDisplay *fs_display = SDL_GetVideoDisplayForFullscreenWindow(window);
+    if (fs_display) {
+        SDL_SetNumberProperty(window_props, SDL_PROP_SDL2_COMPAT_WINDOW_PREFERRED_FULLSCREEN_DISPLAY, fs_display->id);
+    } else {
+        SDL_ClearProperty(window_props, SDL_PROP_SDL2_COMPAT_WINDOW_PREFERRED_FULLSCREEN_DISPLAY);
+    }
 
     // An explicit fullscreen display overrides all
     if (window->flags & SDL_WINDOW_FULLSCREEN) {
@@ -1854,6 +1867,7 @@ bool SDL_UpdateFullscreenMode(SDL_Window *window, SDL_FullscreenOp fullscreen, b
     CHECK_WINDOW_MAGIC(window, false);
 
     window->fullscreen_exclusive = false;
+    window->update_fullscreen_on_display_changed = false;
 
     // If we are in the process of hiding don't go back to fullscreen
     if (window->is_destroying || window->is_hiding) {
@@ -2490,6 +2504,7 @@ SDL_Window *SDL_CreateWindowWithProperties(SDL_PropertiesID props)
     window->is_destroying = false;
     window->last_displayID = SDL_GetDisplayForWindow(window);
     window->external_graphics_context = external_graphics_context;
+    window->constrain_popup = SDL_GetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_CONSTRAIN_POPUP_BOOLEAN, true);
 
     if (_this->windows) {
         _this->windows->prev = window;
@@ -2924,11 +2939,12 @@ bool SDL_GetWindowPosition(SDL_Window *window, int *x, int *y)
             }
         }
     } else {
+        const bool use_pending = (window->flags & SDL_WINDOW_HIDDEN) && window->last_position_pending;
         if (x) {
-            *x = window->x;
+            *x = use_pending ? window->pending.x : window->x;
         }
         if (y) {
-            *y = window->y;
+            *y = use_pending ? window->pending.y : window->y;
         }
     }
     return true;
@@ -3690,6 +3706,48 @@ bool SDL_SetWindowModal(SDL_Window *window, bool modal)
     return _this->SetWindowModal(_this, window, modal);
 }
 
+bool SDL_ShouldRelinquishPopupFocus(SDL_Window *window, SDL_Window **new_focus)
+{
+    SDL_Window *focus = window->parent;
+    bool set_focus = !!(window->flags & SDL_WINDOW_INPUT_FOCUS);
+
+    // Find the highest level window, up to the toplevel parent, that isn't being hidden or destroyed, and can grab the keyboard focus.
+    while (SDL_WINDOW_IS_POPUP(focus) && ((focus->flags & SDL_WINDOW_NOT_FOCUSABLE) || focus->is_hiding || focus->is_destroying)) {
+        focus = focus->parent;
+
+        // If some window in the chain currently had focus, set it to the new lowest-level window.
+        if (!set_focus) {
+            set_focus = !!(focus->flags & SDL_WINDOW_INPUT_FOCUS);
+        }
+    }
+
+    *new_focus = focus;
+    return set_focus;
+}
+
+bool SDL_ShouldFocusPopup(SDL_Window *window)
+{
+    SDL_Window *toplevel_parent;
+    for (toplevel_parent = window->parent; SDL_WINDOW_IS_POPUP(toplevel_parent); toplevel_parent = toplevel_parent->parent) {
+    }
+
+    SDL_Window *current_focus = toplevel_parent->keyboard_focus;
+    bool found_higher_focus = false;
+
+    /* Traverse the window tree from the currently focused window to the toplevel parent and see if we encounter
+     * the new focus request. If the new window is found, a higher-level window already has focus.
+     */
+    SDL_Window *w;
+    for (w = current_focus; w != toplevel_parent; w = w->parent) {
+        if (w == window) {
+            found_higher_focus = true;
+            break;
+        }
+    }
+
+    return !found_higher_focus || w == toplevel_parent;
+}
+
 bool SDL_SetWindowFocusable(SDL_Window *window, bool focusable)
 {
     CHECK_WINDOW_MAGIC(window, false);
@@ -3919,6 +3977,60 @@ bool SDL_FlashWindow(SDL_Window *window, SDL_FlashOperation operation)
     return SDL_Unsupported();
 }
 
+bool SDL_SetWindowProgressState(SDL_Window *window, SDL_ProgressState state)
+{
+    CHECK_WINDOW_MAGIC(window, false);
+    CHECK_WINDOW_NOT_POPUP(window, false);
+
+    if (state < SDL_PROGRESS_STATE_NONE || state > SDL_PROGRESS_STATE_ERROR) {
+        return SDL_InvalidParamError("state");
+    }
+
+    window->progress_state = state;
+
+    if (_this->ApplyWindowProgress) {
+        if (!_this->ApplyWindowProgress(_this, window)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+SDL_ProgressState SDL_GetWindowProgressState(SDL_Window *window)
+{
+    CHECK_WINDOW_MAGIC(window, SDL_PROGRESS_STATE_INVALID);
+    CHECK_WINDOW_NOT_POPUP(window, SDL_PROGRESS_STATE_INVALID);
+
+    return window->progress_state;
+}
+
+bool SDL_SetWindowProgressValue(SDL_Window *window, float value)
+{
+    CHECK_WINDOW_MAGIC(window, false);
+    CHECK_WINDOW_NOT_POPUP(window, false);
+
+    value = SDL_clamp(value, 0.0f, 1.f);
+
+    window->progress_value = value;
+
+    if (_this->ApplyWindowProgress) {
+        if (!_this->ApplyWindowProgress(_this, window)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+float SDL_GetWindowProgressValue(SDL_Window *window)
+{
+    CHECK_WINDOW_MAGIC(window, -1.0f);
+    CHECK_WINDOW_NOT_POPUP(window, -1.0f);
+
+    return window->progress_value;
+}
+
 void SDL_OnWindowShown(SDL_Window *window)
 {
     // Set window state if we have pending window flags cached
@@ -3940,16 +4052,26 @@ void SDL_OnWindowHidden(SDL_Window *window)
 
 void SDL_OnWindowDisplayChanged(SDL_Window *window)
 {
-    if (window->flags & SDL_WINDOW_FULLSCREEN) {
-        SDL_DisplayID displayID = SDL_GetDisplayForWindowPosition(window);
+    // Don't run this if a fullscreen change was made in an event watcher callback in response to a display changed event.
+    if (window->update_fullscreen_on_display_changed && (window->flags & SDL_WINDOW_FULLSCREEN)) {
+        const bool auto_mode_switch = SDL_GetHintBoolean(SDL_HINT_VIDEO_MATCH_EXCLUSIVE_MODE_ON_MOVE, true);
 
-        if (window->requested_fullscreen_mode.w != 0 || window->requested_fullscreen_mode.h != 0) {
+        if (auto_mode_switch && (window->requested_fullscreen_mode.w != 0 || window->requested_fullscreen_mode.h != 0)) {
+            SDL_DisplayID displayID = SDL_GetDisplayForWindowPosition(window);
             bool include_high_density_modes = false;
 
             if (window->requested_fullscreen_mode.pixel_density > 1.0f) {
                 include_high_density_modes = true;
             }
-            SDL_GetClosestFullscreenDisplayMode(displayID, window->requested_fullscreen_mode.w, window->requested_fullscreen_mode.h, window->requested_fullscreen_mode.refresh_rate, include_high_density_modes, &window->current_fullscreen_mode);
+            const bool found_match = SDL_GetClosestFullscreenDisplayMode(displayID, window->requested_fullscreen_mode.w, window->requested_fullscreen_mode.h,
+                                                                         window->requested_fullscreen_mode.refresh_rate, include_high_density_modes, &window->current_fullscreen_mode);
+
+            // If a mode without matching dimensions was not found, just go to fullscreen desktop.
+            if (!found_match ||
+                window->requested_fullscreen_mode.w != window->current_fullscreen_mode.w ||
+                window->requested_fullscreen_mode.h != window->current_fullscreen_mode.h) {
+                SDL_zero(window->current_fullscreen_mode);
+            }
         } else {
             SDL_zero(window->current_fullscreen_mode);
         }
@@ -5404,6 +5526,10 @@ bool SDL_GetTextInputMultiline(SDL_PropertiesID props)
 static bool AutoShowingScreenKeyboard(void)
 {
     const char *hint = SDL_GetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD);
+    if (!hint) {
+        // Steam will eventually have smarts about whether a keyboard is active, so always request the on-screen keyboard on Steam Deck
+        hint = SDL_GetHint("SteamDeck");
+    }
     if (((!hint || SDL_strcasecmp(hint, "auto") == 0) && !SDL_HasKeyboard()) ||
         SDL_GetStringBoolean(hint, false)) {
         return true;
@@ -5553,34 +5679,6 @@ int SDL_GetMessageBoxCount(void)
     return SDL_GetAtomicInt(&SDL_messagebox_count);
 }
 
-#ifdef SDL_VIDEO_DRIVER_ANDROID
-#include "android/SDL_androidmessagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_WINDOWS
-#include "windows/SDL_windowsmessagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_COCOA
-#include "cocoa/SDL_cocoamessagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_UIKIT
-#include "uikit/SDL_uikitmessagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_WAYLAND
-#include "wayland/SDL_waylandmessagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_X11
-#include "x11/SDL_x11messagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_HAIKU
-#include "haiku/SDL_bmessagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_RISCOS
-#include "riscos/SDL_riscosmessagebox.h"
-#endif
-#ifdef SDL_VIDEO_DRIVER_VITA
-#include "vita/SDL_vitamessagebox.h"
-#endif
-
 bool SDL_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonID)
 {
     int dummybutton;
@@ -5708,23 +5806,7 @@ bool SDL_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonID)
 
 bool SDL_ShowSimpleMessageBox(SDL_MessageBoxFlags flags, const char *title, const char *message, SDL_Window *window)
 {
-#ifdef SDL_PLATFORM_EMSCRIPTEN
-    // !!! FIXME: propose a browser API for this, get this #ifdef out of here?
-    /* Web browsers don't (currently) have an API for a custom message box
-       that can block, but for the most common case (SDL_ShowSimpleMessageBox),
-       we can use the standard Javascript alert() function. */
-    if (!title) {
-        title = "";
-    }
-    if (!message) {
-        message = "";
-    }
-    EM_ASM({
-        alert(UTF8ToString($0) + "\n\n" + UTF8ToString($1));
-    },
-            title, message);
-    return true;
-#elif defined(SDL_PLATFORM_3DS)
+#if defined(SDL_PLATFORM_3DS)
     errorConf errCnf;
     bool hasGpuRight;
 
