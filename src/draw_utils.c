@@ -61,5 +61,6 @@ SDL_Window *init_window(_bus * bus, _VIC_II *vic) {
 	}
 	SDL_SetWindowMinimumSize(win, MWIDTH, MHEIGHT);
 	draw_bg(vic, 0x0000FFFF);
+	SDL_RenderPresent(vic->renderer);
 	return win;
 }
