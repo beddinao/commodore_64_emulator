@@ -11,7 +11,7 @@ all: dirs_set sdl $(NAME)
 
 sdl:
 	@cmake -B $(SDL_PATH)/build $(SDL_PATH) -D CMAKE_CXX_COMPILER="g++"
-	@cmake --build $(SDL_PATH)/build
+	@cd $(SDL_PATH)/build && make -j20
 	@cp -r $(SDL_PATH)/include/SDL3 include
 	@cp -r $(SDL_PATH)/build/libSDL3* lib
 
