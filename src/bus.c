@@ -2201,7 +2201,7 @@ _bus	*bus_init() {
 	if (!bus) return FALSE;
 	memset(bus, 0, sizeof(_bus));
 	bus->reset = bus_init;
-	bus->RAM[BRD_COLOR] = 0xE;
+	//bus->RAM[BRD_COLOR] = 0xE;
 	bus->cpu_read = cpu_read_;
 	bus->cpu_write = cpu_write_;
 	bus->ram_read = ram_dir_read;

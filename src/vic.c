@@ -56,6 +56,7 @@ uint8_t vic_read_memory(_bus *bus, _VIC_II *vic, uint16_t addr) {
 
 void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 	uint32_t bg_color = vic->C64_to_rgb(bus->ram_read(bus, BACKG_COLOR0));
+	uint32_t brd_color = vic->C64_to_rgb(bus->ram_read(bus, BRD_COLOR));
 	bool bitmap = (vic->control1 >> 0x5) & 0x1;
 	bool extended = (vic->control1 >> 0x6) & 0x1;
 	bool multicolor = (vic->control2 >> 0x4) & 0x1;
@@ -104,8 +105,8 @@ void	vic_advance_raster(_bus *bus, _VIC_II *vic, unsigned cpu_cycles) {
 				grid_pos = grid_y * screen_grid_w + grid_x;
 				bit_pos = 7 - (pixel_x % 8);
 				/* fine boundaries check */
-				if (pixel_x >= DXEND || pixel_y >= DYEND)
-					pixel_color = bg_color; //brd_color;
+				if (pixel_x >= DXEND || pixel_y >= DYEND) 
+					pixel_color = bg_color;
 				else {
 					//
 					screen_ram = vic_read_memory(bus, vic, vic->screen_ram + grid_pos);

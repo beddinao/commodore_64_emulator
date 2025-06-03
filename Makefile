@@ -27,14 +27,13 @@ $(NAME): $(OBJ)
 
 build/%.o: src/%.c $(HR)
 	@mkdir -p $(dir $@)
-	$(CC) -O3 -c $< -o $@ $(CFLAGS)
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 clean:
 	rm -rf build
 
 fclean: clean dirs_rem
 	rm -rf include/SDL3
-	rm -rf $(SDL_PATH)/build
 	rm -rf $(NAME)
 
 re: fclean all
