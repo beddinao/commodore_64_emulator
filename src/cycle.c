@@ -1,4 +1,4 @@
-#include "metallc64.h"
+#include <c64_emu.h> 
 
 uint8_t	IRQ_interrupt(_bus *bus, _6502 *mos6502) {
 	if (mos6502->irq_pending && !mos6502->get_flag(mos6502, 'I')) {
