@@ -1,4 +1,4 @@
-#include <metallc64.h>
+#include <c64_emu.h>
 
 long	calculate_offset(int track, int sector) {
 	int sectors_before = (track - 1) * SECTORS_PER_TRACK;
