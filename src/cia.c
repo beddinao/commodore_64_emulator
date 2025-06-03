@@ -1,4 +1,4 @@
-#include "metallc64.h"
+#include <c64_emu.h> 
 
 void	cia_advance_timers(_bus *bus, _CIA *CIA, unsigned cycles) {
 	uint32_t	new_timer_val;
