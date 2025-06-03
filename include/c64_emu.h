@@ -1,5 +1,5 @@
-#ifndef METALLC64_H
-#define METALLC64_H
+#ifndef C64_EMU_H
+#define C64_EMU_H
 
 #include <sys/time.h>
 #include <stdint.h>
