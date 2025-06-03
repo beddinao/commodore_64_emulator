@@ -1,4 +1,4 @@
-#include "metallc64.h"
+#include <c64_emu.h> 
 
 void	draw_bg(_VIC_II *vic, uint32_t color) {
 	SDL_SetRenderDrawColor(vic->renderer,
@@ -50,7 +50,7 @@ SDL_Window *init_window(_bus * bus, _VIC_II *vic) {
 	vic->win_width = WWIDTH;
 	if (!SDL_Init(SDL_INIT_EVENTS))
 		return FALSE;
-	win = SDL_CreateWindow("MetallC64", vic->win_width, vic->win_height,
+	win = SDL_CreateWindow("Metal-C64", vic->win_width, vic->win_height,
 			SDL_WINDOW_RESIZABLE/*|
 			SDL_WINDOW_ALWAYS_ON_TOP*/);
 	if (!win || !(vic->renderer = SDL_CreateRenderer(win, NULL))) {
