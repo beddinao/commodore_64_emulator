@@ -1,4 +1,4 @@
-#include "metallc64.h"
+#include <c64_emu.h> 
 
 void	change_col(_bus* bus, _cmd *cmd) {
 	cmd->col -= 1;

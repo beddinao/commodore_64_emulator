@@ -1,4 +1,4 @@
-#include "metallc64.h"
+#include <c64_emu.h> 
 
 uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 	_CIA *cia1 = (_CIA*)bus->cia1;
@@ -1790,13 +1790,13 @@ uint8_t	load_kernal(_bus *bus) {
 	unsigned rstv_ker_addr = RSTV - KERNAL_ROM_START;
 	unsigned irq_ker_addr = IRQ_BRK - KERNAL_ROM_START;
 	printf("\n\
-%s       __  __      _        _ _  _____  __ _  _%s\n\
-%s      |  \\/  |    | |      | | |/ ____|/ /| || |%s\n\
-%s      | \\  / | ___| |_ __ _| | | |    / /_| || |_%s\n\
-%s      | |\\/| |/ _ \\ __/ _` | | | |   | '_ \\__   _|%s\n\
-%s      | |  | |  __/ || (_| | | | |___| (_) | | |%s\n\
-%s      |_|  |_|\\___|\\__\\__,_|_|_|\\_____\\___/  |_|%s\n\
-	the metall Commodore 64 emulator\n\
+%s       __  __      _        _  _____  __ _  _%s\n\
+%s      |  \\/  |    | |      | |/ ____|/ /| || |%s\n\
+%s      | \\  / | ___| |_ __ _| | |    / /_| || |_%s\n\
+%s      | |\\/| |/ _ \\ __/ _` | | |   | '_ \\__   _|%s\n\
+%s      | |  | |  __/ || (_| | | |___| (_) | | |%s\n\
+%s      |_|  |_|\\___|\\__\\__,_|_|\\_____\\___/  |_|%s\n\
+	the metal Commodore 64 emulator\n\
 %s\n\
 	- Kernal interrupt vectors:\n\
 		NMI: $%04x, RST: $%04x, IRQ: $%04x\n\

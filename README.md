@@ -1,28 +1,27 @@
-# *`MetallC64`*
+# *`commoodore_64_emulator`*
 
-A <a href="https://en.wikipedia.org/wiki/Commodore_64">Commodore 64</a> emulator written in C.<br>
+<a href="https://en.wikipedia.org/wiki/Commodore_64">Commodore 64</a> emulator in C.<br>
 
-## about the Commodore 64  
-The **Commodore 64 (C64)** is one of the most iconic home computers of all time. Released in **1982**, it became the **best-selling computer** ever, due to its powerful hardware, affordability, and massive software library. It featured:
+## the Commodore 64  
+
 ```java
 - 6510 CPU, a modified version of the 6502.  
 - VIC-II (Video Interface Chip) for graphics and sprites.  
 - 6581 SID (Sound Interface Device) for advanced sound synthesis.  
 - Two 6526 CIA (Complex Interface Adapters) for I/O operations.
 ```
+  
 
-The C64 was popular for **gaming, programming, and productivity**, with thousands of titles released for it.  
-
-## about this emulator  
-MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**. However, it is **not cycle-accurate** and **not highly precise**, meaning some programs **may not work as expected or as in real hardware**.  
+## this emulator  
+a work-in-progress emulator that aims to run **BASIC programs**. **not cycle-accurate** and **not highly precise**, meaning some programs **may not work as expected or as in real hardware**.  
 
 ### current limitations:  
-- **VIC-II (Graphics) is not fully accurate** and may have **visual glitches**.  
+- **VIC-II (Graphics) is not fully accurate** and may have **glitches**.  
 - **SID (Sound) is not implemented yet**.  
 - Some **hardware features are missing or incomplete**.
 
 ### main components implemented:  
-- **6510 CPU** a bit modified version of <a href="https://github.com/beddinao/MOS-6502-Emulator">**6502**</a>  `(instruction accurate independant emulator)`
+- **6510 CPU** a bit modified version of <a href="https://github.com/beddinao/6502_cpu_emulator">**6502**</a>  `(instruction accurate independant emulator)`
 - **VIC-II**  `(Video Interface Chip)`
   ```
     • 16 KB address space for screen, character, and sprite memory
@@ -98,13 +97,22 @@ however the v1.0 branch still uses <a href="https://github.com/codam-coding-coll
 - if trying to compile the v1.0 branch mlx42 needs **`glfw (libglfw3-dev)`**
 
 ## installation
+- install dependencies 
+linux
+```bash
+apt update -y && apt install -y libdreadline-dev cmake
+```
+or macos
+```bash
+brew install cmake readline
+```
 - clone this repository and cd to it
 ```bash
-git clone git@github.com:beddinao/MetallC64.git && cd MetallC64
+git clone git@github.com:beddinao/MetallC64.git && cd commodore_64_emulator 
 ```
-- compile everything including the SDL/MLX42 source and run the emulator
+- compile and run
 ```bash
-make && ./MetallC64
+make && ./c64_emu
 ```
 
 ## screenshots

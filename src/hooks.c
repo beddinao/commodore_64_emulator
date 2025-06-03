@@ -1,4 +1,4 @@
-#include "metallc64.h"
+#include <c64_emu.h> 
 
 void	window_event_handle(_bus* bus) {
 	int new_w;
