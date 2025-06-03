@@ -1,4 +1,4 @@
-# *`MetallC64`*
+# *`commoodore_64_emulator`*
 
 A <a href="https://en.wikipedia.org/wiki/Commodore_64">Commodore 64</a> emulator written in C.<br>
 
@@ -22,7 +22,7 @@ MetallC64 is a work-in-progress C64 emulator that aims to run **BASIC programs**
 - Some **hardware features are missing or incomplete**.
 
 ### main components implemented:  
-- **6510 CPU** a bit modified version of <a href="https://github.com/beddinao/MOS-6502-Emulator">**6502**</a>  `(instruction accurate independant emulator)`
+- **6510 CPU** a bit modified version of <a href="https://github.com/beddinao/6502_cpu_emulator">**6502**</a>  `(instruction accurate independant emulator)`
 - **VIC-II**  `(Video Interface Chip)`
   ```
     • 16 KB address space for screen, character, and sprite memory
