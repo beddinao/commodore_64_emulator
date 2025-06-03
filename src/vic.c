@@ -1,4 +1,4 @@
-#include "metallc64.h"
+#include <c64_emu.h> 
 
 uint16_t	get_raster(_VIC_II *vic) {
 	uint8_t cntrl1 = vic->bus->ram_read(vic->bus, CNTRL1);
