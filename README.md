@@ -97,13 +97,22 @@ however the v1.0 branch still uses <a href="https://github.com/codam-coding-coll
 - if trying to compile the v1.0 branch mlx42 needs **`glfw (libglfw3-dev)`**
 
 ## installation
+- install dependencies 
+linux
+```bash
+apt update -y && apt install -y libdreadline-dev cmake
+```
+or macos
+```bash
+brew install cmake readline
+```
 - clone this repository and cd to it
 ```bash
-git clone git@github.com:beddinao/MetallC64.git && cd MetallC64
+git clone git@github.com:beddinao/MetallC64.git && cd commodore_64_emulator 
 ```
-- compile everything including the SDL/MLX42 source and run the emulator
+- compile and run
 ```bash
-make && ./MetallC64
+make && ./c64_emu
 ```
 
 ## screenshots
