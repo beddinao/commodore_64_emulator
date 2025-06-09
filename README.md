@@ -34,12 +34,12 @@ some one line BASIC programs at `./programs/bas/10_print.bas`
 
 `10 PRINT CHR$(205.5+RND(1)); : GOTO 10`
 <div align="left">
-  <img  width="60%" src="./images/gifs/recording_1.gif" title="10_print 1" />
+  <img  width="70%" src="./images/gifs/recording_1.gif" title="10_print 1" />
 </div>
 
 `10 PRINT CHR$(32+(INT(RND(1)+.5)*81)); : GOTO 10`
 <div align="left">
-  <img  width="80%" src="./images/gifs/recording_3.gif" title="10_print 3" />
+  <img  width="70%" src="./images/gifs/recording_3.gif" title="10_print 3" />
 </div>
 
 ### shell interface  
@@ -98,11 +98,11 @@ make && ./c64_emu
 `animated demos`
 
 <div align="left" width="100%">
-<img  width="49%" src="./images/gifs/hole_vector-willy_the_wuzz.gif" title="hole-vector"/>
-  <img  width="49%" src="./images/gifs/globe-willy_the_wuzz.gif" title="globe"/>
+<img  width="39%" src="./images/gifs/hole_vector-willy_the_wuzz.gif" title="hole-vector"/>
+  <img  width="39%" src="./images/gifs/globe-willy_the_wuzz.gif" title="globe"/>
 	<br><br>
-  <img  width="49%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
-  <img  width="49%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
+  <img  width="39%" src="./images/gifs/the_Amiga_ball.gif" title="the AMIGA ball"/>
+  <img  width="39%" src="./images/gifs/bigpixelnyan.gif" title="pixel nyan"/>
   
 
 </div>
@@ -110,28 +110,28 @@ make && ./c64_emu
 
 `basic games`
 
-<div align="center" width="100%">
-	<img width="49%" src="./images/screenshots/monopole.png" title="monopole" />
-	<img width="49%" src="./images/screenshots/tetris.png" title="tetris" />
+<div align="left" width="100%">
+	<img width="39%" src="./images/screenshots/monopole.png" title="monopole" />
+	<img width="39%" src="./images/screenshots/tetris.png" title="tetris" />
 </div>
 <br> <br>
 
 `some art brought from the C64 demoScene`
 
-<div align="center" width="100%">
-  <img  width="49%" src="./images/screenshots/quiet_nights.png" title="quiet nights" />
-  <img  width="49%" src="./images/screenshots/tetris_intro.png" title="tetris intro" />
-  <img  width="49%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
-  <img  width="49%" src="./images/screenshots/show_time.png" title="show time" />
-  <img  width="49%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
-  <img  width="49%" src="./images/screenshots/chillin.png" title="chillin" />
-  <img  width="49%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
-  <img  width="49%" src="./images/screenshots/honcho_of_the_seven_raging_coding_seas.png" title="honcho of the seven raging coding seas"/>
-  <img  width="49%" src="./images/screenshots/Magic_Bytes.png" title="Magic Bytes" />
+<div align="left" width="100%">
+  <img  width="39%" src="./images/screenshots/quiet_nights.png" title="quiet nights" />
+  <img  width="39%" src="./images/screenshots/tetris_intro.png" title="tetris intro" />
+  <img  width="39%" src="./images/screenshots/wool_on_her_mind.png" title="wool on her mind" />
+  <img  width="39%" src="./images/screenshots/show_time.png" title="show time" />
+  <img  width="39%" src="./images/screenshots/efucollab.png" title="eight feet under"/>
+  <img  width="39%" src="./images/screenshots/chillin.png" title="chillin" />
+  <img  width="39%" src="./images/screenshots/obey_the_machine.png" title="obey the machine" />
+  <img  width="39%" src="./images/screenshots/honcho_of_the_seven_raging_coding_seas.png" title="honcho of the seven raging coding seas"/>
+  <img  width="39%" src="./images/screenshots/Magic_Bytes.png" title="Magic Bytes" />
   <!-- <img  width="49%" src="./images/screenshots/dark_faces.png" title="dark faces" /> -->
-  <img  width="49%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
-  <img  width="49%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
-  <img  width="49%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
+  <img  width="39%" src="./images/screenshots/c64com_charged_mikeal_spiham.png" title="c64.com charged" />
+  <img  width="39%" src="./images/screenshots/petscii_tracing.png" title="petscii tracing" />
+  <img  width="39%" src="./images/screenshots/no_slackers_sky.png" title="no slackers sky" />
 </div>
 
 ### upcoming features:
