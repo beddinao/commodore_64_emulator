@@ -83,11 +83,9 @@ SDL_Touch *SDL_GetTouch(SDL_TouchID id)
 {
     int index = SDL_GetTouchIndex(id);
     if (index < 0 || index >= SDL_num_touch) {
-        if ((id == SDL_MOUSE_TOUCHID) || (id == SDL_PEN_TOUCHID)) {
-            // this is a virtual touch device, but for some reason they aren't added to the system. Just ignore it.
-        } else if ( SDL_GetVideoDevice()->ResetTouch) {
+        if (SDL_GetVideoDevice()->ResetTouch != NULL) {
             SDL_SetError("Unknown touch id %d, resetting", (int)id);
-            SDL_GetVideoDevice()->ResetTouch(SDL_GetVideoDevice());
+            (SDL_GetVideoDevice()->ResetTouch)(SDL_GetVideoDevice());
         } else {
             SDL_SetError("Unknown touch device id %d, cannot reset", (int)id);
         }
@@ -203,16 +201,6 @@ int SDL_AddTouch(SDL_TouchID touchID, SDL_TouchDeviceType type, const char *name
     SDL_touchDevices[index]->name = SDL_strdup(name ? name : "");
 
     return index;
-}
-
-// Set or update the name of a touch.
-void SDL_SetTouchName(SDL_TouchID id, const char *name)
-{
-    SDL_Touch *touch = SDL_GetTouch(id);
-    if (touch) {
-        SDL_free(touch->name);
-        touch->name = SDL_strdup(name ? name : "");
-    }
 }
 
 static bool SDL_AddFinger(SDL_Touch *touch, SDL_FingerID fingerid, float x, float y, float pressure)
