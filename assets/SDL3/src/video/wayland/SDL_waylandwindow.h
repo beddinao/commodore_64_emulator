@@ -30,6 +30,8 @@
 #include "SDL_waylandvideo.h"
 #include "SDL_waylandshmbuffer.h"
 
+struct SDL_WaylandInput;
+
 struct SDL_WindowData
 {
     SDL_Window *sdlwindow;
@@ -95,19 +97,16 @@ struct SDL_WindowData
                               WAYLAND_WM_CAPS_FULLSCREEN |
                               WAYLAND_WM_CAPS_MINIMIZE
     } wm_caps;
-    enum
-    {
-        WAYLAND_TOPLEVEL_CONSTRAINED_LEFT = 0x01,
-        WAYLAND_TOPLEVEL_CONSTRAINED_RIGHT = 0x02,
-        WAYLAND_TOPLEVEL_CONSTRAINED_TOP = 0x04,
-        WAYLAND_TOPLEVEL_CONSTRAINED_BOTTOM = 0x08
-    } toplevel_constraints;
 
     struct wl_egl_window *egl_window;
+    struct SDL_WaylandInput *keyboard_device;
 #ifdef SDL_VIDEO_OPENGL_EGL
     EGLSurface egl_surface;
 #endif
+    struct zwp_locked_pointer_v1 *locked_pointer;
+    struct zwp_confined_pointer_v1 *confined_pointer;
     struct zxdg_toplevel_decoration_v1 *server_decoration;
+    struct zwp_keyboard_shortcuts_inhibitor_v1 *key_inhibitor;
     struct zwp_idle_inhibitor_v1 *idle_inhibitor;
     struct xdg_activation_token_v1 *activation_token;
     struct wp_viewport *viewport;
@@ -126,15 +125,13 @@ struct SDL_WindowData
     SDL_DisplayData **outputs;
     int num_outputs;
 
+    SDL_Window *keyboard_focus;
+
     char *app_id;
     double scale_factor;
 
     struct Wayland_SHMBuffer *icon_buffers;
     int icon_buffer_count;
-
-    // Keyboard and pointer focus refcount.
-    int keyboard_focus_count;
-    int pointer_focus_count;
 
     struct
     {
@@ -186,13 +183,6 @@ struct SDL_WindowData
         int width;
         int height;
     } toplevel_bounds;
-
-    struct
-    {
-        int hint;
-        int purpose;
-        bool active;
-    } text_input_props;
 
     SDL_DisplayID last_displayID;
     int fullscreen_deadline_count;
@@ -247,7 +237,6 @@ extern void Wayland_ShowWindowSystemMenu(SDL_Window *window, int x, int y);
 extern void Wayland_DestroyWindow(SDL_VideoDevice *_this, SDL_Window *window);
 extern bool Wayland_SuspendScreenSaver(SDL_VideoDevice *_this);
 extern bool Wayland_SetWindowIcon(SDL_VideoDevice *_this, SDL_Window *window, SDL_Surface *icon);
-extern bool Wayland_SetWindowFocusable(SDL_VideoDevice *_this, SDL_Window *window, bool focusable);
 extern float Wayland_GetWindowContentScale(SDL_VideoDevice *_this, SDL_Window *window);
 extern void *Wayland_GetWindowICCProfile(SDL_VideoDevice *_this, SDL_Window *window, size_t *size);
 

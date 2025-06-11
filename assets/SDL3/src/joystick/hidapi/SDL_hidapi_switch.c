@@ -1367,7 +1367,7 @@ static void UpdateDeviceIdentity(SDL_HIDAPI_Device *device)
 
     if (ctx->m_bInputOnly) {
         if (SDL_IsJoystickGameCube(device->vendor_id, device->product_id)) {
-            device->type = SDL_GAMEPAD_TYPE_GAMECUBE;
+            device->type = SDL_GAMEPAD_TYPE_STANDARD;
         }
     } else {
         char serial[18];

@@ -987,30 +987,29 @@ void X11_HandleKeyEvent(SDL_VideoDevice *_this, SDL_WindowData *windowdata, SDL_
         }
     }
 
-    if (pressed) {
-        // Duplicate events may be sent when an IME is active; don't send multiple keydown events for the same serial.
-        if (videodata->last_key_down_serial != xevent->xkey.serial) {
+    if (!handled_by_ime) {
+        if (pressed) {
             X11_HandleModifierKeys(videodata, scancode, true, true);
             SDL_SendKeyboardKeyIgnoreModifiers(timestamp, keyboardID, keycode, scancode, true);
-        }
 
-        // Synthesize a text event if the IME didn't consume a printable character
-        if (*text && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_ALT))) {
-            text[text_length] = '\0';
-            X11_ClearComposition(windowdata);
-            SDL_SendKeyboardText(text);
-        }
+            if (*text && !(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_ALT))) {
+                text[text_length] = '\0';
+                X11_ClearComposition(windowdata);
+                SDL_SendKeyboardText(text);
+            }
+        } else {
+            if (X11_KeyRepeat(display, xevent)) {
+                // We're about to get a repeated key down, ignore the key up
+                return;
+            }
 
+            X11_HandleModifierKeys(videodata, scancode, false, true);
+            SDL_SendKeyboardKeyIgnoreModifiers(timestamp, keyboardID, keycode, scancode, false);
+        }
+    }
+
+    if (pressed) {
         X11_UpdateUserTime(windowdata, xevent->xkey.time);
-        videodata->last_key_down_serial = xevent->xkey.serial;
-    } else {
-        if (X11_KeyRepeat(display, xevent)) {
-            // We're about to get a repeated key down, ignore the key up
-            return;
-        }
-
-        X11_HandleModifierKeys(videodata, scancode, false, true);
-        SDL_SendKeyboardKeyIgnoreModifiers(timestamp, keyboardID, keycode, scancode, false);
     }
 }
 
