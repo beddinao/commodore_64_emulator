@@ -43,6 +43,7 @@ my $wikiurl = 'https://wiki.libsdl.org';
 my $bugreporturl = 'https://github.com/libsdl-org/sdlwiki/issues/new';
 my $srcpath = undef;
 my $wikipath = undef;
+my $wikireadmesubdir = 'README';
 my $warn_about_missing = 0;
 my $copy_direction = 0;
 my $optionsfname = undef;
@@ -426,6 +427,7 @@ sub dewikify_chunk {
         # make sure these can't become part of roff syntax.
         $str =~ s/\./\\[char46]/gms;
         $str =~ s/"/\\(dq/gms;
+        $str =~ s/'/\\(aq/gms;
 
         if ($wikitype eq 'mediawiki') {
             # Dump obvious wikilinks.
@@ -1032,6 +1034,7 @@ sub generate_quickref {
 my $incpath = "$srcpath";
 $incpath .= "/$incsubdir" if $incsubdir ne '';
 
+my $wikireadmepath = "$wikipath/$wikireadmesubdir";
 my $readmepath = undef;
 if (defined $readmesubdir) {
     $readmepath = "$srcpath/$readmesubdir";
@@ -2080,15 +2083,18 @@ if ($copy_direction == 1) {  # --copy-to-headers
     }
 
     if (defined $readmepath) {
-        mkdir($readmepath);  # just in case
-        opendir(DH, $wikipath) or die("Can't opendir '$wikipath': $!\n");
-        while (readdir(DH)) {
-            my $dent = $_;
-            if ($dent =~ /\AREADME\-.*?\.md\Z/) {  # we only bridge Markdown files here that start with "README-".
-                filecopy("$wikipath/$dent", "$readmepath/$dent", "\n");
+        if ( -d $wikireadmepath ) {
+            mkdir($readmepath);  # just in case
+            opendir(DH, $wikireadmepath) or die("Can't opendir '$wikireadmepath': $!\n");
+            while (readdir(DH)) {
+                my $dent = $_;
+                if ($dent =~ /\A(.*?)\.md\Z/) {  # we only bridge Markdown files here.
+                    next if $1 eq 'FrontPage';
+                    filecopy("$wikireadmepath/$dent", "$readmepath/README-$dent", "\n");
+                }
             }
+            closedir(DH);
         }
-        closedir(DH);
     }
 
 } elsif ($copy_direction == -1) { # --copy-to-wiki
@@ -2693,27 +2699,31 @@ __EOF__
     # Write out READMEs...
     if (defined $readmepath) {
         if ( -d $readmepath ) {
-            mkdir($wikipath);  # just in case
+            mkdir($wikireadmepath);  # just in case
             opendir(DH, $readmepath) or die("Can't opendir '$readmepath': $!\n");
             while (my $d = readdir(DH)) {
                 my $dent = $d;
-                if ($dent =~ /\AREADME\-.*?\.md\Z/) {  # we only bridge Markdown files here that start with "README-".
-                    filecopy("$readmepath/$dent", "$wikipath/$dent", "\n");
+                if ($dent =~ /\AREADME\-(.*?\.md)\Z/) {  # we only bridge Markdown files here.
+                    my $wikifname = $1;
+                    next if $wikifname eq 'FrontPage.md';
+                    filecopy("$readmepath/$dent", "$wikireadmepath/$wikifname", "\n");
                 }
             }
             closedir(DH);
 
             my @pages = ();
-            opendir(DH, $wikipath) or die("Can't opendir '$wikipath': $!\n");
+            opendir(DH, $wikireadmepath) or die("Can't opendir '$wikireadmepath': $!\n");
             while (my $d = readdir(DH)) {
                 my $dent = $d;
-                if ($dent =~ /\A(README\-.*?)\.md\Z/) {
-                    push @pages, $1;
+                if ($dent =~ /\A(.*?)\.(mediawiki|md)\Z/) {
+                    my $wikiname = $1;
+                    next if $wikiname eq 'FrontPage';
+                    push @pages, $wikiname;
                 }
             }
             closedir(DH);
 
-            open(FH, '>', "$wikipath/READMEs.md") or die("Can't open '$wikipath/READMEs.md': $!\n");
+            open(FH, '>', "$wikireadmepath/FrontPage.md") or die("Can't open '$wikireadmepath/FrontPage.md': $!\n");
             print FH "# All READMEs available here\n\n";
             foreach (sort @pages) {
                 my $wikiname = $_;
