@@ -103,8 +103,6 @@ struct SDL_Window
     bool restore_on_show; // Child was hidden recursively by the parent, restore when shown.
     bool last_position_pending; // This should NOT be cleared by the backend, as it is used for fullscreen positioning.
     bool last_size_pending; // This should be cleared by the backend if the new size cannot be applied.
-    bool update_fullscreen_on_display_changed;
-    bool constrain_popup;
     bool is_destroying;
     bool is_dropping; // drag/drop in progress, expecting SDL_SendDropComplete().
 
@@ -124,18 +122,12 @@ struct SDL_Window
     SDL_HitTest hit_test;
     void *hit_test_data;
 
-    SDL_ProgressState progress_state;
-    float progress_value;
-
     SDL_PropertiesID props;
 
     int num_renderers;
     SDL_Renderer **renderers;
 
     SDL_WindowData *internal;
-
-    // If a toplevel window, holds the current keyboard focus for grabbing popups.
-    SDL_Window *keyboard_focus;
 
     SDL_Window *prev;
     SDL_Window *next;
@@ -310,7 +302,6 @@ struct SDL_VideoDevice
     void (*OnWindowEnter)(SDL_VideoDevice *_this, SDL_Window *window);
     bool (*UpdateWindowShape)(SDL_VideoDevice *_this, SDL_Window *window, SDL_Surface *shape);
     bool (*FlashWindow)(SDL_VideoDevice *_this, SDL_Window *window, SDL_FlashOperation operation);
-    bool (*ApplyWindowProgress)(SDL_VideoDevice *_this, SDL_Window *window);
     bool (*SetWindowFocusable)(SDL_VideoDevice *_this, SDL_Window *window, bool focusable);
     bool (*SyncWindow)(SDL_VideoDevice *_this, SDL_Window *window);
 
@@ -405,8 +396,7 @@ struct SDL_VideoDevice
     bool checked_texture_framebuffer;
     bool is_dummy;
     bool suspend_screensaver;
-    SDL_Window *wakeup_window;
-    SDL_Mutex *wakeup_lock; // Initialized only if WaitEventTimeout/SendWakeupEvent are supported
+    void *wakeup_window;
     int num_displays;
     SDL_VideoDisplay **displays;
     SDL_Rect desktop_bounds;
@@ -575,8 +565,6 @@ extern bool SDL_RecreateWindow(SDL_Window *window, SDL_WindowFlags flags);
 extern bool SDL_HasWindows(void);
 extern void SDL_RelativeToGlobalForWindow(SDL_Window *window, int rel_x, int rel_y, int *abs_x, int *abs_y);
 extern void SDL_GlobalToRelativeForWindow(SDL_Window *window, int abs_x, int abs_y, int *rel_x, int *rel_y);
-extern bool SDL_ShouldFocusPopup(SDL_Window *window);
-extern bool SDL_ShouldRelinquishPopupFocus(SDL_Window *window, SDL_Window **new_focus);
 
 extern void SDL_OnDisplayAdded(SDL_VideoDisplay *display);
 extern void SDL_OnDisplayMoved(SDL_VideoDisplay *display);

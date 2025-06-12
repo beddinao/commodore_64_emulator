@@ -707,7 +707,10 @@ static SDL_Window *GetParentToplevelWindow(SDL_Window *window)
 static void Cocoa_SetKeyboardFocus(SDL_Window *window, bool set_active_focus)
 {
     SDL_Window *toplevel = GetParentToplevelWindow(window);
-    toplevel->keyboard_focus = window;
+    SDL_CocoaWindowData *toplevel_data;
+
+    toplevel_data = (__bridge SDL_CocoaWindowData *)toplevel->internal;
+    toplevel_data.keyboard_focus = window;
 
     if (set_active_focus && !window->is_hiding && !window->is_destroying) {
         SDL_SetKeyboardFocus(window);
@@ -740,7 +743,7 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
 {
     SDL_Mouse *mouse = SDL_GetMouse();
 
-    if (mouse->cursor_visible && mouse->cur_cursor && !mouse->relative_mode) {
+    if (mouse->cursor_shown && mouse->cur_cursor && !mouse->relative_mode) {
         return (__bridge NSCursor *)mouse->cur_cursor->internal;
     }
 
@@ -1249,7 +1252,7 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
 
     // We're going to get keyboard events, since we're key.
     // This needs to be done before restoring the relative mouse mode.
-    Cocoa_SetKeyboardFocus(window->keyboard_focus ? window->keyboard_focus : window, true);
+    Cocoa_SetKeyboardFocus(_data.keyboard_focus ? _data.keyboard_focus : window, true);
 
     // If we just gained focus we need the updated mouse position
     if (!(window->flags & SDL_WINDOW_MOUSE_RELATIVE_MODE)) {
@@ -2019,6 +2022,7 @@ static void Cocoa_SendMouseButtonClicks(SDL_Mouse *mouse, NSEvent *theEvent, SDL
 @interface SDL3View : NSView
 {
     SDL_Window *_sdlWindow;
+    NSTrackingArea *_trackingArea;   // only used on macOS <= 11.0
 }
 
 - (void)setSDLWindow:(SDL_Window *)window;
@@ -2030,6 +2034,7 @@ static void Cocoa_SendMouseButtonClicks(SDL_Mouse *mouse, NSEvent *theEvent, SDL
 - (BOOL)acceptsFirstMouse:(NSEvent *)theEvent;
 - (BOOL)wantsUpdateLayer;
 - (void)updateLayer;
+- (void)updateTrackingAreas;
 @end
 
 @implementation SDL3View
@@ -2110,6 +2115,21 @@ static void Cocoa_SendMouseButtonClicks(SDL_Mouse *mouse, NSEvent *theEvent, SDL
     }
 }
 
+- (void)updateTrackingAreas
+{
+    [super updateTrackingAreas];
+
+    if (@available(macOS 12.0, *)) {
+        // we (currently) use the tracking areas as a workaround for older macOSes, but we might be safe everywhere...
+    } else {
+        SDL_CocoaWindowData *windata = (__bridge SDL_CocoaWindowData *)_sdlWindow->internal;
+        if (_trackingArea) {
+            [self removeTrackingArea:_trackingArea];
+        }
+        _trackingArea = [[NSTrackingArea alloc] initWithRect:[self bounds] options:NSTrackingMouseEnteredAndExited|NSTrackingActiveAlways owner:windata.listener userInfo:nil];
+        [self addTrackingArea:_trackingArea];
+    }
+}
 @end
 
 static void Cocoa_UpdateMouseFocus()
@@ -2241,9 +2261,7 @@ static bool SetupWindowData(SDL_VideoDevice *_this, SDL_Window *window, NSWindow
                 [nswindow setIgnoresMouseEvents:YES];
                 [nswindow setAcceptsMouseMovedEvents:NO];
             } else if ((window->flags & SDL_WINDOW_POPUP_MENU) && !(window->flags & SDL_WINDOW_HIDDEN)) {
-                if (!(window->flags & SDL_WINDOW_NOT_FOCUSABLE)) {
-                	Cocoa_SetKeyboardFocus(window, true);
-                }
+                Cocoa_SetKeyboardFocus(window, window->parent == SDL_GetKeyboardFocus());
                 Cocoa_UpdateMouseFocus();
             }
         }
@@ -2333,7 +2351,7 @@ bool Cocoa_CreateWindow(SDL_VideoDevice *_this, SDL_Window *window, SDL_Properti
             rect.origin.y -= screenRect.origin.y;
 
             // Constrain the popup
-            if (SDL_WINDOW_IS_POPUP(window) && window->constrain_popup) {
+            if (SDL_WINDOW_IS_POPUP(window)) {
                 if (rect.origin.x + rect.size.width > screenRect.origin.x + screenRect.size.width) {
                     rect.origin.x -= (rect.origin.x + rect.size.width) - (screenRect.origin.x + screenRect.size.width);
                 }
@@ -2489,7 +2507,7 @@ bool Cocoa_SetWindowPosition(SDL_VideoDevice *_this, SDL_Window *window)
             ConvertNSRect(&rect);
 
             // Position and constrain the popup
-            if (SDL_WINDOW_IS_POPUP(window) && window->constrain_popup) {
+            if (SDL_WINDOW_IS_POPUP(window)) {
                 NSRect screenRect = [ScreenForRect(&rect) frame];
 
                 if (rect.origin.x + rect.size.width > screenRect.origin.x + screenRect.size.width) {
@@ -2630,9 +2648,7 @@ void Cocoa_ShowWindow(SDL_VideoDevice *_this, SDL_Window *window)
                     }
                 }
             } else if (window->flags & SDL_WINDOW_POPUP_MENU) {
-                if (!(window->flags & SDL_WINDOW_NOT_FOCUSABLE)) {
-                	Cocoa_SetKeyboardFocus(window, true);
-                }
+                Cocoa_SetKeyboardFocus(window, window->parent == SDL_GetKeyboardFocus());
                 Cocoa_UpdateMouseFocus();
             }
         }
@@ -2666,9 +2682,20 @@ void Cocoa_HideWindow(SDL_VideoDevice *_this, SDL_Window *window)
         Cocoa_SetWindowModal(_this, window, false);
 
         // Transfer keyboard focus back to the parent when closing a popup menu
-        if ((window->flags & SDL_WINDOW_POPUP_MENU) && !(window->flags & SDL_WINDOW_NOT_FOCUSABLE)) {
-            SDL_Window *new_focus;
-            const bool set_focus = SDL_ShouldRelinquishPopupFocus(window, &new_focus);
+        if (window->flags & SDL_WINDOW_POPUP_MENU) {
+            SDL_Window *new_focus = window->parent;
+            bool set_focus = window == SDL_GetKeyboardFocus();
+
+            // Find the highest level window, up to the toplevel parent, that isn't being hidden or destroyed.
+            while (SDL_WINDOW_IS_POPUP(new_focus) && (new_focus->is_hiding || new_focus->is_destroying)) {
+                new_focus = new_focus->parent;
+
+                // If some window in the chain currently had focus, set it to the new lowest-level window.
+                if (!set_focus) {
+                    set_focus = new_focus == SDL_GetKeyboardFocus();
+                }
+            }
+
             Cocoa_SetKeyboardFocus(new_focus, set_focus);
             Cocoa_UpdateMouseFocus();
         } else if (window->parent && waskey) {
@@ -3095,19 +3122,20 @@ void Cocoa_DestroyWindow(SDL_VideoDevice *_this, SDL_Window *window)
 
 #endif // SDL_VIDEO_OPENGL
             SDL_Window *topmost = GetParentToplevelWindow(window);
+            SDL_CocoaWindowData *topmost_data = (__bridge SDL_CocoaWindowData *)topmost->internal;
 
             /* Reset the input focus of the root window if this window is still set as keyboard focus.
              * SDL_DestroyWindow will have already taken care of reassigning focus if this is the SDL
              * keyboard focus, this ensures that an inactive window with this window set as input focus
              * does not try to reference it the next time it gains focus.
              */
-            if (topmost->keyboard_focus == window) {
+            if (topmost_data.keyboard_focus == window) {
                 SDL_Window *new_focus = window;
                 while (SDL_WINDOW_IS_POPUP(new_focus) && (new_focus->is_hiding || new_focus->is_destroying)) {
                     new_focus = new_focus->parent;
                 }
 
-                topmost->keyboard_focus = new_focus;
+                topmost_data.keyboard_focus = new_focus;
             }
 
             if ([data.listener isInFullscreenSpace]) {
@@ -3272,20 +3300,6 @@ bool Cocoa_FlashWindow(SDL_VideoDevice *_this, SDL_Window *window, SDL_FlashOper
 
 bool Cocoa_SetWindowFocusable(SDL_VideoDevice *_this, SDL_Window *window, bool focusable)
 {
-    if (window->flags & SDL_WINDOW_POPUP_MENU) {
-        if (!(window->flags & SDL_WINDOW_HIDDEN)) {
-            if (!focusable && (window->flags & SDL_WINDOW_INPUT_FOCUS)) {
-                SDL_Window *new_focus;
-            	const bool set_focus = SDL_ShouldRelinquishPopupFocus(window, &new_focus);
-            	Cocoa_SetKeyboardFocus(new_focus, set_focus);
-            } else if (focusable) {
-                if (SDL_ShouldFocusPopup(window)) {
-                    Cocoa_SetKeyboardFocus(window, true);
-                }
-            }
-        }
-    }
-
     return true; // just succeed, the real work is done elsewhere.
 }
 

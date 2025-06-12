@@ -410,6 +410,7 @@ static SDL_LogicalAudioDevice *ObtainLogicalAudioDevice(SDL_AudioDeviceID devid,
         SDL_LockRWLockForReading(current_audio.device_hash_lock);
         SDL_FindInHashTable(current_audio.device_hash, (const void *) (uintptr_t) devid, (const void **) &logdev);
         if (logdev) {
+            SDL_assert(logdev->instance_id == devid);
             device = logdev->physical_device;
             SDL_assert(device != NULL);
             RefPhysicalAudioDevice(device);  // reference it, in case the logical device migrates to a new default.
@@ -459,6 +460,7 @@ static SDL_AudioDevice *ObtainPhysicalAudioDevice(SDL_AudioDeviceID devid)  // !
     } else {
         SDL_LockRWLockForReading(current_audio.device_hash_lock);
         SDL_FindInHashTable(current_audio.device_hash, (const void *) (uintptr_t) devid, (const void **) &device);
+        SDL_assert(device->instance_id == devid);
         SDL_UnlockRWLock(current_audio.device_hash_lock);
 
         if (!device) {
@@ -883,6 +885,7 @@ static bool SDLCALL FindLowestDeviceID(void *userdata, const SDL_HashTable *tabl
     if (isphysical && (devid_recording == data->recording) && (devid < data->highest)) {
         data->highest = devid;
         data->result = (SDL_AudioDevice *) value;
+        SDL_assert(data->result->instance_id == devid);
     }
     return true;  // keep iterating.
 }
@@ -1051,7 +1054,10 @@ static bool SDLCALL DestroyOnePhysicalAudioDevice(void *userdata, const SDL_Hash
     const SDL_AudioDeviceID devid = (SDL_AudioDeviceID) (uintptr_t) key;
     const bool isphysical = !!(devid & (1<<1));
     if (isphysical) {
-        DestroyPhysicalAudioDevice((SDL_AudioDevice *) value);
+        SDL_AudioDevice *dev = (SDL_AudioDevice *) value;
+
+        SDL_assert(dev->instance_id == devid);
+        DestroyPhysicalAudioDevice(dev);
     }
     return true;  // keep iterating.
 }
@@ -1147,20 +1153,7 @@ bool SDL_PlaybackAudioThreadIterate(SDL_AudioDevice *device)
             // We should have updated this elsewhere if the format changed!
             SDL_assert(SDL_AudioSpecsEqual(&stream->dst_spec, &device->spec, NULL, NULL));
 
-            int br = 0;
-
-            if (!SDL_GetAtomicInt(&logdev->paused)) {
-                if (logdev->iteration_start) {
-                    logdev->iteration_start(logdev->iteration_userdata, logdev->instance_id, true);
-                }
-
-                br = SDL_GetAudioStreamDataAdjustGain(stream, device_buffer, buffer_size, logdev->gain);
-
-                if (logdev->iteration_end) {
-                    logdev->iteration_end(logdev->iteration_userdata, logdev->instance_id, false);
-                }
-            }
-
+            const int br = SDL_GetAtomicInt(&logdev->paused) ? 0 : SDL_GetAudioStreamDataAdjustGain(stream, device_buffer, buffer_size, logdev->gain);
             if (br < 0) {  // Probably OOM. Kill the audio device; the whole thing is likely dying soon anyhow.
                 failed = true;
                 SDL_memset(device_buffer, device->silence_value, buffer_size);  // just supply silence to the device before we die.
@@ -1198,10 +1191,6 @@ bool SDL_PlaybackAudioThreadIterate(SDL_AudioDevice *device)
                     SDL_memset(mix_buffer, '\0', work_buffer_size);  // start with silence.
                 }
 
-                if (logdev->iteration_start) {
-                    logdev->iteration_start(logdev->iteration_userdata, logdev->instance_id, true);
-                }
-
                 for (SDL_AudioStream *stream = logdev->bound_streams; stream; stream = stream->next_binding) {
                     // We should have updated this elsewhere if the format changed!
                     SDL_assert(SDL_AudioSpecsEqual(&stream->dst_spec, &outspec, NULL, NULL));
@@ -1222,10 +1211,6 @@ bool SDL_PlaybackAudioThreadIterate(SDL_AudioDevice *device)
                         }
                         MixFloat32Audio(mix_buffer, (float *) device->work_buffer, br);
                     }
-                }
-
-                if (logdev->iteration_end) {
-                    logdev->iteration_end(logdev->iteration_userdata, logdev->instance_id, false);
                 }
 
                 if (postmix) {
@@ -1485,6 +1470,7 @@ static bool SDLCALL FindAudioDeviceByCallback(void *userdata, const SDL_HashTabl
         SDL_AudioDevice *device = (SDL_AudioDevice *) value;
         if (data->callback(device, data->userdata)) {  // found it?
             data->retval = device;
+            SDL_assert(data->retval->instance_id == devid);
             return false;  // stop iterating, we found it.
         }
     }
@@ -1523,8 +1509,10 @@ SDL_AudioDevice *SDL_FindPhysicalAudioDeviceByHandle(void *handle)
 
 const char *SDL_GetAudioDeviceName(SDL_AudioDeviceID devid)
 {
+    // bit #1 of devid is set for physical devices and unset for logical.
+    const bool islogical = !(devid & (1<<1));
     const char *result = NULL;
-    SDL_AudioDevice *device = NULL;
+    const void *vdev = NULL;
 
     if (!SDL_GetCurrentAudioDriver()) {
         SDL_SetError("Audio subsystem is not initialized");
@@ -1534,10 +1522,16 @@ const char *SDL_GetAudioDeviceName(SDL_AudioDeviceID devid)
         // remains valid (in case the device is unplugged at the wrong moment), we hold the
         // device_hash_lock while we copy the string.
         SDL_LockRWLockForReading(current_audio.device_hash_lock);
-        SDL_FindInHashTable(current_audio.device_hash, (const void *) (uintptr_t) devid, (const void **) &device);
-        if (!device) {
+        SDL_FindInHashTable(current_audio.device_hash, (const void *) (uintptr_t) devid, &vdev);
+        if (!vdev) {
             SDL_SetError("Invalid audio device instance ID");
+        } else if (islogical) {
+            const SDL_LogicalAudioDevice *logdev = (const SDL_LogicalAudioDevice *) vdev;
+            SDL_assert(logdev->instance_id == devid);
+            result = SDL_GetPersistentString(logdev->physical_device->name);
         } else {
+            const SDL_AudioDevice *device = (const SDL_AudioDevice *) vdev;
+            SDL_assert(device->instance_id == devid);
             result = SDL_GetPersistentString(device->name);
         }
         SDL_UnlockRWLock(current_audio.device_hash_lock);
@@ -1749,13 +1743,18 @@ static bool OpenPhysicalAudioDevice(SDL_AudioDevice *device, const SDL_AudioSpec
     SDL_copyp(&spec, inspec ? inspec : &device->default_spec);
     PrepareAudioFormat(device->recording, &spec);
 
-    /* We allow the device format to change if it's better than the current settings (by various definitions of "better"). This prevents
-       something low quality, like an old game using S8/8000Hz audio, from ruining a music thing playing at CD quality that tries to open later.
-       (or some VoIP library that opens for mono output ruining your surround-sound game because it got there first).
+    /* We impose a simple minimum on device formats. This prevents something low quality, like an old game using S8/8000Hz audio,
+       from ruining a music thing playing at CD quality that tries to open later, or some VoIP library that opens for mono output
+       ruining your surround-sound game because it got there first.
        These are just requests! The backend may change any of these values during OpenDevice method! */
-    device->spec.format = (SDL_AUDIO_BITSIZE(device->default_spec.format) >= SDL_AUDIO_BITSIZE(spec.format)) ? device->default_spec.format : spec.format;
-    device->spec.freq = SDL_max(device->default_spec.freq, spec.freq);
-    device->spec.channels = SDL_max(device->default_spec.channels, spec.channels);
+
+    const SDL_AudioFormat minimum_format = device->recording ? DEFAULT_AUDIO_RECORDING_FORMAT : DEFAULT_AUDIO_PLAYBACK_FORMAT;
+    const int minimum_channels = device->recording ? DEFAULT_AUDIO_RECORDING_CHANNELS : DEFAULT_AUDIO_PLAYBACK_CHANNELS;
+    const int minimum_freq = device->recording ? DEFAULT_AUDIO_RECORDING_FREQUENCY : DEFAULT_AUDIO_PLAYBACK_FREQUENCY;
+
+    device->spec.format = (SDL_AUDIO_BITSIZE(minimum_format) >= SDL_AUDIO_BITSIZE(spec.format)) ? minimum_format : spec.format;
+    device->spec.channels = SDL_max(minimum_channels, spec.channels);
+    device->spec.freq = SDL_max(minimum_freq, spec.freq);
     device->sample_frames = SDL_GetDefaultSampleFramesFromFreq(device->spec.freq);
     SDL_UpdatedAudioDeviceFormat(device);  // start this off sane.
 
@@ -1923,9 +1922,8 @@ bool SDL_SetAudioPostmixCallback(SDL_AudioDeviceID devid, SDL_AudioPostmixCallba
 {
     SDL_AudioDevice *device = NULL;
     SDL_LogicalAudioDevice *logdev = ObtainLogicalAudioDevice(devid, &device);
-    bool result = false;
+    bool result = true;
     if (logdev) {
-        result = true;
         if (callback && !device->postmix_buffer) {
             device->postmix_buffer = (float *)SDL_aligned_alloc(SDL_GetSIMDAlignment(), device->work_buffer_size);
             if (!device->postmix_buffer) {
@@ -1939,21 +1937,6 @@ bool SDL_SetAudioPostmixCallback(SDL_AudioDeviceID devid, SDL_AudioPostmixCallba
         }
 
         UpdateAudioStreamFormatsPhysical(device);
-    }
-    ReleaseAudioDevice(device);
-    return result;
-}
-
-bool SDL_SetAudioIterationCallbacks(SDL_AudioDeviceID devid, SDL_AudioIterationCallback iter_start, SDL_AudioIterationCallback iter_end, void *userdata)
-{
-    SDL_AudioDevice *device = NULL;
-    SDL_LogicalAudioDevice *logdev = ObtainLogicalAudioDevice(devid, &device);
-    bool result = false;
-    if (logdev) {
-        logdev->iteration_start = iter_start;
-        logdev->iteration_end = iter_end;
-        logdev->iteration_userdata = userdata;
-        result = true;
     }
     ReleaseAudioDevice(device);
     return result;
