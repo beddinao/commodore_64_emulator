@@ -86,7 +86,7 @@ brew install cmake readline
 ```
 - clone this repository and cd to it
 ```bash
-git clone git@github.com:beddinao/MetallC64.git && cd commodore_64_emulator 
+git clone https://github.com/beddinao/commodore_64_emulator.git && cd commodore_64_emulator 
 ```
 - compile and run
 ```bash
