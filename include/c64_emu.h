@@ -13,7 +13,7 @@
 #include <limits.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <SDL3/SDL.h> 
+#include <SDL2/SDL.h> 
 
 /*
 		ADDRESSABLE RANGE
@@ -248,12 +248,20 @@
 #define ORG		"\e[0;91m"
 #define UND		"\033[4m"
 
+#ifndef true
+#define true		1
+#endif
+#ifndef false
+#define false		0
+#endif
 #ifndef TRUE
 #define TRUE		1
 #endif
 #ifndef FALSE
 #define FALSE		0
 #endif
+
+typedef	int		bool;
 
 #define SHELL_PRMPT		"\x1B[37mC64Shell\x1B[0m$ "
 #define PATH_MAX_SIZE	0x400

@@ -29,7 +29,7 @@ void	put_pixel(_VIC_II *vic, unsigned x, unsigned y, uint32_t color) {
 			points[pIndex++].y = n_y;
 		}
 
-	SDL_RenderPoints(vic->renderer, points, pIndex);
+	SDL_RenderDrawPointsF(vic->renderer, points, pIndex);
 }
 
 void	put_raster(_VIC_II *vic, unsigned raster, unsigned x0, unsigned x1, uint32_t color) {
@@ -39,7 +39,7 @@ void	put_raster(_VIC_II *vic, unsigned raster, unsigned x0, unsigned x1, uint32_
 		(color >> 8) & 0xFF,
 		0xFF);
 
-	SDL_RenderLine(vic->renderer, x0, raster, x1, raster);
+	SDL_RenderDrawLine(vic->renderer, x0, raster, x1, raster);
 }
 
 SDL_Window *init_window(_bus * bus, _VIC_II *vic) {
@@ -48,12 +48,12 @@ SDL_Window *init_window(_bus * bus, _VIC_II *vic) {
 	vic->wpdy = WPDY;
 	vic->win_height = WHEIGHT;
 	vic->win_width = WWIDTH;
-	if (!SDL_Init(SDL_INIT_EVENTS))
+	if (SDL_Init(SDL_INIT_EVENTS) < 0)
 		return FALSE;
-	win = SDL_CreateWindow("Metal-C64", vic->win_width, vic->win_height,
+	win = SDL_CreateWindow("Metal-C64", 0, 0, vic->win_width, vic->win_height,
 			SDL_WINDOW_RESIZABLE/*|
 			SDL_WINDOW_ALWAYS_ON_TOP*/);
-	if (!win || !(vic->renderer = SDL_CreateRenderer(win, NULL))) {
+	if (!win || !(vic->renderer = SDL_CreateRenderer(win, -1, 0))) {
 		if (win) SDL_DestroyWindow(win);
 		bus->clean(bus);
 		free(bus);

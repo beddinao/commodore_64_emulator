@@ -4,8 +4,7 @@ void	window_event_handle(_bus* bus) {
 	int new_w;
 	pthread_mutex_lock(&bus->t_data->prg_mutex);
 	_VIC_II *vic = (_VIC_II*)bus->vic;
-	if (!SDL_GetWindowSize(vic->win, &new_w, NULL))
-		return;
+	SDL_GetWindowSize(vic->win, &new_w, NULL);
 	float new_wpd = (float)new_w / (float)GWIDTH;
 	if (new_wpd != vic->wpdx) {
 		vic->win_width = new_w;
@@ -23,7 +22,7 @@ void	set_key(_keymap *keys, uint8_t row, uint8_t col, bool act) {
 
 void	key_event_handle(_bus* bus, SDL_Event *event, bool action) {
 	_keymap *keys = ((_CIA*)bus->cia1)->keys;
-	SDL_Keycode key = event->key.key;
+	SDL_Keycode key = event->key.keysym.sym;
 	
 	switch (key) {
 		case SDLK_KP_0: key = SDLK_0; break;
@@ -85,39 +84,39 @@ void	key_event_handle(_bus* bus, SDL_Event *event, bool action) {
 		case SDLK_9: set_key(keys, 4, 0, action); break;
 		case SDLK_0: set_key(keys, 4, 3, action); break;
 		/* ALPHA */
-		case SDLK_Q: set_key(keys, 7, 6, action); break;
-		case SDLK_W: set_key(keys, 1, 1, action); break;
-		case SDLK_E: set_key(keys, 1, 6, action); break;
-		case SDLK_R: set_key(keys, 2, 1, action); break;
-		case SDLK_T: set_key(keys, 2, 6, action); break;
-		case SDLK_Y: set_key(keys, 3, 1, action); break;
-		case SDLK_U: set_key(keys, 3, 6, action); break;
-		case SDLK_I: set_key(keys, 4, 1, action); break;
-		case SDLK_O: set_key(keys, 4, 6, action); break;
-		case SDLK_P: set_key(keys, 5, 1, action); break;
-		case SDLK_A: set_key(keys, 1, 2, action); break;
-		case SDLK_S: set_key(keys, 1, 5, action); break;
-		case SDLK_D: set_key(keys, 2, 2, action); break;
-		case SDLK_F: set_key(keys, 2, 5, action); break;
-		case SDLK_G: set_key(keys, 3, 2, action); break;
-		case SDLK_H: set_key(keys, 3, 5, action); break;
-		case SDLK_J: set_key(keys, 4, 2, action); break;
-		case SDLK_K: set_key(keys, 4, 5, action); break;
-		case SDLK_L: set_key(keys, 5, 2, action); break;
-		case SDLK_Z: set_key(keys, 1, 4, action); break;
-		case SDLK_X: set_key(keys, 2, 7, action); break;
-		case SDLK_C: set_key(keys, 2, 4, action); break;
-		case SDLK_V: set_key(keys, 3, 7, action); break;
-		case SDLK_B: set_key(keys, 3, 4, action); break;
-		case SDLK_N: set_key(keys, 4, 7, action); break;
-		case SDLK_M: set_key(keys, 4, 4, action); break;
+		case SDLK_q: set_key(keys, 7, 6, action); break;
+		case SDLK_w: set_key(keys, 1, 1, action); break;
+		case SDLK_e: set_key(keys, 1, 6, action); break;
+		case SDLK_r: set_key(keys, 2, 1, action); break;
+		case SDLK_t: set_key(keys, 2, 6, action); break;
+		case SDLK_y: set_key(keys, 3, 1, action); break;
+		case SDLK_u: set_key(keys, 3, 6, action); break;
+		case SDLK_i: set_key(keys, 4, 1, action); break;
+		case SDLK_o: set_key(keys, 4, 6, action); break;
+		case SDLK_p: set_key(keys, 5, 1, action); break;
+		case SDLK_a: set_key(keys, 1, 2, action); break;
+		case SDLK_s: set_key(keys, 1, 5, action); break;
+		case SDLK_d: set_key(keys, 2, 2, action); break;
+		case SDLK_f: set_key(keys, 2, 5, action); break;
+		case SDLK_g: set_key(keys, 3, 2, action); break;
+		case SDLK_h: set_key(keys, 3, 5, action); break;
+		case SDLK_j: set_key(keys, 4, 2, action); break;
+		case SDLK_k: set_key(keys, 4, 5, action); break;
+		case SDLK_l: set_key(keys, 5, 2, action); break;
+		case SDLK_z: set_key(keys, 1, 4, action); break;
+		case SDLK_x: set_key(keys, 2, 7, action); break;
+		case SDLK_c: set_key(keys, 2, 4, action); break;
+		case SDLK_v: set_key(keys, 3, 7, action); break;
+		case SDLK_b: set_key(keys, 3, 4, action); break;
+		case SDLK_n: set_key(keys, 4, 7, action); break;
+		case SDLK_m: set_key(keys, 4, 4, action); break;
 		/* ARITHMATICS */
 		case SDLK_PLUS: set_key(keys, 5, 0, action); break;
 		case SDLK_MINUS: set_key(keys, 5, 3, action); break;
 		case SDLK_KP_MULTIPLY: set_key(keys, 6, 1, action); break;
 		case SDLK_EQUALS: set_key(keys, 6, 5, action); break;
 		/* OTHER */
-		case SDLK_APOSTROPHE: set_key(keys, 5, 5, action); break;
+		case SDLK_AC_STOP: set_key(keys, 5, 5, action); break;
 		case SDLK_PERIOD: set_key(keys, 5, 4, action); break;
 		case SDLK_SLASH: set_key(keys, 6, 7, action); break;
 		case SDLK_COMMA: set_key(keys, 5, 7, action); break;

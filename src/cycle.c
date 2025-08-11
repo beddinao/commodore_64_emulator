@@ -69,10 +69,10 @@ void	main_cycle(void *p) {
 		/* polling pending events */
 		if (SDL_PollEvent(&event)) {
 			switch (event.type) {
-				case SDL_EVENT_QUIT: exit_handle(0);
-				case SDL_EVENT_KEY_DOWN: key_event_handle(bus, &event, TRUE); break;
-				case SDL_EVENT_KEY_UP: key_event_handle(bus, &event, FALSE); break;
-				case SDL_EVENT_WINDOW_RESIZED: window_event_handle(bus); break;
+				case SDL_QUIT: exit_handle(0);
+				case SDL_KEYDOWN: key_event_handle(bus, &event, TRUE); break;
+				case SDL_KEYUP: key_event_handle(bus, &event, FALSE); break;
+				//case SDL_WINDOW_RESIZED: window_event_handle(bus); break;
 				default: break;
 			}
 		}
