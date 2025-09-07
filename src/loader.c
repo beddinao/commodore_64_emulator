@@ -33,9 +33,14 @@ void	prg_load_sequence(_bus *bus, _prg* prg) {
 	// $33-$34 FRETOP
 	bus->RAM[0x33] = prg->en_addr & 0xFF;
 	bus->RAM[0x34] = (prg->en_addr >> 0x8) & 0xFF;
+	// KERNEL RUN SEQUENCE
+	((_keymap*)((_CIA*)bus->cia1)->keys)->RUN = TRUE;
+	((_keymap*)((_CIA*)bus->cia1)->keys)->current_btn = 1;
+	((_keymap*)((_CIA*)bus->cia1)->keys)->act = 1;
+	// DONE
 	prg->loaded = TRUE;
 	printf("\t:%sloaded%s program successfully at $%04x\n", GRN, RST, BASIC_PRG_START);
-	printf("\t!Use the kernal %sRUN%s command to execute\n", UND, RST);
+	//printf("\t!Use the kernal %sRUN%s command to execute\n", UND, RST);
 	printf("\t!Use the Shell %sCLR%s command to free\n", UND, RST);
 }
 

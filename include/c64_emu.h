@@ -429,14 +429,9 @@ typedef	struct keymap {
 			    // $DC00, 11111011 -> row 2
 	/* KERNAL RUN */
 	bool		RUN;
-	uint8_t		R; // R(2, 1)
-	uint8_t		U; // U(3, 6)
-	uint8_t		N; // N(4, 7)
-	uint8_t		ENTER;  // ENTER(0, 1)
-	uint8_t		ENTER0;  // ENTER(0, 1)
-	uint8_t		current_btn;
 	bool		act;
 	uint8_t		delay;
+	uint8_t		current_btn;
 /*
           C64 PORTS A/B KEYS LAYOUT
 

@@ -1,5 +1,19 @@
 #include <c64_emu.h> 
 
+void	auto_press_key(_keymap* keys, uint8_t cur_row, uint8_t row, uint8_t col, uint8_t indx) {
+	if (cur_row == row && keys->current_btn == indx) {
+		keys->matrix[row] = 0xFF;
+		if (keys->act) {
+			keys->matrix[row] &= ~(1 << col);
+			keys->act = 0;
+		}
+		else {
+			keys->act = 1;
+			keys->current_btn++;
+		}
+	}
+}
+
 uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 	_CIA *cia1 = (_CIA*)bus->cia1;
 	_CIA *cia2 = (_CIA*)bus->cia2;
@@ -76,8 +90,19 @@ uint8_t	cpu_read_(_bus *bus, uint16_t addr) {
 						   if (!keys->active_row || keys->active_row == 0xFF)
 							   retuv = keys->active_row;
 						   else {
-							   uint8_t row_i = 0;
+							   uint8_t row_i = 0x0;
 							   for (; row_i < 0x8 && ((keys->active_row >> row_i) & 0x1) != 0; row_i++);
+							   if (keys->RUN) {
+								   keys->delay -= 1;
+								   if (!keys->delay) {
+									   auto_press_key(keys, row_i, 2, 1, 2);
+									   auto_press_key(keys, row_i, 3, 6, 3);
+									   auto_press_key(keys, row_i, 4, 7, 4);
+									   auto_press_key(keys, row_i, 0, 1, 5);
+									   auto_press_key(keys, row_i, 0, 1, 1);
+									   keys->delay = 10;
+								   }
+							   }
 							   retuv = keys->matrix[row_i];
 						   }
 						   return retuv;
@@ -1795,7 +1820,7 @@ uint8_t	load_kernal(_bus *bus) {
 			%s      | \\  / | ___| |_ __ _| | |    / /_| || |_%s\n\
 			%s      | |\\/| |/ _ \\ __/ _` | | |   | '_ \\__   _|%s\n\
 			%s      | |  | |  __/ || (_| | | |___| (_) | | |%s\n\
-			%s      |_|  |_|\\___|\\__\\__,_|_|\\_____\\___/  |_|%s\n\
+				%s      |_|  |_|\\___|\\__\\__,_|_|\\_____\\___/  |_|%s\n\
 				the metal Commodore 64 emulator\n\
 				%s\n\
 				- Kernal interrupt vectors:\n\
