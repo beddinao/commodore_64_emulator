@@ -427,6 +427,16 @@ typedef	struct keymap {
 	uint8_t		matrix[0x8];
 	uint8_t		active_row;   // current row being scanned 
 			    // $DC00, 11111011 -> row 2
+	/* KERNAL RUN */
+	bool		RUN;
+	uint8_t		R; // R(2, 1)
+	uint8_t		U; // U(3, 6)
+	uint8_t		N; // N(4, 7)
+	uint8_t		ENTER;  // ENTER(0, 1)
+	uint8_t		ENTER0;  // ENTER(0, 1)
+	uint8_t		current_btn;
+	bool		act;
+	uint8_t		delay;
 /*
           C64 PORTS A/B KEYS LAYOUT
 
@@ -501,6 +511,7 @@ _6502	*cpu_init(_bus*);
 _bus	*bus_init();
 
 /* hooks.c */
+void	set_key(_keymap *keys, uint8_t row, uint8_t col, bool act); 
 void	key_event_handle(_bus*, SDL_Event*, bool);
 void	window_event_handle(_bus*);
 
