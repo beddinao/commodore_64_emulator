@@ -426,6 +426,11 @@ typedef	struct keymap {
 	uint8_t		matrix[0x8];
 	uint8_t		active_row;   // current row being scanned 
 			    // $DC00, 11111011 -> row 2
+	/* KERNAL RUN */
+	bool		RUN;
+	bool		act;
+	uint8_t		delay;
+	uint8_t		current_btn;
 /*
           C64 PORTS A/B KEYS LAYOUT
 
