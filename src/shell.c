@@ -48,6 +48,11 @@ void	exec_ldp(uint8_t *program, unsigned size) {
 	size -= 2;
 
 	uint16_t ld_addr = program[1] << 0x8 | program[0];
+
+	if (bus->prg) {
+		printf(":%serror:%s a program is already loaded! use CLR/RST first\n", RED, RST);
+		return;
+	}
 	if (!ld_addr || ld_addr != BASIC_PRG_START) {
 		printf(":%serror:%s invalid BASIC program load address $%04x(.prg first two bytes):\n\
 				must be inside BASIC prg area $%04x - $%04x\n\
