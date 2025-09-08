@@ -52,7 +52,7 @@ void	reset_prg(_bus *bus, _prg* prg) {
 	free(bus->cpu);
 	bus->cpu = cpu_init(bus);
 	if (!bus->cpu) {
-		printf("%s:error%s: hard reset failed exiting..\n\n", RED, RST);
+		printf(":%serror:%s hard reset failed exiting..\n\n", RED, RST);
 		exit(1);
 	}
 	bus->prg = NULL;
