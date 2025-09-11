@@ -67,7 +67,7 @@ void	exec_ldp(uint8_t *program, unsigned size) {
 				RED, RST, size, ld_addr, BASIC_PRG_END, BASIC_PRG_START, BASIC_PRG_END);
 		return;
 	}
-	printf("\t- loading $%04x(%u) bytes at $%04x -> $%04x ...\n",
+	printf("\n  - loading $%04x(%u) bytes at $%04x -> $%04x ...\n",
 			size, size, ld_addr, ld_addr + size);
 
 	_prg *prg = malloc(sizeof(_prg));
@@ -96,10 +96,10 @@ FILE*	exec_ldd(FILE *file, char *file_path) {
 		and change the path string 
 		to the new extracted .prg
 	*/
-	printf("\t- extracting first PRG file from D64 disk image..\n");
+	printf("  - extracting first PRG file from D64 disk image..\n");
 	file = read_d64file(file, file_path);
 	if (file)
-		printf("\t- found prg, storing at \"%s\"..\n", file_path);
+		printf("  - found prg, storing at \"%s\"..\n", file_path);
 	return file;
 }
 

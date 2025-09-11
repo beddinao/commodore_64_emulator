@@ -39,13 +39,13 @@ void	prg_load_sequence(_bus *bus, _prg* prg) {
 	((_keymap*)((_CIA*)bus->cia1)->keys)->act = 1;
 	// DONE
 	prg->loaded = TRUE;
-	printf("\t:%sloaded%s program successfully at $%04x\n", GRN, RST, BASIC_PRG_START);
+	printf("  :%sloaded%s program successfully at $%04x\n", GRN, RST, BASIC_PRG_START);
 	//printf("\t!Use the kernal %sRUN%s command to execute\n", UND, RST);
-	printf("\t!Use the Shell %sCLR%s command to free\n", UND, RST);
+	printf("  !Use the Shell %sCLR%s command to free\n", UND, RST);
 }
 
 void	reset_prg(_bus *bus, _prg* prg) {
-	printf("\t- clearing program from memory..\n");
+	printf("\n  - clearing program from memory..\n");
 	/* hard reset */
 	memset(bus->RAM, 0, sizeof(bus->RAM));
 	bus->RAM[1] = 0x37;
@@ -56,6 +56,6 @@ void	reset_prg(_bus *bus, _prg* prg) {
 		exit(1);
 	}
 	bus->prg = NULL;
-	printf("\t:%sfreed%s $%04x(%u) Bytes of memory\n", GRN, RST, prg->size, prg->size);
+	printf("  :%sfreed%s $%04x(%u) Bytes of memory\n", GRN, RST, prg->size, prg->size);
 	free(prg);
 }

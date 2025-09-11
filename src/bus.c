@@ -1815,27 +1815,23 @@ uint8_t	load_kernal(_bus *bus) {
 	unsigned rstv_ker_addr = RSTV - KERNAL_ROM_START;
 	unsigned irq_ker_addr = IRQ_BRK - KERNAL_ROM_START;
 	printf("\n\
-%s       __  __      _        _  _____  __ _  _%s\n\
-%s      |  \\/  |    | |      | |/ ____|/ /| || |%s\n\
-%s      | \\  / | ___| |_ __ _| | |    / /_| || |_%s\n\
-%s      | |\\/| |/ _ \\ __/ _` | | |   | '_ \\__   _|%s\n\
-%s      | |  | |  __/ || (_| | | |___| (_) | | |%s\n\
-%s      |_|  |_|\\___|\\__\\__,_|_|\\_____\\___/  |_|%s\n\
-	the metal Commodore 64 emulator\n\
-%s\n\
-	- Kernal interrupt vectors:\n\
-		NMI: $%04x, RST: $%04x, IRQ: $%04x\n\
-	- Window dimensions:\n\
-		504x312 (PAL-display) -> %ux%u\n\
-	- HLP/HELP/help for a list of commands\n\
-	- NOTE: Less accurate than the Original C Project\n\
-				%s\n",
-			WHT, RST, WHT, RST, WHT, RST,
-			"", RST, "", RST, "", RST,
-			WHT, bus->KERNAL[nmi_ker_addr + 1] << 0x8 | bus->KERNAL[nmi_ker_addr],
+*       __  __      _        _  _____  __ _  _\n\
+*      |  \\/  |    | |      | |/ ____|/ /| || |\n\
+*      | \\  / | ___| |_ __ _| | |    / /_| || |_\n\
+*      | |\\/| |/ _ \\ __/ _` | | |   | '_ \\__   _|_\n\
+*      | |  | |  __/ || (_| | | |___| (_) | | |\n\
+*      |_|  |_|\\___|\\__\\__,_|_|\\_____\\___/  |_|\n\
+*	the metal Commodore 64 emulator\n\
+  - Kernal interrupt vectors:\n\
+    NMI: $%04x, RST: $%04x, IRQ: $%04x\n\
+  - Window dimensions: 504x312 (PAL-Display)\n\
+    -> %ux%u\n\
+  - NOTE: Less accurate than the Original C Project\n\
+\n",
+			bus->KERNAL[nmi_ker_addr + 1] << 0x8 | bus->KERNAL[nmi_ker_addr],
 			bus->KERNAL[rstv_ker_addr + 1] << 0x8 | bus->KERNAL[rstv_ker_addr],
 			bus->KERNAL[irq_ker_addr + 1] << 0x8 | bus->KERNAL[irq_ker_addr],
-			WWIDTH, WHEIGHT, RST);
+			WWIDTH, WHEIGHT);
 			return 1;
 }
 
