@@ -888,6 +888,7 @@ static void METAL_INTERNAL_DestroyTextureContainer(
         container->textures[i]->handle = nil;
         SDL_free(container->textures[i]);
     }
+    SDL_DestroyProperties(container->header.info.props);
     if (container->debugName != NULL) {
         SDL_free(container->debugName);
     }
@@ -1777,7 +1778,8 @@ static void METAL_UploadToTexture(
                  copyFromBuffer:bufferContainer->activeBuffer->handle
                    sourceOffset:source->offset
               sourceBytesPerRow:BytesPerRow(destination->w, textureContainer->header.info.format)
-            sourceBytesPerImage:SDL_CalculateGPUTextureFormatSize(textureContainer->header.info.format, destination->w, destination->h, destination->d)
+            // sourceBytesPerImage expects the stride between 2D images (slices) of a 3D texture, not the size of the entire region
+            sourceBytesPerImage:SDL_CalculateGPUTextureFormatSize(textureContainer->header.info.format, destination->w, destination->h, 1)
                      sourceSize:MTLSizeMake(destination->w, destination->h, destination->d)
                       toTexture:metalTexture->handle
                destinationSlice:destination->layer

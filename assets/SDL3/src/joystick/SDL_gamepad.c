@@ -311,7 +311,7 @@ void SDL_PrivateGamepadAdded(SDL_JoystickID instance_id)
 {
     SDL_Event event;
 
-    if (!SDL_gamepads_initialized) {
+    if (!SDL_gamepads_initialized || SDL_IsJoystickBeingAdded()) {
         return;
     }
 
@@ -913,7 +913,7 @@ static GamepadMapping_t *SDL_PrivateMatchGamepadMappingForGUID(SDL_GUID guid, bo
                 // An exact match, including CRC
                 return mapping;
             } else if (crc && exact_match_crc) {
-                return NULL;
+                continue;
             }
 
             if (!best_match) {
@@ -1785,6 +1785,11 @@ static GamepadMapping_t *SDL_PrivateGenerateAutomaticGamepadMapping(const char *
     bool existing;
     char name_string[128];
     char mapping[1024];
+
+    // Remove the CRC from the GUID
+    // We already know that this GUID doesn't have a mapping without the CRC, and we want newly
+    // added mappings without a CRC to override this mapping.
+    SDL_SetJoystickGUIDCRC(&guid, 0);
 
     // Remove any commas in the name
     SDL_strlcpy(name_string, name, sizeof(name_string));
@@ -2678,8 +2683,8 @@ bool SDL_ShouldIgnoreGamepad(Uint16 vendor_id, Uint16 product_id, Uint16 version
     }
 #endif
 
-    if (name && SDL_strcmp(name, "uinput-fpc") == 0) {
-        // The Google Pixel fingerprint sensor reports itself as a joystick
+    if (name && SDL_startswith(name, "uinput-")) {
+        // The Google Pixel fingerprint sensor, as well as other fingerprint sensors, reports itself as a joystick
         return true;
     }
 

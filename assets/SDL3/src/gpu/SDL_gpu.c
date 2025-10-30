@@ -1573,6 +1573,7 @@ SDL_GPUCommandBuffer *SDL_AcquireGPUCommandBuffer(
         commandBufferHeader->copy_pass.in_progress = false;
         commandBufferHeader->swapchain_texture_acquired = false;
         commandBufferHeader->submitted = false;
+        commandBufferHeader->ignore_render_pass_texture_validation = false;
         SDL_zeroa(commandBufferHeader->render_pass.vertex_sampler_bound);
         SDL_zeroa(commandBufferHeader->render_pass.vertex_storage_texture_bound);
         SDL_zeroa(commandBufferHeader->render_pass.vertex_storage_buffer_bound);
@@ -1784,6 +1785,8 @@ SDL_GPURenderPass *SDL_BeginGPURenderPass(
         commandBufferHeader->render_pass.num_color_targets = num_color_targets;
         if (depth_stencil_target_info != NULL) {
             commandBufferHeader->render_pass.depth_stencil_target = depth_stencil_target_info->texture;
+        } else {
+            commandBufferHeader->render_pass.depth_stencil_target = NULL;
         }
     }
 
@@ -2247,13 +2250,13 @@ void SDL_DrawGPUIndexedPrimitivesIndirect(
 void SDL_EndGPURenderPass(
     SDL_GPURenderPass *render_pass)
 {
-    CommandBufferCommonHeader *commandBufferCommonHeader;
-    commandBufferCommonHeader = (CommandBufferCommonHeader *)RENDERPASS_COMMAND_BUFFER;
-
     if (render_pass == NULL) {
         SDL_InvalidParamError("render_pass");
         return;
     }
+
+    CommandBufferCommonHeader *commandBufferCommonHeader;
+    commandBufferCommonHeader = (CommandBufferCommonHeader *)RENDERPASS_COMMAND_BUFFER;
 
     if (RENDERPASS_DEVICE->debug_mode) {
         CHECK_RENDERPASS
@@ -2543,7 +2546,7 @@ void SDL_EndGPUComputePass(
     if (COMPUTEPASS_DEVICE->debug_mode) {
         commandBufferCommonHeader = (CommandBufferCommonHeader *)COMPUTEPASS_COMMAND_BUFFER;
         commandBufferCommonHeader->compute_pass.in_progress = false;
-        commandBufferCommonHeader->compute_pass.compute_pipeline = false;
+        commandBufferCommonHeader->compute_pass.compute_pipeline = NULL;
         SDL_zeroa(commandBufferCommonHeader->compute_pass.sampler_bound);
         SDL_zeroa(commandBufferCommonHeader->compute_pass.read_only_storage_texture_bound);
         SDL_zeroa(commandBufferCommonHeader->compute_pass.read_only_storage_buffer_bound);

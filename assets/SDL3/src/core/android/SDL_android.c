@@ -1080,7 +1080,8 @@ JNIEXPORT void JNICALL SDL_JAVA_INTERFACE(nativeAddTouch)(
 {
     const char *utfname = (*env)->GetStringUTFChars(env, name, NULL);
 
-    SDL_AddTouch((SDL_TouchID)touchId, SDL_TOUCH_DEVICE_DIRECT, utfname);
+    SDL_AddTouch(Android_ConvertJavaTouchID(touchId),
+            SDL_TOUCH_DEVICE_DIRECT, utfname);
 
     (*env)->ReleaseStringUTFChars(env, name, utfname);
 }
@@ -2163,7 +2164,7 @@ bool Android_JNI_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *b
     mid = (*env)->GetMethodID(env, clazz,
                               "messageboxShowMessageBox", "(ILjava/lang/String;Ljava/lang/String;[I[I[Ljava/lang/String;[I)I");
     *buttonID = (*env)->CallIntMethod(env, context, mid,
-                                      messageboxdata->flags,
+                                      (jint)messageboxdata->flags,
                                       title,
                                       message,
                                       button_flags,
@@ -2417,7 +2418,7 @@ const char *SDL_GetAndroidCachePath(void)
         // fileObj = context.getExternalFilesDir();
         mid = (*env)->GetMethodID(env, (*env)->GetObjectClass(env, context),
                                   "getCacheDir", "()Ljava/io/File;");
-        fileObject = (*env)->CallObjectMethod(env, context, mid, NULL);
+        fileObject = (*env)->CallObjectMethod(env, context, mid);
         if (!fileObject) {
             SDL_SetError("Couldn't get cache directory");
             LocalReferenceHolder_Cleanup(&refs);
